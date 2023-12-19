@@ -1,0 +1,48 @@
+{
+  "drives": [
+{
+      "name": "🦆托盘",
+      "server": "https://pan.mediy.cn/",
+      "version": 3
+    },
+{
+      "name": "🙋小雅搜索源5",
+      "server": "http://180.139.151.30:5678/",
+      "version": 3
+    },
+{
+      "name": "🙋网络阁群友",
+      "server": "http://124.70.179.62:5678",
+      "version": 3
+    },
+{
+      "name": "🙋弱水分享",
+      "server": "http://shicheng.wang:555",
+      "version": 3
+    },
+{
+      "name": "🙋eduedu",
+      "server": "https://alist.eduedu.eu.org/25W首音乐",
+      "version": 3
+    },
+{
+      "name": "🙋雨昵网盘",
+      "server": "https://pan.clun.top/其他/A大",
+      "version": 3
+    },
+    {
+      "name": "🙋东哥",
+      "server": "http://101.34.67.237:5244"
+    },
+ {
+      "name": "✨ECVE|资源小站",
+      "server": "https://pan.ecve.cn",
+      "version": 3
+    },
+    {
+      "name": "网友小雅3",
+      "server": "http://193.122.102.177:1311",
+      "version": 3
+    }
+  ]
+}

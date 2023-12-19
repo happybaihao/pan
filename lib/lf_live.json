@@ -1,0 +1,31 @@
+#订阅名
+地址(支持m3u订阅、tvbox配置文件中live选项的直播地址订阅)
+
+相对路径说明
+以./开头，相对位置是本订阅文件
+以/开头，存储卡的根目录
+
+#IPTV
+1
+#YanG Gather
+https://mirror.ghproxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u
+#BigBigGrandG源
+https://raw.githubusercontent.com/BigBigGrandG/IPTV-URL/release/Gather.m3u
+#ZHG Playlist
+https://mirror.ghproxy.com/https://raw.githubusercontent.com/zhanghongguang/zhanghongguang.github.io/main/playlist.m3u
+#whpsky
+https://mirror.ghproxy.com/https://raw.githubusercontent.com/whpsky/iptv/main/chinatv.txt
+#4k8k源
+https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/IPTV.m3u
+#leosam1024
+https://mirror.ghproxy.com/https://raw.githubusercontent.com/leosam1024/tvbox/main/live/live.txt
+#大杂烩源
+https://mirror.ghproxy.com/https://raw.githubusercontent.com/rad168/iptv/main/live.m3u
+#L大IPV6
+https://d.laigc.com/m3.m3u
+#悠哉
+https://codeberg.org/youzai/yz/raw/branch/main/yz.txt
+#Hong Kong1
+http://hkanime:hkanime@dtmb.hklive.tv/hls.m3u
+#Hong Kong2
+https://epg.pw/test_channels_hong_kong.m3u

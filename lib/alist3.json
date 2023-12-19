@@ -1,0 +1,16 @@
+[{
+"name": "小鸭",
+"server": "http://193.122.102.177:1311/",
+"startPage": "/",
+"showAll": false,
+"search": true,
+"params": {
+"/abc": {
+"password": "123"
+},
+"/abc/abc": {
+"password": "123"
+}
+}
+}
+]
