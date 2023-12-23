@@ -1,6 +1,6 @@
 {
-  "spider": "./fm.jar;md5;efb86a0831e4de3beac0045d23ecbd01",
-  "wallpaper": "https://jianbian.chuqiuyu.tk",
+  "spider": "./fm.jar;md5;5e627e04bd21071b6d2e4eba772a2db5",
+  "wallpaper": "https://jianbian.chuqiuyu.workers.dev",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
 {
@@ -28,25 +28,25 @@
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
-      "name": "📺4K/8K源📺",
+      "name": "📺大杂烩源📺",
       "type": 0,
-      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/IPTV.m3u",
+      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/rad168/iptv/main/live.m3u",
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
-      "name": "📺业余📺",
+      "name": " 📺小胡📺",
       "type": 0,
-      "url": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/zhibo.txt",
+      "url": "http://xiaohu.xzam.cn/live.txt",
       "playerType": 1,
-      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": "📺DIYPV4📺",
+      "name": "📺业余📺",
       "type": 0,
-      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/leosam1024/tvbox/main/live/live.txt",
+      "url": " http://yydf.540734621.xyz/yydf/yydf/bd/yydf/zhibo.txt",
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
@@ -54,7 +54,7 @@
 {
       "name": " 📺挺好📺",
       "type": 0,
-      "url": "http://111.67.196.189/tvbox/tv/thtv.txt",
+      "url": "http://thfx.xyz/tvbox/tv/thtv.txt",
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
@@ -68,11 +68,51 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": " 📺饭太硬📺",
+      "name": " 📺Ray•综合📺",
       "type": 0,
       "url": "https://xhdwc.tk/tvlive.txt",
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": " 📺Yoursmile•综合📺",
+      "type": 0,
+      "url": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/live.txt",
+      "playerType": 1,
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": "番茄•综合",
+      "type": 0,
+      "url": "http://fanqie.gq/a/1701859592.txt",
+      "playerType": 1,
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    },
+{
+      "name": "📺DIYPV4📺",
+      "type": 0,
+      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/leosam1024/tvbox/main/live/live.txt",
+      "playerType": 1,
+      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": "📺俊于•综合📺",
+      "type": 0,
+      "url": "http://home.jundie.top:81/Cat/tv/live.txt",
+      "playerType": 1,
+      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": "📺初见📺",
+      "type": 0,
+      "url": "http://win11.asuscomm.com:57/iptv/1214.txt",
+      "playerType": 1,
+      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
@@ -90,30 +130,6 @@
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "📺俊于📺",
-      "type": 0,
-      "url": "http://home.jundie.top:81/Cat/tv/live.txt",
-      "playerType": 1,
-      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "📺初见📺",
-      "type": 0,
-      "url": "http://win11.asuscomm.com:57/iptv/1214.txt",
-      "playerType": 1,
-      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": " 📺小胡直播📺",
-      "type": 0,
-      "url": "http://xiaohu.xzam.cn/live.txt",
-      "playerType": 1,
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     }
   ],
   "sites": [
@@ -127,13 +143,33 @@
       "quickSearch": 0,
       "filterable": 0
     },
-{"key":"道长直播2点播","name":"道💞百号QQ:476294817㊗您观影愉快💯","type":3,"api":"./lib/live2cms.js","changeable":0,"searchable":0,"ext":"./lib/live2mv_data.json"},
-{"key":"路飞直播2点播8","name":"路💞百号QQ:476294817㊗您观影愉快💯","type":3,"api":"./lib/lf_live8_1_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live.json"},
-{"key":"路飞直播2点播8-1","name":"路💞百号QQ:476294817㊗您观影愉快💯1","type":3,"api":"./lib/lf_live8_1_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_1.json"},
-{"key":"路飞直播2点播8-2","name":"路💞百号QQ:476294817㊗您观影愉快💯2","type":3,"api":"./lib/lf_live8_1_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_2.json"},
-{"key":"路飞直播2点播10","name":"路💞百号QQ:476294817㊗您观影愉快💯","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live.json"},
-{"key":"路飞直播2点播10-1","name":"路💞百号QQ:476294817㊗您观影愉快💯1","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_1.json"},
-{"key":"路飞直播2点播10-2","name":"路💞百号QQ:476294817㊗您观影愉快💯2","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_2.json"},
+{
+      "key": "豆瓣",
+      "name": "🌕豆瓣备用",
+      "type": 3,
+      "api": "csp_Douban",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/json/douban.json"
+    },
+{
+      "key": "配置中心",
+      "name": "🏬配置┃中心",
+      "type": 3,
+      "api": "csp_Config",
+      "searchable": 0,
+      "changeable": 0,
+      "style": {
+        "type": "rect",
+        "ratio": 1
+      },
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json"
+    },
+{"key":"道长直播2点播","name":"☠道长┃直播","type":3,"api":"./lib/live2cms.js","changeable":0,"searchable":0,"ext":"./lib/live2mv_data.json"},
+{"key":"路飞直播2点播10","name":"☠路飞┃直播","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live.json"},
+{"key":"路飞直播2点播10-1","name":"☠路飞┃直播1","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_1.json"},
+{"key":"路飞直播2点播10-2","name":"☠路飞┃直播2","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_2.json"},
 {
       "key": "酷狗",
       "name": "酷狗",
@@ -485,7 +521,8 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt$$$https://api.wogg.xyz/"
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$https://api.wogg.xyz/$$$null$$$1",
+      "timeout": 60
     },
 {
       "key": "csp_WoGG姐",
@@ -495,7 +532,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt$$$http://tvfan.xxooo.cf/"
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$http://tvfan.xxooo.cf/$$$null$$$1"
     },
 {
       "key": "csp_WoGG新",
@@ -505,7 +542,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt$$$https://wogg.link/"
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$https://wogg.link/$$$null$$$1"
     },
 {
       "key": "csp_wogg",
@@ -515,7 +552,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt$$$http://www.wogg.xyz/"
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$http://www.wogg.xyz/$$$null$$$1"
     },
 {
       "key": "Wobg",
@@ -525,7 +562,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt$$$http://wobge.run.goorm.io"
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$http://wobge.run.goorm.io$$$1"
     },
 {
       "key": "初见表哥",
@@ -603,52 +640,80 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt$$$null$$$1"
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$null$$$1"
     },
 {
-            "key": "csp_wogg",
-            "name": "😈俊版┃玩偶妹",
-            "type": 4,
-            "api": "http://home.jundie.top:9520/spider/csp_Wogg?sort=原画,蓝光,超清,高清&token=9f211b4b48ce45fb82e7bb3ec352e5cb",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 1,
-            "changeable": 0
-        },
+      "key": "Ppxzy",
+      "name": "🦀皮皮虾┃网盘",
+      "type": 3,
+      "api": "csp_Ppxzy",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$https://ppxzy.net/$$$null$$$1",
+      "timeout": 60
+    },
 {
-            "key": "csp_woggcli",
-            "name": "😈俊版┃玩偶哥",
-            "type": 4,
-            "api": "http://home.jundie.top:9520/spider/csp_Wogg?token=https://download.kstore.space/download/4723/lib/token.txt",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 1,
-            "changeable": 0
-        },
+      "key": "校长影视",
+      "name": "🛶校长┃网盘",
+      "type": 3,
+      "api": "csp_XiaoZhang",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 0,
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$null$$$1",
+      "timeout": 60
+    },
 {
-            "key": "csp_woggcli",
-            "name": "😈俊版┃玩偶姐",
-            "type": 4,
-            "api": "http://home.jundie.top:9520/spider/csp_Wogg?token=https://download.kstore.space/download/4723/lib/alitoken.txt",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 1,
-            "changeable": 0
-        },
+      "key": "团长影视",
+      "name": "🍡团长┃网盘",
+      "type": 3,
+      "api": "csp_TZFile",
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$null$$$1",
+      "quickSearch": 1,
+      "changeable": 0,
+      "timeout": 60
+    },
+{
+      "key": "Libvio",
+      "name": "LIBVIO|网盘",
+      "type": 3,
+      "api": "csp_Libvio",
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$https://www.libvio.fun$$$null",
+      "quickSearch": 1,
+      "changeable":1,
+      "timeout": 60
+    },
+{
+      "key": "云盘资源",
+      "name": "🎠云盘┃网盘",
+      "type": 3,
+      "api": "csp_YunPanOne",
+      "changeable": 0,
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json",
+      "timeout": 60
+    },
+    {
+      "key": "小云",
+      "name": "🚤小云┃网盘",
+      "type": 3,
+      "api": "csp_YunSo",
+      "changeable": 0,
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json",
+      "timeout": 60
+    },
 {
       "key": "gitcafe_php",
       "name": "小纸条PHP[影视壳专用]",
       "type": 1,
       "api": "http://tvbox.top/gitcafe.php",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1
-    },
-{
-      "key": "csp_Paper",
-      "name": "😈纸条┃俊版",
-      "type": 4,
-      "api": "http://home.jundie.top:9520/spider/cli_gitCafe?&token=4ebfeac415874114b302a0200993a232",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1
@@ -861,6 +926,22 @@
       "ext": "https://gitcode.net/m0_73989217/ymz/-/raw/master/JS/%E5%8D%97%E7%93%9C.js"
     },
 {
+      "key": "996影院",
+      "name": "🎀九六┃影院",
+      "type": 3,
+      "api": "csp_Cs1369",
+      "searchable": 1,
+      "changeable": 0
+    },
+{
+      "key": "短剧",
+      "name": "🐋短剧┃影视",
+      "type": 3,
+      "api": "csp_Duanju",
+      "searchable": 1,
+      "changeable": 0
+    },
+{
       "key": "NanGua",
       "name": "南瓜|弹幕",
       "type": 3,
@@ -903,6 +984,14 @@
 			"searchable": 1,
 			"ext": "https://www.bdys03.com/$$$null$$$1"
 		},
+{
+      "key": "嘶哩",
+      "name": "🍺嘶哩┃影视",
+      "type": 3,
+      "api": "csp_Skapp",
+      "playerType": 2,
+      "ext": "wf7jTHTllmPx90cSfqYsxOFbNiEn/OOwcQMioXntTCgGo6loj/amsxwUNfJPF2W00I+ZJzSan7pD3OPqeGn1/3CaJLZhzh/OtQFo7cJf/AA/LRGchJ/NNsdu8c3HeY8X3ic+nAYiOFIT7HiLfqFnBom04dCSbujoxb0RoT6iYiZSArenzm5E5lEpGHD/KltmbDpcX9Lkxj+9HnF/okAhK8nsUmta/Jrnk40HP7cZodP3QGeLUpeoOCQZzw++LuS9iYZSentZVKL9q/puBZ78nhjx4fw94cM1SbG0rcAB9vwZr4z9YYNRythGAfNeOsMgRpAOnZH8K5JuWFoADNhHLMA==$$$null$$$1"
+    },
 {
       "key": "攻阁",
       "name": "攻阁┃App",
@@ -1114,15 +1203,17 @@
             "changeable" : 0,
             "ext" : "http://127.0.0.1:9978/file/tvbox/token.txt"
         },
-    {
-      "key": "YiSo",
-      "name": "💯易搜┃搜索",
+{
+      "key": "易搜",
+      "name": "💯易搜┃网盘",
       "type": 3,
       "api": "csp_YiSo",
+      "changeable": 0,
       "searchable": 1,
       "quickSearch": 1,
-      "changeable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt"
+      "filterable": 0,
+      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/lib/PG推送.json$$$satoken=1aee2366-2ff4-4436-b321-a14db23e8294",
+      "timeout": 60
     },
     {
       "key": "七夜",
