@@ -872,60 +872,6 @@
 "quickSearch": 1
 },
 {
-      "key": "狐狸影视",
-      "name": "👑狐狸影视2k👑",
-      "type": 3,
-      "playerType": 1,
-      "api": "csp_AppYsV2",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "https://www.kuin.one/api.php/app/"
-    },
-{
-      "key": "超前",
-      "name": "👑超前4K👑",
-      "type": 3,
-      "searchable": 1,
-      "quickSearch": 1,
-      "api": "https://agit.ai/Yemaozhi123/yemao/raw/branch/master/lib/drpy2.min.js",
-      "ext": "https://jihulab.com/ymz1231/js/-/raw/main/4K%E8%B6%85%E5%89%8D.js"
-    },
-{
-      "key": "csp_appysv2_迷你库",
-      "name": "👑迷你2k👑",
-      "type": 3,
-      "playerType": 2,
-      "api": "csp_AppYsV2",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "http://www.miniku.cc/xgapp.php/v2/"
-    },
-{
-      "key": "影院",
-      "name": "👑蓝光2K👑",
-      "type": 3,
-      "playerType": 2,
-      "api": "csp_AppYsV2",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "https://www.gsjtlxy.top/xgapp.php/v3/"
-    },
-{
-      "key": "AppYs_南瓜",
-      "name": "👑南瓜蓝光👑",
-      "type": 3,
-      "playerType": 2,
-      "api": "https://agit.ai/Yemaozhi123/yemao/raw/branch/master/lib/drpy2.min.js",
-      "changeable": 0,
-      "searchable": 1,
-      "quickSearch": 1,
-      "ext": "https://gitcode.net/m0_73989217/ymz/-/raw/master/JS/%E5%8D%97%E7%93%9C.js"
-    },
-{
       "key": "996影院",
       "name": "🎀九六┃影院",
       "type": 3,
@@ -1038,6 +984,24 @@
       "filterable": 1,
       "ext": "nbOdUoFXWvBmYlNj/qG8q6ytWFIZwtQPtFFI3cwHTOjM7FKVzTbwY0UHQEImlWb/pHq5gMm6LS2HhJI1m5+/s20tWUHsfJ1BIc4rlkWL5xqOQ/EhgcwCwcKi7ECmsFCBAxb69vZB0qXeElk+GDnHEPxoiB3EqjFfAJ88lClO/fKiZKGBnTdyRVG8VAvmercLgiklQwl6jSHVHanEdkZhMj2jIUEKsVeBWOocRzhJ/7457CvmQd/kLyTabYHJ+jrT7m4iVCnGDL7Aw5W+yeOF8FoH2zfTBBARd0o/8ACk+C7pbFTHI3HbjgiBWatiYevYz8buFQdxmSyXA1kgq5hi8WQ5f/STXW4vtO2ZfbVvEHE4T4MKyb1Cs9Hd0daU/Hb1dukLo9sV7fIisMWkr0UuDvYJJMq6xBU5vnFqxYwp59NsgGK/lc6P7oYWERiZWW6Oe/aVFSapfWILTqV1/UBrsjmgtK8XZTvY4hWh0khKyxwpdyQkQ1JzXfB+CHtM3cPXMKEol3PP9XoMLy4K93+/AH2ty15mcmpBfzip4mZmy8r0g+yV8vqaanhRcBDEvZMy0SgWW59YgbavdsNm7TeIrs/WasVtLrLeRPn5jvlc/Q4FXfx320XO3LI0jMqA0f++gQjCUvfsB3wdi29Sv7NYtMqj8ltg23bzuHg2lfZG+nM8=$$$null$$$1"
     },
+{
+            "key": "视界",
+            "name": "👑大鹏影视👑",
+            "type": 3,
+            "playerType":2,
+            "api": "https://jihulab.com/ymz1231/lib/-/raw/main/drpy2.min.js",                     "changeable": 0,
+            "searchable": 1,
+            "quickSearch": 1,
+            "ext": "https://jihulab.com/ymz1231/js/-/raw/main/%E5%A4%A7%E9%B9%8F.js"},
+{
+            "key": "AppYs_南瓜",
+            "name": "👑南瓜高清👑",
+            "type": 3,
+            "playerType":2,
+            "api": "https://jihulab.com/ymz1231/lib/-/raw/main/drpy2.min.js",                     "changeable": 0,
+            "searchable": 1,
+            "quickSearch": 1,
+            "ext": "https://jihulab.com/ymz1231/js/-/raw/main/%E5%8D%97%E7%93%9C.js"},
 {
       "key": "索尼",
       "name": "🎮索尼┃资源",
