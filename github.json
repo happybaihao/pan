@@ -44,9 +44,9 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": "📺业余📺",
+      "name": "📺饭太硬📺",
       "type": 0,
-      "url": " http://yydf.540734621.xyz/yydf/yydf/bd/yydf/zhibo.txt",
+      "url": " https://fanty.run.goorm.site/live.txt",
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
@@ -92,9 +92,9 @@
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
-      "name": "📺DIYPV4📺",
+      "name": "📺探索📺",
       "type": 0,
-      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/leosam1024/tvbox/main/live/live.txt",
+      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/tansuotv/IPTVindex/main/tv/tv.txt",
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
