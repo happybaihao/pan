@@ -1,5 +1,5 @@
 {
-  "spider": "./fm.jar;md5;5e627e04bd21071b6d2e4eba772a2db5",
+  "spider": "./fm.jar;md5;e330864bb00327f6c15914a6a19d6ed0",
   "wallpaper": "https://jianbian.chuqiuyu.workers.dev",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -152,7 +152,7 @@
       "searchable": 0,
       "quickSearch": 0,
       "filterable": 0,
-      "ext": "https://gitee.com/ajin0913/xiaobai/raw/master/json/douban.json"
+      "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/douban.json"
     },
 {
       "key": "配置中心",
@@ -522,8 +522,19 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "./lib/tokenm.json$$$https://api.wogg.xyz/$$$null$$$1",
+      "ext": "./lib/tokenm.json$$$https://api.wogg.xyz/$$$null$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
       "timeout": 60
+    },
+{
+      "key": "Wogg",
+      "name": "💯玩偶┃哥哥",
+      "type": 3,
+      "style": {
+        "type": "rect",
+        "ratio": 1.597
+      },
+      "api": "csp_Wogg",
+      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://api.wogg.xyz/"
     },
 {
       "key": "csp_WoGG姐",
@@ -557,13 +568,46 @@
     },
 {
       "key": "Wobg",
-      "name": "阿里 | 玩偶表哥",
+      "name": "阿里玩偶表哥",
       "type": 3,
       "api": "csp_Wobg",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$1"
+      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json"
+    },
+{
+      "key": "csp_Wobg",
+      "name": "阿里┃玩偶表哥",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$http://wobge.run.goorm.io$$$1"
+    },
+{
+            "key": "YSC",
+            "name": "玩偶┃运输车",
+            "type": 3,
+            "api": "csp_Wogg",
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 0,
+            "ext": "./lib/tokenm.json$$$https://www.weixine.net/$$$null$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
+            "timeout": 60
+     },
+{
+      "key": "运输车",
+      "name": "运输车影视 ",
+      "type": 3,
+      "api": "csp_XYQHikerAL",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "ext": "./lib/yingshiche.json",
+      "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/jar/xyq.jar"
     },
 {
       "key": "初见表哥",
@@ -642,6 +686,17 @@
       "quickSearch": 1,
       "filterable": 0,
       "ext": "./lib/tokenm.json$$$null$$$1"
+    },
+{
+      "key": "Pan99",
+      "name": "盘99|网盘",
+      "type": 3,
+      "api": "csp_Pan99",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "ext": "./lib/tokenm.json$$$https://pan99.xyz$$$null$$$1",
+      "timeout": 60
     },
 {
       "key": "Ppxzy",
@@ -740,22 +795,32 @@
         "体育"
       ]
     },
-    {
+{
       "key": "业余采集B",
       "name": "♻ 业余私营 ",
       "type": 1,
-      "api": "http://yydf.kele.plus/api.php/provide/vod/",
+      "api": "http://d.540734621.xyz/api.php/provide/vod/",
       "playerType": 2,
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
       "categories": [
-        "短剧",
-        "电影",
-        "电视剧",
-        "动漫",
-        "综艺",
-        "体育赛事"
+        "4K电影",
+                "国产剧",
+                "港台剧",
+                "日韩剧",
+                "欧美剧",
+                "动作片",
+                "喜剧片",
+                "科幻片",
+                "恐怖片",
+                "剧情片",
+                "战争片",
+                "动漫",
+                "综艺",
+                "纪录片",
+                "歌舞",
+                "体育"
       ]
     },
     {
@@ -1498,6 +1563,7 @@
       "quickSearch": 1,
       "changeable": 0
     },
+{"key":"PikPakShare","name":"PikPak分享","type":3,"api":"csp_PikPakShare","searchable":0,"quickSearch":0, "changeable":0, "filterable":0, "timeout":60, "ext":"./lib/tokenm.json$$$./lib/yingshiche.json"},
 {
     "key": "push_agent",
     "name": "推送 | lf_push",
