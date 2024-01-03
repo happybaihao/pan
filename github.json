@@ -1,5 +1,5 @@
 {
-  "spider": "./fm.jar;md5;e330864bb00327f6c15914a6a19d6ed0",
+  "spider": "./fm.jar;md5;b5027b2f02864d71560a99bd49442aab",
   "wallpaper": "https://jianbian.chuqiuyu.workers.dev",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -140,6 +140,16 @@
       "type": 3,
       "api": "http://www.ttkx.site/lib/drpy2.min.js",
       "ext": "http://www.ttkx.site/lib/douban.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0
+    },
+{
+      "key": "豆瓣饭",
+      "name": "🌕豆瓣|饭",
+      "type": 3,
+      "jar": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431",
+      "api": "csp_DouDou",
       "searchable": 0,
       "quickSearch": 0,
       "filterable": 0
@@ -374,6 +384,7 @@
       "jar": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431"
     },
 {"key":"哔哩","name":"哔哩[影视专用]","type":3,"api":"csp_Bili","ext":{"type": "短剧合集#DJ#4K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#新歌热榜#直播#热门#综艺#动画#舞蹈#娱乐#科技#美食#汽车#运动#电影#电视剧#纪录片#游戏#音乐#影视#资讯#生活#时尚#动物圈#VLOG#搞笑#单机游戏#虚拟UP主#公益#课堂#公开课#相声小品#动物世界","cookie":"buvid3=16332BA7-9BC6-FD1B-EEC3-859D147BA73F72975infoc; i-wanna-go-back=-1; _uuid=7FE6F164-1BF5-95D7-B31C-B245D1BCD3B672659infoc; FEED_LIVE_VERSION=V8; buvid_fp=c843b16d23d773068a41565d4c506496; home_feed_column=4; buvid4=BA29EBD7-2B32-2DF4-A10C-C2EE86D4AEAC75078-023052222-zZSZhRISSyj4nwTFZwcoEg%3D%3D; b_nut=1684766675; header_theme_version=CLOSE; bsource=search_google; CURRENT_FNVAL=4048; innersign=0; SESSDATA=13efc517%2C1700577613%2Cfcea6%2A52; bili_jct=272ef2be34e676f7cf6339c17dcb7bb5; DedeUserID=284097455; DedeUserID__ckMd5=e652501280a8dfd1; sid=6w4xdsp6; browser_resolution=1100-2085; b_ut=5; b_lsid=10D95E7610_18855A760EB"}},
+{"key":"PikPakShare","name":"PikPak分享","type":3,"api":"csp_PikPakShare","searchable":1,"quickSearch":1, "changeable":0, "filterable":0, "timeout":60, "ext":"./lib/tokenm.json$$$./lib/pikpakclass.json$$$./lib/pikpakclass.json.txt.gz"},
 {
 	    "key":"Alist",
 	    "name":"💞网盘 | 百号QQ:476294817㊗您观影愉快💯",
@@ -532,7 +543,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "./lib/tokenm.json$$$https://api.wogg.xyz/$$$null$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
+      "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
       "timeout": 60
     },
 {
@@ -724,11 +735,22 @@
       "name": "LIBVIO|网盘",
       "type": 3,
       "api": "csp_Libvio",
-      "ext": "./lib/tokenm.json$$$https://www.libvio.fun$$$null",
+      "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null",
       "quickSearch": 1,
       "changeable":1,
       "timeout": 60
     },
+{
+            "key": "Funletu",
+            "name": "趣盘|夸克",
+            "type": 3,
+            "api": "csp_Funletu",
+            "quickSearch": 1,
+            "changeable": 1,
+            "filterable": 1,
+            "timeout": 30,
+            "ext": "./lib/tokenm.json"
+        },
 {
       "key": "云盘资源",
       "name": "🎠云盘┃网盘",
@@ -997,6 +1019,7 @@
 			"searchable": 1,
 			"ext": "https://www.bdys03.com/$$$null$$$1"
 		},
+{ "key": "YQKan", "name": "一起看", "type": 3, "api": "csp_YQKan", "searchable": 1, "quickSearch": 1, "filterable": 1, "changeable": 1 },
 {
       "key": "嘶哩",
       "name": "🍺嘶哩┃影视",
@@ -1303,17 +1326,6 @@
       "jar": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431"
     },
 {
-      "key": "Auete",
-      "name": "🏝奥特┃直连",
-      "type": 3,
-      "api": "csp_Auete",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "http://www.aueteys.com/",
-      "jar": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431"
-    },
-{
       "key": "蚂蚁",
       "name": "🐜蚂蚁┃直连",
       "type": 3,
@@ -1535,7 +1547,6 @@
       "quickSearch": 1,
       "changeable": 0
     },
-{"key":"PikPakShare","name":"PikPak分享","type":3,"api":"csp_PikPakShare","searchable":0,"quickSearch":0, "changeable":0, "filterable":0, "timeout":60, "ext":"./lib/tokenm.json$$$./lib/yingshiche.json"},
 {
     "key": "push_agent",
     "name": "推送 | lf_push",
@@ -2205,30 +2216,6 @@
         "5",
         "20.123",
         "20.167"
-      ]
-    },
-    {
-      "name": "磁力广告",
-      "hosts": [
-        "magnet"
-      ],
-      "regex": [
-        "更多",
-        "社 區",
-        "x u u",
-        "最 新",
-        "更 新",
-        "社 区",
-        "有趣",
-        "有 趣",
-        "英皇体育",
-        "全中文AV在线",
-        "澳门皇冠赌场",
-        "哥哥快来",
-        "美女荷官",
-        "裸聊",
-        "新片首发",
-        "UUE29"
       ]
     },
     {
