@@ -555,7 +555,7 @@
         "ratio": 1.597
       },
       "api": "csp_Wogg",
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://api.wogg.xyz/"
+      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://wogg.xyz/"
     },
 {
       "key": "csp_WoGG姐",
@@ -609,15 +609,26 @@
     },
 {
             "key": "YSC",
-            "name": "玩偶┃运输车",
+            "name": "💯玩偶┃运输车",
             "type": 3,
             "api": "csp_Wogg",
             "searchable": 1,
             "quickSearch": 1,
-            "changeable": 0,
+            "changeable": 1,
             "ext": "./lib/tokenm.json$$$https://www.weixine.net/$$$null$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
             "timeout": 60
      },
+{
+      "key": "玩我",
+      "name": "💯玩偶┃天天开心",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://2026.ttkx.site:99/$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
+      "timeout": 60
+    },
 {
       "key": "运输车",
       "name": "运输车影视 ",
@@ -895,19 +906,16 @@
         },
 {"key":"初见影视","name":"初见影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见影视.json","jar": "https://win11.asuscomm.com:63/jar/XBPQ.jar"},
 {"key":"初见自用","name":"初见自用","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见自用.json","jar": "https://win11.asuscomm.com:63/jar/HeChengChaXiu.jar"},
-{
-      "key": "yingshiche",
-      "name": "运输车影视 ",
-      "type": 3,
-      "api": "csp_XYQHiker",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "https://pan.shangui.cc/f/1gmKCw/yingshiche.json",
-      "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/jar/xyq.jar"
-    },
 {"key": "开心影视","name": "🎦开心影视","type": 1,"api": "http://www.ttkx.site:33/api.php/provide/vod/","playerType": 2,"searchable": 1,"quickSearch": 1,"filterable": 1,"categories": ["动作片","战争片","国产剧","港台剧","日韩剧","欧美剧","国产动漫","动漫","综艺","日韩动漫","港台动漫","动画片","短剧","国产综艺","喜剧片","爱情片","科幻片","恐怖片","剧情片","灾难片","悬疑片","犯罪片","奇幻片","纪录片"]},
+{
+      "key": "csp_Czzy",
+      "name": "📔厂长┃阿姨最爱",
+      "type": 3,
+      "api": "csp_Czzy",
+      "searchable": 1,
+      "changeable": 0,
+      "jar": "https://gitee.com/ajin0913/xiaohei/raw/master/jar/qqq.jar"
+    },
     {
       "key": "U酷资源",
       "name": "🐅 U酷资源网 ",
@@ -1348,18 +1356,6 @@
       "jar": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431"
     },
 {
-      "key": "厂长",
-      "name": "📔厂长┃直连",
-      "type": 3,
-      "api": "csp_Czsapp",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "playerType": 2,
-      "ext": "https://czz9.com/",
-      "jar": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431"
-    },
-{
       "key": "csp_Lib",
       "name": "🌟利播┃直连",
       "type": 3,
@@ -1463,7 +1459,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/小灯塔国学.json",
+      "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/小灯塔国学.json",
       "jar": "https://files.zohopublic.com.cn/public/workdrive-public/download/uyv0t678c488189af47bb91dc108484d17431"
     },
 {
@@ -1531,7 +1527,7 @@
             "name": "喜马拉雅[js]",
             "type": 3,
             "api": "https://fanty.run.goorm.site/ext/js/drpy2.min.js",
-            "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/喜马拉雅.js"
+            "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/喜马拉雅.js"
         },
 {
       "key": "有声小说js",
