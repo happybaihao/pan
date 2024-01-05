@@ -558,6 +558,21 @@
       "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://wogg.xyz/"
     },
 {
+      "key": "玩偶哥哥",
+      "name": "👽玩偶┃OK",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "filterable": 1,
+      "changeable": 0,
+      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "filter": "https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+        "danmu": true
+      }
+    },
+{
       "key": "csp_WoGG姐",
       "name": "💯玩偶姐姐",
       "type": 3,
@@ -608,6 +623,21 @@
       "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$http://wobge.run.goorm.io$$$1"
     },
 {
+      "key": "玩偶表哥",
+      "name": "🐷表哥┃OK",
+      "type": 3,
+      "api": "csp_Wobg",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "cookie": "https://gitee.com/ajin0913/xiaohei/raw/master/lib/cookie.txt",
+        "danmu": true
+      }
+    },
+{
             "key": "YSC",
             "name": "💯玩偶┃运输车",
             "type": 3,
@@ -619,6 +649,23 @@
             "timeout": 60
      },
 {
+      "key": "影视车",
+      "name": "🚛影视车┃OK",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "cookie": "https://gitee.com/ajin0913/xiaohei/raw/master/lib/cookie.txt",
+        "site": "https://www.weixine.net",
+        "danmu": true
+      },
+      "timeout": 25
+    },
+{
       "key": "玩我",
       "name": "💯玩偶┃天天开心",
       "type": 3,
@@ -628,6 +675,23 @@
       "changeable": 2,
       "ext": "./lib/tokenm.json$$$http://2026.ttkx.site:99/$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
       "timeout": 60
+    },
+{
+      "key": "开心",
+      "name": "天天开心┃OK",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "filter": "https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+        "site": "http://2026.ttkx.site:99",
+        "danmu": true
+      },
+      "timeout": 25
     },
 {
       "key": "运输车",
@@ -1311,7 +1375,22 @@
       "filterable": 0,
       "ext": "http://127.0.0.1:9978/file/XYQTVBox/alitoken.txt"
      },
-    {"key":"csp_AliPS","name":"📀喵狸盘搜(搜索)","type":3,"api":"csp_AliPS","playerType":1,"searchable":1,"quickSearch":1,"filterable":0,"ext":"http://127.0.0.1:9978/file/tvbox/token.txt","jar": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/jar/xyq.jar"},
+{
+      "key": "找資源",
+      "name": "🚀资源┃OK",
+      "type": 3,
+      "api": "csp_Zhaozy",
+      "searchable": 1,
+      "filterable": 0,
+      "changeable": 0,
+      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "username": "fanty",
+        "password": "qqq111",
+        "danmu": true
+      }
+    },
 {
       "key": "毛驴",
       "name": "🍓毛驴┃直连",
