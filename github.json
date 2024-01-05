@@ -816,6 +816,29 @@
       "timeout": 60
     },
 {
+            "key": "Qianfan",
+            "name": "⛵千帆┃网盘",
+            "type": 3,
+            "api": "csp_Qianfan",
+            "quickSearch": 1,
+            "changeable": 2,
+            "filterable": 1,
+            "timeout": 30,
+            "ext": "./lib/tokenm.json$$$https://pan.qianfan.app$$$null$$$QianFanID=2uv89payop7itb47vk52od1oc0vsbj57; _ga_6Z94VT54DV=GS1.1.1704346197.2.1.1704346441.0.0.0"
+        },
+{
+            "key": "盘搜",
+            "name": "🚂盘搜|网盘",
+            "type": 3,
+            "api": "csp_PanSou",
+            "changeable": 2,
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 0,
+            "ext": "./lib/tokenm.json",
+            "timeout": 60
+        },
+{
             "key": "Funletu",
             "name": "趣盘|夸克",
             "type": 3,
@@ -1330,16 +1353,6 @@
       "name": "💯七夜┃搜索",
       "type": 3,
       "api": "csp_Dovx",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt"
-    },
-    {
-      "key": "PanSou",
-      "name": "💯盘搜┃搜索",
-      "type": 3,
-      "api": "csp_PanSou",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
