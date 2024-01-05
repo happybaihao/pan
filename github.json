@@ -117,6 +117,14 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
+      "name": "📺QQ1779387745📺",
+      "type": 0,
+      "url": "https://gitcode.net/u012349622/iptv/-/raw/master/tv.m3u",
+      "playerType": 1,
+      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
       "name": " 📺L大IPV6📺",
       "type": 0,
       "url": "https://d.laigc.com/m3.m3u",
