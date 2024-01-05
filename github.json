@@ -543,7 +543,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
+      "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
       "timeout": 60
     },
 {
@@ -610,7 +610,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json"
+      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json"
     },
 {
       "key": "csp_Wobg",
@@ -645,7 +645,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 1,
-            "ext": "./lib/tokenm.json$$$https://www.weixine.net/$$$null$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
+            "ext": "./lib/tokenm.json$$$https://www.weixine.net/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
             "timeout": 60
      },
 {
@@ -673,7 +673,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://2026.ttkx.site:99/$$$1$$$https://fm.t4tv.hz.cz/json/wogg.json",
+      "ext": "./lib/tokenm.json$$$http://2026.ttkx.site:99/$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
       "timeout": 60
     },
 {
