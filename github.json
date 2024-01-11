@@ -1,6 +1,6 @@
 {
-  "spider": "./fm.jar;md5;b5027b2f02864d71560a99bd49442aab",
-  "wallpaper": "https://jianbian.chuqiuyu.workers.dev",
+  "spider": "./fm.jar;md5;51df33046ac937b324d6473ae8d689ee",
+  "wallpaper": "https://gitee.com/ajin0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
 {
@@ -366,15 +366,15 @@
       "type": 3,
       "api": "csp_Bili",
       "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0,
+      "quickSearch": 1,
+      "changeable": 2,
       "style": {
         "type": "rect",
         "ratio": 1.755
       },
       "filterable": 1,
       "ext": {
-        "type": "帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身",
+        "type": "短剧合集#帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身",
         "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; rpdid=|(ku|kk~Y)|~0J'uYY)~R|Ruu; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; innersign=0; b_lsid=981EC88B_18C872AD87A; SESSDATA=c4779b74%2C1718626788%2C3611e%2Ac1CjCOSRxDoHRlVinsLP2lc3AvbmPzXLDvKWjWK1ckaxqv1lEAev7joUdWp6JgQwy8xk8SVmFHcndrTEpOT05DbWpvaDNfdXdPVTBQR2NtSHNJMjVCOGJ3VXdhY3gxVmVKMnd6dWhrUkkyYkd2MWdFbVItblN6VDQ5clgwd00zR3dGS1FtODdOWVdRIIEC; bili_jct=bf0412377f4ff1389b9358355d037fa5; sid=fv34lvdg; home_feed_column=4; browser_resolution=819-1292; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDMzMzQwMjcsImlhdCI6MTcwMzA3NDc2NywicGx0IjotMX0.tAO5Lh-srETkWo86IqbiZwEYuKc4_n-Cz0Se0dF9qm0; bili_ticket_expires=1703333967; fingerprint=1c0962ce584a4c104a234c96b7446190; buvid_fp=1c0962ce584a4c104a234c96b7446190"
       }
     },
@@ -548,8 +548,19 @@
             "filterable": 0
         },
 {
-      "key": "csp_WoGG",
-      "name": "💯玩偶哥哥",
+            "key": "YSC",
+            "name": "💯玩偶┃运输车",
+            "type": 3,
+            "api": "csp_Wogg",
+            "searchable": 1,
+            "quickSearch": 1,
+            "changeable": 2,
+            "ext": "./lib/tokenm.json$$$https://www.weixine.net/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+            "timeout": 60
+     },
+{
+      "key": "玩偶哥哥",
+      "name": "💯玩偶┃哥哥",
       "type": 3,
       "api": "csp_Wogg",
       "searchable": 1,
@@ -559,18 +570,72 @@
       "timeout": 60
     },
 {
-      "key": "Wogg",
-      "name": "💯玩偶┃哥哥",
+      "key": "玩偶姐姐",
+      "name": "💯玩偶┃姐姐",
       "type": 3,
-      "style": {
-        "type": "rect",
-        "ratio": 1.597
-      },
       "api": "csp_Wogg",
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://wogg.xyz/"
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "./lib/tokenm.json$$$http://tvfan.xxooo.cf/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+      "timeout": 60
     },
 {
-      "key": "玩偶哥哥",
+      "key": "玩偶妹妹",
+      "name": "💯玩偶┃妹妹",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "./lib/tokenm.json$$$https://wogg.link/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+      "timeout": 60
+    },
+{
+      "key": "玩偶阿姨",
+      "name": "💯玩偶┃阿姨",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "./lib/tokenm.json$$$http://www.wogg.xyz/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+      "timeout": 60
+    },
+{
+      "key": "玩偶弟弟",
+      "name": "💯玩偶┃弟弟",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "./lib/tokenm.json$$$https://wogg.888484.xyz/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+      "timeout": 60
+    },
+{
+      "key": "Wobg",
+      "name": "💯玩偶┃表哥",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json"
+    },
+{
+      "key": "玩我",
+      "name": "💯玩偶┃天天开心",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://www.ttkx.live/$$$null$$$1https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
+      "timeout": 60
+    },
+{
+      "key": "Wogg",
       "name": "👽玩偶┃OK",
       "type": 3,
       "api": "csp_Wogg",
@@ -583,56 +648,6 @@
         "filter": "https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
         "danmu": true
       }
-    },
-{
-      "key": "csp_WoGG姐",
-      "name": "💯玩偶姐姐",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "./lib/tokenm.json$$$http://tvfan.xxooo.cf/$$$null$$$1"
-    },
-{
-      "key": "csp_WoGG新",
-      "name": "💯玩偶哥哥┃4K",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.link/$$$null$$$1"
-    },
-{
-      "key": "csp_wogg",
-      "name": "阿里 | 玩偶哥哥",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "./lib/tokenm.json$$$http://www.wogg.xyz/$$$null$$$1"
-    },
-{
-      "key": "Wobg",
-      "name": "阿里玩偶表哥",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json"
-    },
-{
-      "key": "csp_Wobg",
-      "name": "阿里┃玩偶表哥",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$http://wobge.run.goorm.io$$$null$$$1"
     },
 {
       "key": "玩偶表哥",
@@ -650,17 +665,6 @@
       }
     },
 {
-            "key": "YSC",
-            "name": "💯玩偶┃运输车",
-            "type": 3,
-            "api": "csp_Wogg",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": "./lib/tokenm.json$$$https://www.weixine.net/$$$null$$$1$$$https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
-            "timeout": 60
-     },
-{
       "key": "影视车",
       "name": "🚛影视车┃OK",
       "type": 3,
@@ -676,17 +680,6 @@
         "danmu": true
       },
       "timeout": 25
-    },
-{
-      "key": "玩我",
-      "name": "💯玩偶┃天天开心",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://www.ttkx.live/$$$null$$$1https://gitee.com/ajin0913/xiaohei/raw/master/json/wogg.json",
-      "timeout": 60
     },
 {
       "key": "开心",
@@ -706,15 +699,27 @@
       "timeout": 25
     },
 {
-      "key": "运输车",
-      "name": "运输车影视 ",
+      "key": "yingshiche",
+      "name": "运输车┃香 ",
       "type": 3,
       "api": "csp_XYQHikerAL",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
       "changeable": 1,
-      "ext": "./lib/yingshiche.json",
+      "ext": "https://cloud.lxweb.cn/f/akKgF6/yingshiche.json",
+      "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/jar/xyq.jar"
+    },
+{
+      "key": "ttkx",
+      "name": "天天开心┃香 ",
+      "type": 3,
+      "api": "csp_XYQHikerAL",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "ext": "http://rihou.vip:55/lib/玩我哥哥.json",
       "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/jar/xyq.jar"
     },
 {
@@ -772,6 +777,42 @@
       "quickSearch": 1,
       "filterable": 0,
       "ext": "./lib/tokenm.json$$$null$$$1"
+    },
+{
+      "key": "混合盘",
+      "name": "🚗混合┃网盘",
+      "type": 3,
+      "api": "csp_HunHePan",
+      "changeable": 2,
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "./lib/tokenm.jsonn",
+      "timeout": 60
+    },
+{
+      "key": "易搜",
+      "name": "💯易搜┃网盘",
+      "type": 3,
+      "api": "csp_YiSo",
+      "changeable": 0,
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "./lib/tokenm.jsonn$$$satoken=cae80541-1d61-4bb1-998d-7ceb1bdea29f",
+      "timeout": 60
+    },
+{
+      "key": "秒搜",
+      "name": "🪂秒搜┃网盘",
+      "type": 3,
+      "api": "csp_MiaoSou",
+      "changeable": 2,
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "./lib/tokenm.jsonn",
+      "timeout": 60
     },
 {
       "key": "Pan99",
@@ -967,7 +1008,7 @@
       "name": "🔥小胡┃自营",
       "type": 1,
       "playerType": 1,
-      "api": "http://c.小胡.icu/api.php/provide/vod/"
+      "api": "http://c.xn--yetu07f.icu/api.php/provide/vod/"
     },
 {
             "key": "天天开心自营",
@@ -1005,7 +1046,7 @@
         },
 {"key":"初见影视","name":"初见影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见影视.json","jar": "https://win11.asuscomm.com:63/jar/XBPQ.jar"},
 {"key":"初见自用","name":"初见自用","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见自用.json","jar": "https://win11.asuscomm.com:63/jar/HeChengChaXiu.jar"},
-{"key": "开心影视","name": "🎦开心影视","type": 1,"api": "http://www.ttkx.site:33/api.php/provide/vod/","playerType": 2,"searchable": 1,"quickSearch": 1,"filterable": 1,"categories": ["动作片","战争片","国产剧","港台剧","日韩剧","欧美剧","国产动漫","动漫","综艺","日韩动漫","港台动漫","动画片","短剧","国产综艺","喜剧片","爱情片","科幻片","恐怖片","剧情片","灾难片","悬疑片","犯罪片","奇幻片","纪录片"]},
+{"key":"开心影视","name":"🎦开心影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":1,"ext":"http://rihou.vip:55/lib/开心影视.json"},
 {
       "key": "csp_Czzy",
       "name": "📔厂长┃阿姨最爱",
@@ -1082,6 +1123,20 @@
       "api": "csp_Duanju",
       "searchable": 1,
       "changeable": 0
+    },
+{
+      "key": "种子",
+      "name": "🍃种子┃短剧",
+      "type": 1,
+      "api": "http://zzdj.cc/api.php/provide/vod/"
+    },
+    {
+      "key": "duanju",
+      "name": "😅短剧┃视频",
+      "type": 3,
+      "api": "csp_XBPQ",
+      "jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar",
+      "ext": "http://xiaohu.xzam.cn/XBPQ/短剧.json"
     },
 {
       "key": "NanGua",
@@ -1271,31 +1326,11 @@
             ]
         },
 {
-      "key": "奇优",
-      "name": "🌙奇优┃影视",
-      "type": 3,
-      "api": "csp_XBPQ",
-      "ext": "http://xiaohu.xzam.cn/XBPQ/奇优.json",
-      "jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"
+      "key": "乐视",
+      "name": "🦄乐视┃资源",
+      "type": 1,
+      "api": "https://leshizyapi.com/api.php/provide/vod/"
     },
-{
-      "key": "低端",
-      "name": "🔅低端┃影视",
-      "type": 3,
-      "api": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/drpy2.min.js",
-      "playerType": 2,
-      "ext": "https://jihulab.com/iduoduo/xduo/-/raw/main/libs/ddys.js"
-    },
-{
-    "key": "lf_js_ikanbot",
-    "name": "点播 | lf_ikanbot",
-    "type": 3,
-    "searchable": 1,
-    "changeable": 1,
-    "quickSearch": 1,
-    "filterable": 1,
-    "api": "./lib/lf_ikanbot5_2_min.js"
-},
 {
     "key": "lf_js_p2p",
     "name": "手机观看 | lf_p2p",
@@ -1318,16 +1353,6 @@
       "filterable": 1
     },
 {
-      "key": "4KHDR",
-      "name": "手机观看┃电视慎用",
-      "type": 3,
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/JS/js/4khdr.js"
-    },
-{
       "key": "新6V",
       "name": "🧲新6V┃电视慎用",
       "type": 3,
@@ -1348,18 +1373,6 @@
             "changeable" : 0,
             "ext" : "http://127.0.0.1:9978/file/tvbox/token.txt"
         },
-{
-      "key": "易搜",
-      "name": "💯易搜┃网盘",
-      "type": 3,
-      "api": "csp_YiSo",
-      "changeable": 0,
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "./lib/tokenm.json$$$satoken=1aee2366-2ff4-4436-b321-a14db23e8294",
-      "timeout": 60
-    },
     {
       "key": "七夜",
       "name": "💯七夜┃搜索",
