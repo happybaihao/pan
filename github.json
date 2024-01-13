@@ -20,6 +20,15 @@
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
+      "name": "📺摸鱼📺",
+      "type": 0,
+      "url": "http://我不是.摸鱼儿.top/live.txt",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
       "name": "📺BigBigGrandG源",
       "type": 0,
       "url": "https://raw.githubusercontent.com/BigBigGrandG/IPTV-URL/release/Gather.m3u",
@@ -548,6 +557,41 @@
             "filterable": 0
         },
 {
+      "key": "csp_Czzy",
+      "name": "📔厂长┃阿姨最爱",
+      "type": 3,
+      "api": "csp_Czzy",
+      "searchable": 1,
+      "changeable": 0,
+      "jar": "https://gitee.com/ajin0913/xiaohei/raw/master/jar/qqq.jar"
+    },
+{
+      "key": "996影院",
+      "name": "🎀九六┃影院",
+      "type": 3,
+      "api": "csp_Cs1369",
+      "searchable": 1,
+      "changeable": 2
+    },
+{
+      "key": "天天",
+      "name": "🦢天天┃影视",
+      "type": 3,
+      "api": "csp_TTian",
+      "playerType": 1,
+      "changeable": 2,
+      "ext": "http://op.ysdqjs.cn$$$null$$$1"
+    },
+{
+      "key": "NanGua",
+      "name": "🎃南瓜┃影视",
+      "type": 3,
+      "api": "csp_NanGua",
+      "searchable": 1,
+      "changeable": 2,
+      "ext": "null$$$1"
+    },
+{
             "key": "YSC",
             "name": "💯玩偶┃运输车",
             "type": 3,
@@ -707,8 +751,8 @@
       "quickSearch": 1,
       "filterable": 1,
       "changeable": 1,
-      "ext": "https://cloud.lxweb.cn/f/akKgF6/yingshiche.json",
-      "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/jar/xyq.jar"
+      "ext": "./lib/yingshiche.json",
+      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar"
     },
 {
       "key": "ttkx",
@@ -720,7 +764,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/玩我哥哥.json",
-      "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/jar/xyq.jar"
+      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar"
     },
 {
       "key": "初见表哥",
@@ -764,8 +808,8 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/jar/xyq.jar;md5;316660b0adb299c1dc63587579a3522e",
-      "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/玩偶哥哥.json"
+      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar;md5;8ad8655497f68798486068d6360c4142",
+      "ext": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/XYQHiker/玩偶哥哥.json"
     },
 {
       "key": "Hdhive",
@@ -787,7 +831,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "./lib/tokenm.jsonn",
+      "ext": "./lib/tokenm.json",
       "timeout": 60
     },
 {
@@ -799,7 +843,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "./lib/tokenm.jsonn$$$satoken=cae80541-1d61-4bb1-998d-7ceb1bdea29f",
+      "ext": "./lib/tokenm.json$$$satoken=cae80541-1d61-4bb1-998d-7ceb1bdea29f",
       "timeout": 60
     },
 {
@@ -811,18 +855,19 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "./lib/tokenm.jsonn",
+      "ext": "./lib/tokenm.json",
       "timeout": 60
     },
 {
-      "key": "Pan99",
-      "name": "盘99|网盘",
+      "key": "Panta",
+      "name": "🚑盘他┃网盘",
       "type": 3,
-      "api": "csp_Pan99",
+      "api": "csp_Panta",
+      "changeable": 2,
+      "searchable": 1,
       "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "ext": "./lib/tokenm.json$$$https://pan99.xyz$$$null$$$1",
+      "filterable": 0,
+      "ext": "./lib/tokenm.json$$$https://www.91panta.cn/$$$null$$$1",
       "timeout": 60
     },
 {
@@ -859,6 +904,16 @@
       "timeout": 60
     },
 {
+      "key": "团长影视1",
+      "name": "团长┃备用",
+      "type": 3,
+      "api": "csp_Tzfile",
+      "searchable": 1,
+      "changeable": 2,
+      "ext": "https://gitee.com/ajin0913/xiaohei/raw/master/lib/tokens.json",
+      "jar": "https://gitee.com/ajin0913/xiaohei/raw/master/jar/qqq.jar"
+    },
+{
       "key": "Libvio",
       "name": "LIBVIO|网盘",
       "type": 3,
@@ -877,7 +932,7 @@
             "changeable": 2,
             "filterable": 1,
             "timeout": 30,
-            "ext": "./lib/tokenm.json$$$https://pan.qianfan.app$$$null$$$QianFanID=2uv89payop7itb47vk52od1oc0vsbj57; _ga_6Z94VT54DV=GS1.1.1704346197.2.1.1704346441.0.0.0"
+            "ext": "./lib/tokenm.json$$$https://pan.qianfan.app$$$null$$$QianFanID=1m19wg48nic4kxcv8hyiaofk8yk94cqv; _ga_6Z94VT54DV=GS1.1.1704944900.3.1.1704945003.0.0.0"
         },
 {
             "key": "盘搜",
@@ -1047,15 +1102,6 @@
 {"key":"初见影视","name":"初见影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见影视.json","jar": "https://win11.asuscomm.com:63/jar/XBPQ.jar"},
 {"key":"初见自用","name":"初见自用","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见自用.json","jar": "https://win11.asuscomm.com:63/jar/HeChengChaXiu.jar"},
 {"key":"开心影视","name":"🎦开心影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":1,"ext":"http://rihou.vip:55/lib/开心影视.json"},
-{
-      "key": "csp_Czzy",
-      "name": "📔厂长┃阿姨最爱",
-      "type": 3,
-      "api": "csp_Czzy",
-      "searchable": 1,
-      "changeable": 0,
-      "jar": "https://gitee.com/ajin0913/xiaohei/raw/master/jar/qqq.jar"
-    },
     {
       "key": "U酷资源",
       "name": "🐅 U酷资源网 ",
@@ -1109,14 +1155,6 @@
 "quickSearch": 1
 },
 {
-      "key": "996影院",
-      "name": "🎀九六┃影院",
-      "type": 3,
-      "api": "csp_Cs1369",
-      "searchable": 1,
-      "changeable": 0
-    },
-{
       "key": "短剧",
       "name": "🐋短剧┃影视",
       "type": 3,
@@ -1139,29 +1177,12 @@
       "ext": "http://xiaohu.xzam.cn/XBPQ/短剧.json"
     },
 {
-      "key": "NanGua",
-      "name": "南瓜|弹幕",
-      "type": 3,
-      "api": "csp_NanGua",
-      "searchable": 1,
-      "changeable": 1,
-      "ext": "null$$$1"
-    },
-{
 			"key": "河马",
 			"name": "河马┃App",
 			"type": 3,
 			"api": "csp_Hmys",
 			"playerType": 1,
 			"ext": "https://m.jmzp.net.cn$$$null$$$1"
-		},
-		{
-			"key": "天天",
-			"name": "天天┃App",
-			"type": 3,
-			"api": "csp_TTian",
-			"playerType": 1,
-			"ext": "http://op.ysdqjs.cn$$$null$$$1"
 		},
 		{
 			"key": "蝴蝶",
@@ -1661,16 +1682,16 @@
       "changeable": 0
     },
 {
-    "key": "push_agent",
-    "name": "推送 | lf_push",
-    "type": 3,
-    "searchable": 0,
-    "changeable": 1,
-    "quickSearch": 0,
-    "filterable": 0,
-    "api": "./lib/lf_pushagent1_5_min.js",
-    "ext": "http://127.0.0.1:9978/file/tvbox/token.txt"
-}
+      "key": "push_agent",
+      "name": "🎥影视┃推送",
+      "type": 3,
+      "api": "csp_Push",
+      "searchable": 0,
+      "quickSearch": 0,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json",
+      "timeout": 60
+    }
 ],
   "parses": [{ 
          "name": "超级并发", 
