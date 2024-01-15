@@ -165,7 +165,7 @@
       "key": "豆瓣饭",
       "name": "🌕豆瓣|饭",
       "type": 3,
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt",
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt",
       "api": "csp_DouDou",
       "searchable": 0,
       "quickSearch": 0,
@@ -293,7 +293,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "看球",
@@ -317,7 +317,7 @@
       "searchable": 0,
       "quickSearch": 0,
       "changeable": 0,
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt",
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt",
       "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/企鹅直播.json"
     },
 {
@@ -575,7 +575,7 @@
       "api": "csp_Czzy",
       "searchable": 1,
       "changeable": 0,
-      "jar": "https://gitee.com/ajin0913/xiaohei/raw/master/jar/qqq.jar"
+      "jar": "./lib/qqq.jar"
     },
 {
       "key": "996影院",
@@ -727,7 +727,7 @@
       "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
       "ext": {
         "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "cookie": "https://gitee.com/ajin0913/xiaohei/raw/master/lib/cookie.txt",
+        "cookie": "./lib/cookie.txt",
         "danmu": true
       }
     },
@@ -742,7 +742,7 @@
       "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
       "ext": {
         "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "cookie": "https://gitee.com/ajin0913/xiaohei/raw/master/lib/cookie.txt",
+        "cookie": "./lib/cookie.txt",
         "site": "https://www.weixine.net",
         "danmu": true
       },
@@ -820,7 +820,7 @@
       "quickSearch": 1,
       "changeable": 0,
       "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://api.wogg.xyz/$$$弹",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "csp_XYQHikerAL_玩偶哥哥",
@@ -914,16 +914,6 @@
       "quickSearch": 1,
       "changeable": 0,
       "timeout": 60
-    },
-{
-      "key": "团长影视1",
-      "name": "团长┃备用",
-      "type": 3,
-      "api": "csp_Tzfile",
-      "searchable": 1,
-      "changeable": 2,
-      "ext": "https://gitee.com/ajin0913/xiaohei/raw/master/lib/tokens.json",
-      "jar": "https://gitee.com/ajin0913/xiaohei/raw/master/jar/qqq.jar"
     },
 {
       "key": "Libvio",
@@ -1394,7 +1384,7 @@
       "quickSearch": 1,
       "changeable": 0,
       "ext": "http://www.xb6v.com/",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
     {
             "key" : "UpYun",
@@ -1471,7 +1461,7 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://www.maolvys.com/",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "YGP",
@@ -1481,7 +1471,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "蚂蚁",
@@ -1492,7 +1482,7 @@
       "quickSearch": 1,
       "filterable": 0,
       "ext": "http://rzys.xyz",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "zxzj",
@@ -1503,7 +1493,7 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://www.zxzj.pro/",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "csp_Lib",
@@ -1514,7 +1504,7 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://www.libvio.pro/",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "ok",
@@ -1566,7 +1556,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/少儿教育.json",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
     {
       "key": "小学",
@@ -1577,7 +1567,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/小学课堂.json",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
     {
       "key": "初中",
@@ -1588,7 +1578,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/初中课堂.json",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
     {
       "key": "高中",
@@ -1599,7 +1589,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/高中课堂.json",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
       "key": "小灯塔国学",
@@ -1610,7 +1600,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/小灯塔国学.json",
-      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1704615937579/fan.txt"
+      "jar": "https://fs-im-kefu.7moor-fs1.com/29397395/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1705184251764/fan.txt"
     },
 {
             "key": "红牛资源",
