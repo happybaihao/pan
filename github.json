@@ -635,6 +635,15 @@
       "changeable": 2,
       "ext": "null$$$1"
     },
+{
+      "key": "巧技二",
+      "name": "巧技二┃App",
+      "type": 3,
+      "api": "csp_qiao2",
+      "playerType": 2,
+      "ext": "https://jihulab.com/qiaoji/open/-/raw/main/qiaoji2",
+      "jar": "http://cdn.qiaoji8.com/fix12210.jar;md5;a5c29d1840207b137a855e23526d6e32"
+    },
 {"key":"初见影视","name":"初见影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"./lib/初见影视.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
 {"key":"初见自用","name":"初见自用","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见自用.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
 {"key":"开心影视","name":"🎦开心影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":1,"ext":"http://rihou.vip:55/lib/开心影视.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
