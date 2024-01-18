@@ -1,5 +1,5 @@
 {
-  "spider": "./fm.jar;md5;c99d099dbd863e665386647e6b13c96a",
+  "spider": "./fm.jar;md5;8129d7742ad847d1d345cc285dd8a30d",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -187,7 +187,7 @@
       "searchable": 0,
       "quickSearch": 0,
       "filterable": 0,
-      "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/douban.json"
+      "ext": "https://gitee.com/moyu0913/xiaohei/raw/master/json/douban.json"
     },
 {
       "key": "lf_js_search",
@@ -413,7 +413,6 @@
         "cookie": "buvid3=8B57D3BA-607A-1E85-018A-E8C430023CED42659infoc; b_lsid=BEB8EE7F_18742FF8C2E; bsource=search_baidu; _uuid=DE810E367-B52C-AF6E-A612-EDF4C31567F358591infoc; b_nut=100; buvid_fp=711a632b5c876fa8bbcf668c1efba551; SESSDATA=7624af93%2C1696008331%2C862c8%2A42; bili_jct=141a474ef3ce8cf2fedf384e68f6625d; DedeUserID=3493271303096985; DedeUserID__ckMd5=212a836c164605b7; sid=5h4ruv6o; buvid4=978E9208-13DA-F87A-3DC0-0B8EDF46E80434329-123040301-dWliG5BMrUb70r3g583u7w%3D%3D"
       }
     },
-{"key":"PikPakShare","name":"PikPak分享","type":3,"api":"csp_PikPakShare","searchable":1,"quickSearch":1, "changeable":0, "filterable":0, "timeout":60, "ext":"./lib/tokenm.json$$$./lib/pikpakclass.json$$$./lib/pikpakclass.json.txt.gz"},
 {
       "key": "AliShare",
       "name": "阿里云盘分享",
@@ -425,6 +424,42 @@
       "filterable": 0,
       "timeout": 60,
       "ext": "./lib/tokenm.json$$$./lib/alishare.txt"
+    },
+{
+      "key": "QuarkShare",
+      "name": "夸克云盘分享",
+      "type": 3,
+      "api": "csp_QuarkShare",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$./lib/quarkshare.txt"
+    },
+{
+      "key": "ThunderShare",
+      "name": "迅雷云盘分享",
+      "type": 3,
+      "api": "csp_ThunderShare",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$./lib/thundershare.txt"
+    },
+{
+      "key": "PikPakShare",
+      "name": "PikPak分享",
+      "type": 3,
+      "api": "csp_PikPakShare",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$./lib/pikpakclass.json$$$./lib/pikpakclass.json.txt.gz"
     },
 {
 	    "key":"Alist",
@@ -606,8 +641,8 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "https://www.czzy88.com",
-      "jar": "http://xiaohu.xzam.cn/jar/1.jar"
+      "ext": "https://www.czzy66.com/",
+      "jar": "https://gitcode.net/u012349622/js/-/raw/master/xx/fan.txt?inline=false;md5;5aee1ff968a3dc5cbbf225399e9441e9"
     },
 {
       "key": "996影院",
@@ -615,7 +650,8 @@
       "type": 3,
       "api": "csp_Cs1369",
       "searchable": 1,
-      "changeable": 2
+      "changeable": 2,
+      "ext":"https://www.cs1369.com$$$null$$$1"
     },
 {
       "key": "天天",
@@ -1360,11 +1396,105 @@
             ]
         },
 {
+      "key": "火狐",
+      "name": "🦊茶杯狐",
+      "type": 1,
+      "api": "https://hhzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 0,
+      "filterable": 1,
+      "categories": [
+        "内地剧",
+        "动作片",
+        "科幻片",
+        "战争片",
+        "喜剧片",
+        "爱情片",
+        "恐怖片",
+        "犯罪片",
+        "剧情片",
+        "冒险片",
+        "记录片",
+        "韩剧",
+        "香港剧",
+        "台湾剧",
+        "欧美剧",
+        "日剧",
+        "马泰剧",
+        "体育赛事",
+        "综艺",
+        "动画片",
+        "中国动漫",
+        "日本动漫",
+        "欧美动漫"
+      ]
+    },
+{
       "key": "乐视",
       "name": "🦄乐视┃资源",
       "type": 1,
       "api": "https://leshizyapi.com/api.php/provide/vod/"
     },
+{
+            "key": "红牛资源",
+            "name": "红牛资源",
+            "type": 1,
+            "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 1,
+            "categories": [
+                "动作片",
+                "喜剧片",
+                "爱情片",
+                "科幻片",
+                "恐怖片",
+                "剧情片",
+                "战争片",
+                "国产剧",
+                "港澳剧",
+                "日剧",
+                "欧美剧",
+                "台湾剧",
+                "泰剧",
+                "韩剧",
+                "纪录片",
+                "动漫电影",
+                "综艺",
+                "动漫",
+                "体育赛事"
+            ]
+        },
+{
+            "key": "新浪资源",
+            "name": "️新浪采集",
+            "type": 1,
+            "api": "https://api.xinlangapi.com/xinlangapi.php/provide/vod/",
+            "playUrl": "",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 1,
+            "categories": [
+                "动作片",
+                "喜剧片",
+                "爱情片",
+                "科幻片",
+                "恐怖片",
+                "剧情片",
+                "战争片",
+                "记录片",
+                "大陆剧",
+                "欧美剧",
+                "日剧",
+                "泰剧",
+                "韩剧",
+                "台湾剧",
+                "港澳剧",
+                "综艺",
+                "动漫",
+                "体育"
+            ]
+        },
 {
     "key": "lf_js_p2p",
     "name": "手机观看 | lf_p2p",
@@ -1559,66 +1689,6 @@
       "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/小灯塔国学.json",
       "jar": "https://gitcode.net/u012349622/js/-/raw/master/xx/fan.txt?inline=false"
     },
-{
-            "key": "红牛资源",
-            "name": "红牛资源",
-            "type": 1,
-            "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 1,
-            "categories": [
-                "动作片",
-                "喜剧片",
-                "爱情片",
-                "科幻片",
-                "恐怖片",
-                "剧情片",
-                "战争片",
-                "国产剧",
-                "港澳剧",
-                "日剧",
-                "欧美剧",
-                "台湾剧",
-                "泰剧",
-                "韩剧",
-                "纪录片",
-                "动漫电影",
-                "综艺",
-                "动漫",
-                "体育赛事"
-            ]
-        },
-{
-            "key": "新浪资源",
-            "name": "️新浪采集",
-            "type": 1,
-            "api": "https://api.xinlangapi.com/xinlangapi.php/provide/vod/",
-            "playUrl": "",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 1,
-            "categories": [
-                "动作片",
-                "喜剧片",
-                "爱情片",
-                "科幻片",
-                "恐怖片",
-                "剧情片",
-                "战争片",
-                "记录片",
-                "大陆剧",
-                "欧美剧",
-                "日剧",
-                "泰剧",
-                "韩剧",
-                "台湾剧",
-                "港澳剧",
-                "综艺",
-                "动漫",
-                "体育"
-            ]
-        },
 {
             "key": "drpy_js_喜马拉雅",
             "name": "喜马拉雅[js]",
