@@ -30,7 +30,7 @@
 {
       "name": "📺摸鱼📺",
       "type": 0,
-      "url": "http://我不是.摸鱼儿.top/live.txt",
+      "url": "http://xiyan1213.eu.org/live.txt",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -343,18 +343,6 @@
       "changeable": 0
     },
 {
-      "key": "MV_vod",
-      "name": "🎸明星┃MV",
-      "type": 1,
-      "api": "https://mv.wogg.link/mv/vod",
-      "style": {
-        "type": "oval"
-      },
-      "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0
-    },
-{
       "key": "csp_聚短视频",
       "name": "📽️聚短┃视频",
       "type": 3,
@@ -365,18 +353,6 @@
       "changeable": 0
     },
 {"key": "抖音大妹子","name": "抖音","type": 4,"api": "http://120.53.102.254/xjj","searchable": 1,"quickSearch": 0,"filterable": 1},
-{
-      "key": "一口气cli",
-      "name": "👶Bili┃俊版",
-      "type": 4,
-      "api": "http://home.jundie.top:9520/spider/cli_Bili?sort=dash,mp4",
-      "ext": {
-        "type": "短剧合集#抖音热歌#经典无损音乐合集#4K#广场舞#DJ#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#新歌热榜#直播#热门#番剧#国创#综艺#舞蹈#娱乐#科技#美食#汽车#运动#电影#电视剧#纪录片#游戏#音乐#影视#资讯#生活#时尚#动物圈#VLOG#搞笑#相声小品"
-      },
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1
-    },
 {
       "key": "哔哩哔哩",
       "name": "🍻哔哩┃官源",
@@ -391,27 +367,38 @@
       },
       "filterable": 1,
       "ext": {
-        "type": "短剧合集#帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身",
-        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; home_feed_column=5; browser_resolution=2552-1292; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDUwNzkyNjYsImlhdCI6MTcwNDgyMDAwNiwicGx0IjotMX0.LWgkxIv9lpVl6OOODwloZvDzFsg3iwP2Hss7AtSC9dA; bili_ticket_expires=1705079206; SESSDATA=e70eb56b%2C1720372067%2C6cf68%2A11CjA2ghdnEDLHjdhigvfjCJ0txCedUQx5A-zE9K6_fizRbhPk_0NGucxx8ycQu7-DLjwSVlpGV01qX0RTSS1Bd0E5T1ZHZjNZUFZCcEJhZlRsMmRVYkhyN3hJSEdhWjI2S1lpOUMzd1VYTkNiX2JyVkNKdUo2UUJER3I4R3lmSXVZUDlDWTdPLUtnIIEC; bili_jct=0cd7f44fdc331e39310fca4e2f418529; sid=nbq6cd3t; innersign=0; b_lsid=109441365_18CFC904CEA; buvid_fp=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc"
+        "type": "短剧合集#帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#抖音热歌#经典无损音乐合集#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#相声小品",
+        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=104AD61023_18D1CB80BF5; SESSDATA=9b095927%2C1721135848%2C5ac72%2A11CjABHqfYSyh1eaPBYFQ53NdAdEW1FLnOBkMJ_N18uCO0PcPYNqn5yDtV3onmtyRB7XcSVjRSVGdHcTEtdnRhcUloZ2hlQWhCd0s3Qno5OGpEaThaX2VhaGRVd2pqMDhnS0tnQmRRX2Jia0s4b0tqZGczNWJPNkdLUkZRN29IVFJQUzcyRmhqYV9RIIEC; bili_jct=70c213fd9a85878e51ed169ed1dced90; sid=60i1saor; home_feed_column=4; browser_resolution=819-1292; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDU4NDMwNTYsImlhdCI6MTcwNTU4Mzc5NiwicGx0IjotMX0.u6qGyp0c4hMW5Z-9SgfRu9cd5GnXK1HOGq-EKb56feM; bili_ticket_expires=1705842996; buvid_fp=1c0962ce584a4c104a234c96b7446190"
       }
     },
 {
-      "key": "bili",
-      "name": "B站 | Bili[jar]",
+      "key": "bilibili",
+      "name": "🍻哔哩┃OK",
       "type": 3,
       "api": "csp_Bili",
       "searchable": 1,
-      "quickSearch": 0,
-      "changeable": 0,
+      "quickSearch": 1,
+      "changeable": 2,
+      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
       "style": {
         "type": "rect",
         "ratio": 1.755
       },
       "filterable": 1,
       "ext": {
-        "type": "短剧合集#DJ#4K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#新歌热榜#直播#热门#综艺#动画#舞蹈#娱乐#科技#美食#汽车#运动#电影#电视剧#纪录片#游戏#音乐#影视#资讯#生活#时尚#动物圈#VLOG#搞笑#公益#课堂#公开课#相声小品#动物世界",
-        "cookie": "buvid3=8B57D3BA-607A-1E85-018A-E8C430023CED42659infoc; b_lsid=BEB8EE7F_18742FF8C2E; bsource=search_baidu; _uuid=DE810E367-B52C-AF6E-A612-EDF4C31567F358591infoc; b_nut=100; buvid_fp=711a632b5c876fa8bbcf668c1efba551; SESSDATA=7624af93%2C1696008331%2C862c8%2A42; bili_jct=141a474ef3ce8cf2fedf384e68f6625d; DedeUserID=3493271303096985; DedeUserID__ckMd5=212a836c164605b7; sid=5h4ruv6o; buvid4=978E9208-13DA-F87A-3DC0-0B8EDF46E80434329-123040301-dWliG5BMrUb70r3g583u7w%3D%3D"
+        "type": "帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身",
+        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=104AD61023_18D1CB80BF5; SESSDATA=9b095927%2C1721135848%2C5ac72%2A11CjABHqfYSyh1eaPBYFQ53NdAdEW1FLnOBkMJ_N18uCO0PcPYNqn5yDtV3onmtyRB7XcSVjRSVGdHcTEtdnRhcUloZ2hlQWhCd0s3Qno5OGpEaThaX2VhaGRVd2pqMDhnS0tnQmRRX2Jia0s4b0tqZGczNWJPNkdLUkZRN29IVFJQUzcyRmhqYV9RIIEC; bili_jct=70c213fd9a85878e51ed169ed1dced90; sid=60i1saor; home_feed_column=4; browser_resolution=819-1292; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDU4NDMwNTYsImlhdCI6MTcwNTU4Mzc5NiwicGx0IjotMX0.u6qGyp0c4hMW5Z-9SgfRu9cd5GnXK1HOGq-EKb56feM; bili_ticket_expires=1705842996; buvid_fp=1c0962ce584a4c104a234c96b7446190"
       }
+    },
+{
+      "key": "哔哩影视",
+      "name": "🍻哔哩影视┃官源",
+      "type": 3,
+      "api": "https://gitee.com/moyu0913/xiaohei/raw/master/lib/drpy2.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "https://gitee.com/moyu0913/xiaohei/raw/master/js/哔哩影视.js"
     },
 {
       "key": "AliShare",
