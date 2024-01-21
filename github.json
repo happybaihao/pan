@@ -1,5 +1,5 @@
 {
-  "spider": "./fm.jar;md5;5dd100b26b0ac9316ad2a1e106b5dc04",
+  "spider": "./fm.jar;md5;143c21581251dc45098ec21b71f96869",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -968,6 +968,26 @@
       "ext": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/XYQHiker/玩偶哥哥.json"
     },
 {
+      "key": "团长影视",
+      "name": "🍡团长┃网盘",
+      "type": 3,
+      "api": "csp_TZFile",
+      "ext": "./lib/tokenm.json$$$null$$$1",
+      "quickSearch": 1,
+      "changeable": 0,
+      "timeout": 60
+    },
+{
+      "key": "Libvio",
+      "name": "LIBVIO|网盘",
+      "type": 3,
+      "api": "csp_Libvio",
+      "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null",
+      "quickSearch": 1,
+      "changeable":1,
+      "timeout": 60
+    },
+{
       "key": "混合盘",
       "name": "🚗混合┃网盘",
       "type": 3,
@@ -977,6 +997,28 @@
       "quickSearch": 1,
       "filterable": 0,
       "ext": "./lib/tokenm.json",
+      "timeout": 60
+    },
+{
+      "key": "88Pan",
+      "name": "88|网盘",
+      "type": 3,
+      "api": "csp_EightEight",
+      "ext": "./lib/tokenm.json$$$https://662688.xyz",
+      "quickSearch": 1,
+      "changeable":1,
+      "timeout": 60
+    },
+{
+      "key": "校长影视",
+      "name": "🛶校长┃网盘",
+      "type": 3,
+      "api": "csp_XiaoZhang",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 0,
+      "ext": "./lib/tokenm.json$$$https://xzyshd.com$$$null$$$1",
       "timeout": 60
     },
 {
@@ -1024,38 +1066,6 @@
       "changeable": 1,
       "filterable": 1,
       "ext": "./lib/tokenm.json$$$https://ppxzy.net/$$$null$$$1",
-      "timeout": 60
-    },
-{
-      "key": "校长影视",
-      "name": "🛶校长┃网盘",
-      "type": 3,
-      "api": "csp_XiaoZhang",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 0,
-      "ext": "./lib/tokenm.json$$$null$$$1",
-      "timeout": 60
-    },
-{
-      "key": "团长影视",
-      "name": "🍡团长┃网盘",
-      "type": 3,
-      "api": "csp_TZFile",
-      "ext": "./lib/tokenm.json$$$null$$$1",
-      "quickSearch": 1,
-      "changeable": 0,
-      "timeout": 60
-    },
-{
-      "key": "Libvio",
-      "name": "LIBVIO|网盘",
-      "type": 3,
-      "api": "csp_Libvio",
-      "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null",
-      "quickSearch": 1,
-      "changeable":1,
       "timeout": 60
     },
 {
