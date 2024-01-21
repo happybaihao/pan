@@ -9,7 +9,7 @@
 "quark_is_vip":true,
 "quark_vip_thread_limit":16,
 "quark_flags":"4kz|auto",
-"aliproxy":"",
+"aliproxy":"https://jihulab.com/bestyr1/xiaobai/-/raw/master/aliproxy.gz",
 "proxy":"",
 "open_api_url":"https://aliyundrive-oauth.messense.me/oauth/access_token",
 "danmu":true,
