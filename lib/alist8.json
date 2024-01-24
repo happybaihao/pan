@@ -1,6 +1,6 @@
 [{
 "name": "小鸭",
-"server": "http://110.228.225.223:5678/",
+"server": "http://61.136.44.116:5678/",
 "startPage": "/",
 "showAll": false,
 "search": true,
