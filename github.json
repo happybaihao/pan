@@ -28,9 +28,18 @@
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
-      "name": "📺摸鱼📺",
+      "name": "📺摸鱼小电视📺",
       "type": 0,
       "url": "http://xiyan1213.eu.org/live.txt",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": "📺摸鱼大电视📺",
+      "type": 0,
+      "url": "https://moyu.xiyan.life/live/moyu1.txt",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -72,14 +81,6 @@
       "name": "📺YanG Gather📺",
       "type": 0,
       "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u",
-      "playerType": 1,
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png"
-    },
-{
-      "name": "📺大杂烩源📺",
-      "type": 0,
-      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/rad168/iptv/main/live.m3u",
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
@@ -131,6 +132,14 @@
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "https://epg.erw.cc/api/diyp/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": " 📺精选IPV6源📺",
+      "type": 0,
+      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/GSYD-IPV6.m3u",
+      "playerType": 1,
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
@@ -204,10 +213,10 @@
       },
       "ext": "./lib/tokenm.json"
     },
-{"key":"道长直播2点播","name":"☠道长┃直播","type":3,"api":"./lib/live2cms.js","changeable":0,"searchable":0,"ext":"./lib/live2mv_data.json"},
-{"key":"路飞直播2点播10","name":"☠路飞┃直播","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live.json"},
-{"key":"路飞直播2点播10-1","name":"☠路飞┃直播1","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_1.json"},
-{"key":"路飞直播2点播10-2","name":"☠路飞┃直播2","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_2.json"},
+{"key":"道长直播2点播","name":"道┃💯百号电视","type":3,"api":"./lib/live2cms.js","changeable":0,"searchable":0,"ext":"./lib/live2mv_data.json"},
+{"key":"路飞直播2点播10","name":"路┃💯百号电视","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live.json"},
+{"key":"路飞直播2点播10-1","name":"路┃💯百号电视1","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_1.json"},
+{"key":"路飞直播2点播10-2","name":"路┃💯百号电视2","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_2.json"},
 {
       "key": "酷狗",
       "name": "酷狗",
@@ -230,14 +239,23 @@
       }
     },
 {
-      "key": "py_cctv_1",
-      "name": "♻️央视-少儿",
+      "key": "py_cntv",
+      "name": "📶 央视·T4",
       "type": 3,
-      "api": "py_cctv",
-      "searchable": 1,
-      "quickSearch": 1,
+      "api": "https://api-lmteam.koyeb.app/files/py/py_cntv.py",
+      "searchable": 0,
+      "quickSearch": 0,
       "filterable": 1,
-      "ext": "https://jihulab.com/yydfys/yydf/-/raw/main/yydf/lib/py_cctv.py"
+      "changeable": 0
+    },
+{
+      "key": "py_sport",
+      "name": "体育直播",
+      "type": 3,
+      "api": "https://api-lmteam.koyeb.app/files/py/py_sport.py",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0
     },
 {
       "key": "直播转点播1",
@@ -264,26 +282,6 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0
-    },
-{
-      "key": "py_cntv",
-      "name": "📶 央视·T4",
-      "type": 4,
-      "api": "https://api-lmteam.koyeb.app/PythonT4/cntv",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 1,
-      "changeable": 0
-    },
-{
-      "key": "py_bookreader",
-      "name": "🎧有声小说·T4",
-      "type": 4,
-      "api": "https://api-lmteam.koyeb.app/PythonT4/bookreader",
-      "searchable": 1,
-      "quickSearch": 0,
-      "filterable": 1,
-      "changeable": 0
     },
 {
       "key": "csp_Yj1211",
