@@ -1,11 +1,12 @@
 [
-{"name":"whpsky","url":"https://ghproxy.com/https://raw.githubusercontent.com/whpsky/iptv/main/chinatv.txt"},
-{"name":"百事通","url":"https://ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/bestv.m3u"},
-{"name":"范明明global","url":"https://live.fanmingming.com/tv/m3u/global.m3u"},
-{"name":"YanG Gather","url":"https://ghproxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u"},
-{"name":"4k8k源","url":"https://ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/IPTV.m3u"},
-{"name":"L大IPV6","url":"https://d.laigc.com/m3.m3u"},
+{"name":"百号•综合","url":"https://pan.shangui.cc/f/wQQnsg/%E6%B4%BE%E5%A4%A7%E6%98%9F%E8%87%AA%E7%94%A8%E7%B2%BE%E7%AE%80.txt"},
+{"name":"摸鱼小电视","url":"http://xiyan1213.eu.org/live.txt"},
+{"name":"摸鱼大电视","url":"https://moyu.xiyan.life/live/moyu1.txt"},
+{"name":"小白ipv4","url":"https://d.kstore.space/download/5413/xbdmq.txt"},
+{"name":"YanG Gather","url":"https://mirror.ghproxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u"},
+{"name":"4k8k源","url":"https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/IPTV.m3u"},
 {"name":"范明明IPV6","url":"https://live.fanmingming.com/tv/m3u/ipv6.m3u"},
+{"name":"L大IPV6","url":"https://d.laigc.com/m3.m3u"},
 {"name":"Hong Kong1","url":"http://hkanime:hkanime@dtmb.hklive.tv/hls.m3u"},
 {"name":"Hong Kong2","url":"https://epg.pw/test_channels_hong_kong.m3u"}
 ]
