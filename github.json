@@ -403,6 +403,17 @@
       "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishare.txt"
     },
 {
+      "key": "阿里云集合",
+      "name": "阿里云集合|4K",
+      "type": 3,
+      "api": "csp_阿里云集合",
+      "searchable": 1,
+      "filterable": 0,
+      "switchable": 0,
+      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt",
+      "jar": "./阿里集合20240126.jar"
+    },
+{
       "key": "QuarkShare",
       "name": "夸克云盘分享",
       "type": 3,
