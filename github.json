@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;2db85b518625ae5e3004492b06b481fb",
+  "spider": "./pg.jar;md5;b0c775c515c4f5536809af28fa4d115d",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -771,21 +771,6 @@
       "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
     },
 {
-      "key": "Wogg",
-      "name": "🆗玩偶┃OK",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "filterable": 1,
-      "changeable": 0,
-      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
-      "ext": {
-        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "filter": "https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
-        "danmu": true
-      }
-    },
-{
       "key": "csp_XYQHikerAL_玩偶哥哥",
       "name": "📀玩偶┃香",
       "type": 3,
@@ -871,55 +856,6 @@
       "changeable": 1,
       "ext": "./lib/tokenm.json$$$https://wogg.888484.xyz/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
       "timeout": 60
-    },
-{
-      "key": "玩偶表哥",
-      "name": "🆗表哥┃OK",
-      "type": 3,
-      "api": "csp_Wobg",
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
-      "ext": {
-        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "cookie": "https://gitee.com/moyu0913/xiaohei/raw/master/lib/cookie.txt",
-        "danmu": true
-      }
-    },
-{
-      "key": "影视车",
-      "name": "🆗影视车┃OK",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
-      "ext": {
-        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "cookie": "https://gitee.com/moyu0913/xiaohei/raw/master/lib/cookie.txt",
-        "site": "https://www.weixine.net",
-        "danmu": true
-      },
-      "timeout": 25
-    },
-{
-      "key": "开心",
-      "name": "🆗天天开心┃OK",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "jar": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/jar/ok.jar",
-      "ext": {
-        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "filter": "https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
-        "site": "http://www.ttkx.live",
-        "danmu": true
-      },
-      "timeout": 25
     },
 {
       "key": "yingshiche",
