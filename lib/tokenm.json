@@ -11,6 +11,7 @@
 "quark_flags":"4kz|auto",
 "aliproxy":"",
 "proxy":"",
+"aliproxy_url": "https://jihulab.com/bestyr1/xiaobai/-/raw/master/aliproxy.gz",
 "open_api_url":"https://aliyundrive-oauth.messense.me/oauth/access_token",
 "danmu":true,
 "quark_danmu":true,
