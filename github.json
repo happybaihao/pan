@@ -414,6 +414,15 @@
       "jar": "./阿里集合20240126.jar"
     },
 {
+"key":"Tudou",
+"name":"土豆阿里资源网",
+"type":3,
+"jar": "./tudoux.jar",
+"api":"csp_Tudou",
+"searchable":1,
+"changeable":1
+},
+{
       "key": "QuarkShare",
       "name": "夸克云盘分享",
       "type": 3,
