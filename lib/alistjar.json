@@ -2,13 +2,7 @@
   "drives": [
 {
       "name": "🦆托盘",
-      "server": "https://pan.mediy.cn/",
-      "search": true,
-      "searchable": true
-    },
-{
-      "name": "🦆柯南",
-      "server": "https://alist.523.monster/",
+      "server": "https://pan.mediy.cn",
       "search": true,
       "searchable": true
     },
@@ -19,8 +13,32 @@
       "searchable": true
     },
 {
+      "name": "🙋小雅搜索源1",
+      "server": "http://60.204.156.46:5678",
+      "search": true,
+      "searchable": true
+    },
+{
+      "name": "🙋小雅搜索源2",
+      "server": "http://116.226.29.103:5678",
+      "search": true,
+      "searchable": true
+    },
+{
+      "name": "🙋小雅搜索源3",
+      "server": "http://42.49.43.185:5678",
+      "search": true,
+      "searchable": true
+    },
+{
+      "name": "🙋小雅搜索源4",
+      "server": "http://121.37.134.131:5678",
+      "search": true,
+      "searchable": true
+    },
+{
       "name": "🙋小雅搜索源5",
-      "server": "http://180.139.151.30:5678",
+      "server": "http://221.202.246.178:5678",
       "search": true,
       "searchable": true
     },
@@ -43,12 +61,6 @@
       "searchable": true
     },
 {
-      "name": "🙋eduedu",
-      "server": "https://alist.eduedu.eu.org/25W首音乐",
-      "search": true,
-      "searchable": true
-    },
-{
       "name": "🙋雨昵网盘",
       "server": "https://pan.clun.top",
       "search": true,
@@ -63,12 +75,6 @@
  {
       "name": "✨ECVE|资源小站",
       "server": "https://pan.ecve.cn",
-      "search": true,
-      "searchable": true
-    },
-    {
-      "name": "网友小雅3",
-      "server": "http://193.122.102.177:1311",
       "search": true,
       "searchable": true
     }
