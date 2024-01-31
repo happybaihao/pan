@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;58fc87042d81c94a11056d7b481d4c74",
+  "spider": "./pg.jar;md5;9b30d1d8a5b0656c674590c3c6d2aafe",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -8,7 +8,7 @@
       "type": 0,
       "url": "https://pan.shangui.cc/f/wQQnsg/%E6%B4%BE%E5%A4%A7%E6%98%9F%E8%87%AA%E7%94%A8%E7%B2%BE%E7%AE%80.txt",
       "playerType": 1,
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "epg": "https://1060s677v8.goho.co/epg.php",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
@@ -16,7 +16,7 @@
       "type": 0,
       "url": "https://d.kstore.space/download/5413/xbdmq.txt",
       "ua": "okhttp/3.15",
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "epg": "https://1060s677v8.goho.co/epg.php",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
@@ -33,7 +33,7 @@
       "url": "http://我不是.摸鱼儿.top/live.txt",
       "playerType": 1,
       "ua": "okhttp/3.15",
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "epg": "https://1060s677v8.goho.co/epg.php",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
@@ -372,8 +372,8 @@
       "ext": "https://gitee.com/moyu0913/xiaohei/raw/master/js/哔哩影视.js"
     },
 {
-      "key": "AliShare",
-      "name": "阿里云盘分享",
+      "key": "AliShare剧",
+      "name": "阿里云盘分享┃剧集",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
@@ -381,7 +381,31 @@
       "changeable": 1,
       "filterable": 0,
       "timeout": 60,
-      "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishare.txt"
+      "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishareju.txt"
+    },
+{
+      "key": "AliShare影",
+      "name": "阿里云盘分享┃电影",
+      "type": 3,
+      "api": "csp_AliShare",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishareying.txt"
+    },
+{
+      "key": "AliShare其",
+      "name": "阿里云盘分享┃其它",
+      "type": 3,
+      "api": "csp_AliShare",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishareqi.txt"
     },
 {
       "key": "阿里云集合",
@@ -392,7 +416,7 @@
       "filterable": 0,
       "switchable": 0,
       "ext": "http://127.0.0.1:9978/file/tvbox/token.txt",
-      "jar": "./阿里集合20240126.jar"
+      "jar": "./阿里合集0131.jar"
     },
 {
 "key":"Tudou",
@@ -465,142 +489,52 @@
             "key": "小鸭1",
             "name": "小雅┃网盘1",
             "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist1.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭2",
-            "name": "小雅┃网盘2",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist2.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭3",
-            "name": "小雅┃网盘3",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist3.json",
+            "api": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/hjdhnx/dr_py/main/libs/alist.min.js",
+            "ext": "https://pan.shangui.cc/f/0X1Ehj/alist1.json",
             "searchable": 1,
             "quickSearch": 1,
             "filterable":0
         },
 {
-            "key": "小鸭4",
-            "name": "小雅┃网盘4",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist4.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
+      "key": "小鸭2",
+      "name": "小雅┃网盘2",
+      "type": 3,
+      "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://1.117.189.138:5678/tvbox/json/alist_ext.json;200;video"
+    },
 {
-            "key": "小鸭5",
-            "name": "小雅┃网盘5",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist5.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
+      "key": "小鸭3",
+      "name": "小雅┃网盘3",
+      "type": 3,
+      "api": "http://116.17.102.66:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://116.17.102.66:5678/tvbox/json/alist_ext.json;200;video"
+    },
 {
-            "key": "小鸭zed325",
-            "name": "小雅┃网盘zed325",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alistzed325.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
+      "key": "小鸭4",
+      "name": "小雅┃网盘4",
+      "type": 3,
+      "api": "http://124.70.161.86:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://124.70.161.86:5678/tvbox/json/alist_ext.json;200;video"
+    },
 {
-            "key": "小鸭4kba",
-            "name": "小雅┃4kba",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist4kba.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭4k8k群友",
-            "name": "小雅┃网盘4k8k群友",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alistz4k8k群友.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭6",
-            "name": "小雅┃网盘6",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist6.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭7",
-            "name": "小雅┃网盘7",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist7.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭8",
-            "name": "小雅┃网盘8",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist8.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭9",
-            "name": "小雅┃网盘9",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist9.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭10",
-            "name": "小雅┃网盘10",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist10.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
-{
-            "key": "小鸭11",
-            "name": "小雅┃网盘11",
-            "type": 3,
-            "api": "http://1.117.189.138:5678/tvbox/libs/alist.min.js",
-            "ext": "./lib/alist11.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 0
-        },
+      "key": "小鸭5",
+      "name": "小雅┃网盘5",
+      "type": 3,
+      "api": "http://43.142.51.65:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://43.142.51.65:5678/tvbox/json/alist_ext.json;200;video"
+    },
 {
       "key": "csp_Czzy",
       "name": "📔厂长┃阿姨最爱",
@@ -619,6 +553,13 @@
       "quickSearch": 1,
       "changeable": 0,
       "jar": "./qqqpm.jar"
+    },
+{
+      "key": "小胡",
+      "name": "🔥自营┃影视",
+      "type": 1,
+      "playerType": 1,
+      "api": "http://xh.xn--yetu07f.icu/api.php/provide/vod/"
     },
 {
       "key": "996影院",
@@ -733,7 +674,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 2,
-            "ext": "./lib/tokenm.json$$$https://www.weixine.net/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+            "ext": "./lib/tokenm.json$$$https://www.weixine.link/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
             "timeout": 60
      },
 {
@@ -1168,13 +1109,6 @@
         "综艺",
         "体育赛事"
       ]
-    },
-{
-      "key": "小胡",
-      "name": "🔥小胡┃自营",
-      "type": 1,
-      "playerType": 1,
-      "api": "http://c.xn--yetu07f.icu/api.php/provide/vod/"
     },
     {
       "key": "U酷资源",
