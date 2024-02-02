@@ -77,6 +77,16 @@
       "server": "https://pan.ecve.cn",
       "search": true,
       "searchable": true
-    }
+    },
+{
+            "name": "九仙阁",
+            "server": "https://drive.9t.ee",
+            "params": [
+              {
+                "path": "/189Cloud",
+                "pass": "dooglu"
+              }
+            ]
+          }
   ]
 }
