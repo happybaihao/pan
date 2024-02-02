@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;9b30d1d8a5b0656c674590c3c6d2aafe",
+  "spider": "./pg.jar;md5;8188ce5cb20658231bfeca627e656669",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -120,7 +120,7 @@
 {
             "name": "小白ipv6",
             "type": 0,
-            "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/ajin0913/TV/main/xiaohei.txt",
+            "url": "https://d.kstore.space/download/7395/xiaohei.txt",
             "ua": "okhttp/3.15",
             "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
             "logo": "https://epg.112114.xyz/logo/{name}.png"
@@ -161,8 +161,18 @@
   ],
   "sites": [
 {
-      "key": "豆豆",
+      "key": "豆瓣",
       "name": "🏮百号祝大家新年快乐 身体倍棒 多多赚钱💯",
+      "type": 3,
+      "api": "csp_Douban",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0,
+      "ext": "./lib/douban.json"
+    },
+{
+      "key": "豆豆",
+      "name": "🌕豆瓣|备用",
       "type": 3,
       "api": "http://rihou.vip:55/lib/drpy2.min.js",
       "ext": "http://rihou.vip:55/lib/douban.js",
@@ -179,16 +189,6 @@
       "searchable": 0,
       "quickSearch": 0,
       "filterable": 0
-    },
-{
-      "key": "豆瓣",
-      "name": "🌕豆瓣|备用",
-      "type": 3,
-      "api": "csp_Douban",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0,
-      "ext": "https://gitee.com/moyu0913/xiaohei/raw/master/json/douban.json"
     },
 {
       "key": "lf_js_search",
@@ -406,6 +406,18 @@
       "filterable": 0,
       "timeout": 60,
       "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishareqi.txt"
+    },
+{
+      "key": "AliShareEBook",
+      "name": "阿里云盘书籍分享",
+      "type": 3,
+      "api": "csp_AliShare",
+      "searchable": 0,
+      "quickSearch": 0,
+      "changeable": 0,
+      "filterable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$./lib/alishare.ebook.txt"
     },
 {
       "key": "阿里云集合",
