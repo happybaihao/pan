@@ -11,7 +11,7 @@
 "quark_flags":"4kz|auto",
 "aliproxy":"",
 "proxy":"",
-"aliproxy_url": "https://pan.shangui.cc/f/xxp3tZ/aliproxy.gz;md5;ba57c3312f9f7b30f760c37929adfb9a",
+"aliproxy_url": "https://agit.ai/leevi/PlG/raw/branch/master/lib/aliproxy.gz",
 "open_api_url":"https://aliyundrive-oauth.messense.me/oauth/access_token",
 "danmu":true,
 "quark_danmu":true,
@@ -32,5 +32,6 @@
 "pikpak_flags":"4k|auto",
 "pikpak_thread_limit":2,
 "pikpak_vip_thread_limit":2,
-"pikpak_proxy":"https://api-pikpak.tjsky.cf"
+"pikpak_proxy":"https://api-pikpak.tjsky.cf",
+"pikpak_proxy_onlyapi":true
 }
