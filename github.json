@@ -963,7 +963,7 @@
       "name": "LIBVIO|网盘",
       "type": 3,
       "api": "csp_Libvio",
-      "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null",
+      "ext": "./lib/tokenm.json$$$https://www.libvio.la$$$null",
       "quickSearch": 1,
       "changeable":1,
       "timeout": 60
