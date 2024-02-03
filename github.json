@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;8188ce5cb20658231bfeca627e656669",
+  "spider": "./pg.jar;md5;7d1a37c5448501ea9fd0f5fb882ce695",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -358,18 +358,20 @@
       "filterable": 1,
       "ext": {
         "type": "短剧合集#帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#抖音热歌#经典无损音乐合集#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#相声小品",
-        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=104AD61023_18D1CB80BF5; SESSDATA=9b095927%2C1721135848%2C5ac72%2A11CjABHqfYSyh1eaPBYFQ53NdAdEW1FLnOBkMJ_N18uCO0PcPYNqn5yDtV3onmtyRB7XcSVjRSVGdHcTEtdnRhcUloZ2hlQWhCd0s3Qno5OGpEaThaX2VhaGRVd2pqMDhnS0tnQmRRX2Jia0s4b0tqZGczNWJPNkdLUkZRN29IVFJQUzcyRmhqYV9RIIEC; bili_jct=70c213fd9a85878e51ed169ed1dced90; sid=60i1saor; home_feed_column=4; browser_resolution=819-1292; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDU4NDMwNTYsImlhdCI6MTcwNTU4Mzc5NiwicGx0IjotMX0.u6qGyp0c4hMW5Z-9SgfRu9cd5GnXK1HOGq-EKb56feM; bili_ticket_expires=1705842996; buvid_fp=1c0962ce584a4c104a234c96b7446190"
+        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=82181962_18D61248EAD; buvid_fp=1c0962ce584a4c104a234c96b7446190; SESSDATA=646ff31f%2C1722283816%2C5c451%2A21CjCYvrSP-2VYj9g5LEDXMOSz6JaHW52lSdhH_U8rrvtxhb2imoKuNs_mKsrFT5Xd3tISVmdhMzl2ckU2MTlrQy02eHVjU0RXRURCTFVKOTR4emNyY1k1ekJ1QXlWOFFpdGZtbUJEWjVvR1BMdFMxb3FMMnVqZ0hYQmJBLUx6YjhsTS0xUWtaWlpBIIEC; bili_jct=f107482c16a0fc989250e1648764530a; sid=7az6jho3; home_feed_column=4; browser_resolution=819-1292"
       }
     },
 {
       "key": "哔哩影视",
-      "name": "🍻哔哩影视┃官源",
+      "name": "📺哔哩影视┃官源",
       "type": 3,
-      "api": "https://gitee.com/moyu0913/xiaohei/raw/master/lib/drpy2.min.js",
+      "api": "https://api-lmteam.koyeb.app/files/py/py_bilibilimd.py",
       "searchable": 1,
       "quickSearch": 1,
-      "changeable": 2,
-      "ext": "https://gitee.com/moyu0913/xiaohei/raw/master/js/哔哩影视.js"
+      "filterable": 1,
+      "ext": {
+        "json": "https://gitee.com/moyu0913/xiaohei/raw/master/json/bili.json"
+      }
     },
 {
       "key": "AliShare剧",
@@ -768,6 +770,17 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://notabug.org/dongchenys/pt/raw/json/json/alisusu.json"
+    },
+{
+      "key": "土豆阿里",
+      "name": "💯玩偶┃土豆",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "timeout": 60
     },
 {
       "key": "Wobg",
