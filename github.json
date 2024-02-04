@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;7d1a37c5448501ea9fd0f5fb882ce695",
+  "spider": "./pg.jar;md5;a4641d44614be4500b314841116b55a4",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -169,26 +169,6 @@
       "quickSearch": 0,
       "filterable": 0,
       "ext": "./lib/douban.json"
-    },
-{
-      "key": "豆豆",
-      "name": "🌕豆瓣|备用",
-      "type": 3,
-      "api": "http://rihou.vip:55/lib/drpy2.min.js",
-      "ext": "http://rihou.vip:55/lib/douban.js",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0
-    },
-{
-      "key": "豆瓣饭",
-      "name": "🌕豆瓣|饭",
-      "type": 3,
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
-      "api": "csp_DouDou",
-      "searchable": 0,
-      "quickSearch": 0,
-      "filterable": 0
     },
 {
       "key": "lf_js_search",
@@ -422,16 +402,16 @@
       "ext": "./lib/tokenm.json$$$./lib/alishare.ebook.txt"
     },
 {
-      "key": "阿里云集合",
-      "name": "阿里云集合|4K",
-      "type": 3,
-      "api": "csp_阿里云集合",
-      "searchable": 1,
-      "filterable": 0,
-      "switchable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt",
-      "jar": "./阿里合集0131.jar"
-    },
+	"key": "阿里云集合",
+	"name": "阿里云集合|4K",
+	"type": 3,
+	"api": "csp_阿里云集合",
+	"searchable": 1,
+	"filterable": 0,
+	"switchable": 0,
+	"ext": "./lib/阿里集合.json;http://127.0.0.1:9978/file/tvbox/token.txt",
+	"jar": "./zx0204.jar"
+},
 {
 "key":"Tudou",
 "name":"土豆阿里资源网",
@@ -857,28 +837,6 @@
       "changeable": 1,
       "ext": "./lib/tokenm.json$$$https://wogg.888484.xyz/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
       "timeout": 60
-    },
-{
-      "key": "初见表哥",
-      "name": "🍒白泽表哥",
-      "type": 3,
-      "api": "csp_XBPQ",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "jar": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/表哥.jar;md5;0ab5d5c3db5f5d26ea4f44d2278b87ac",
-      "ext": {
-        "二次截取": "1&&-1+module-item-cover",
-        "数组": "module-item-pic&&module-item-cover",
-        "副标题": "module-item-text*>&&<",
-        "导演": "导演：&&</div>",
-        "主演": "主演：&&</div>",
-        "简介": "剧情：&&</div>",
-        "搜索url": "http://www.214728327.xyz:56708/index.php/vodsearch/-------------.html?wd={wd}",
-        "分类url": "http://www.214728327.xyz:56708/index.php/vod/show/area/{area}/by/{by}/class/{class}/id/{cateId}/lang/{lang}/letter/{letter}/year/{year}/page/{catePg}.html;;阿里",
-        "阿里token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "分类": "电影$1#剧集$2#综艺$4#动漫$3#短剧$5#音乐$6"
-      }
     },
 {
             "key" : "UpYun",
