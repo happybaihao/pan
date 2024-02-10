@@ -37,6 +37,15 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
+      "name": "📺APTV📺",
+      "type": 0,
+      "url": "https://go.ipayyds.xyz/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "https://1060s677v8.goho.co/epg.php",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
       "name": "📺摸鱼大电视📺",
       "type": 0,
       "url": "https://moyu.xiyan.life/live/moyu1.txt",
