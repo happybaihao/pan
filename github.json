@@ -55,6 +55,13 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
+            "name": "央视频",
+            "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+            "type": 0,
+            "timeout": 40,
+            "url": "./lib/xiutan.m3u"
+        },
+{
       "name": " 📺Ray•综合📺",
       "type": 0,
       "url": "https://xhdwc.tk/tvlive.txt",
@@ -569,13 +576,14 @@
       "api": "http://xh.xn--yetu07f.icu/api.php/provide/vod/"
     },
 {
-      "key": "996影院",
-      "name": "🎀九六┃影院",
+      "key": "酷看",
+      "name": "💡酷看┃App",
       "type": 3,
-      "api": "csp_Cs1369",
+      "api": "csp_Kkys",
+      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
       "searchable": 1,
-      "changeable": 2,
-      "ext":"https://www.cs1369.com$$$null$$$1"
+      "quickSearch": 1,
+      "changeable": 1
     },
 {
       "key": "天天",
