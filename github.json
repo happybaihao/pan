@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;75857d67f11eee54879323bd780ee1e5",
+  "spider": "./pg.jar;md5;2439bccf8b413976b3176f9a0aa8262e",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -14,7 +14,7 @@
 {
       "name": "小白ipv4",
       "type": 0,
-      "url": "https://d.kstore.space/download/5413/xbdmq.txt",
+      "url": "https://d.kstore.space/download/5413/肥猫宝贝.txt",
       "ua": "okhttp/3.15",
       "epg": "https://1060s677v8.goho.co/epg.php",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
@@ -361,7 +361,7 @@
       "key": "哔哩影视",
       "name": "📺哔哩影视┃官源",
       "type": 3,
-      "api": "https://api-lmteam.koyeb.app/files/py/py_bilibilimd.py",
+      "api": "https://gitee.com/moyu0913/xiaohei/raw/master/json/py_bilibilimd.py",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -404,6 +404,16 @@
       "filterable": 0,
       "timeout": 60,
       "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishareqi.txt$$$db$$$1"
+    },
+{
+      "key": "AliShare",
+      "name": "👦我的┃云盘",
+      "type": 3,
+      "api": "csp_AliShare",
+      "searchable": 1,
+      "changeable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishare.txt$$$db$$$1"
     },
 {
       "key": "AliShareEBook",
@@ -566,7 +576,17 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
+      "ext": "https://www.czz55.com/",
       "jar": "./qqqpm.jar"
+    },
+{
+      "key": "安博",
+      "name": "🧷安博┃T4",
+      "type": 4,
+      "api": "https://ali.xn--sxr.hz.cz/site/ub1818",
+      "searchable": 1,
+      "changeable": 2,
+      "filterable": 0
     },
 {
       "key": "小胡",
@@ -614,7 +634,17 @@
     },
 {"key":"初见影视","name":"初见影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"./lib/初见影视.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
 {"key":"初见自用","name":"初见自用","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见自用.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
-{"key":"开心影视","name":"🎦开心影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":1,"ext":"http://rihou.vip:55/lib/开心影视.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
+{
+	"key": "开心HK影视",
+	"name": "🎦开心HK影视",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"searchable": 1,
+	"quickSearch": 1,
+	"filterable": 1,
+	"ext": "http://rihou.vip:55/lib/开心HK影视.json",
+	"jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"
+},
 {
       "key": "耐看",
       "name": "😣耐看┃影视",
@@ -674,13 +704,16 @@
       "ext": "https://gitee.com/moyu0913/xiaohei/raw/master/js/360影视.js"
     },
 {
-      "key": "sohu",
-      "name": "🐵搜狐┃官源",
-      "type": 1,
-      "api": "http://tvbox-1-g5221611.deta.app/vod/sohu",
+      "key": "lxgc",
+      "name": "🍄凌雪视频",
+      "type": 3,
+      "api": "csp_AppYsV2",
+      "playUrl": "http://175.178.27.186:75/aikuwudiwenjianjia/LXJSON/?key=5&url=",
       "searchable": 1,
-      "quickSearch": 1
-      }, 
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": "http://175.178.27.186:331/api.php/app/"
+    },
 {
             "key": "YSC",
             "name": "💯玩偶┃运输车",
@@ -942,7 +975,7 @@
       "name": "LIBVIO|网盘",
       "type": 3,
       "api": "csp_Libvio",
-      "ext": "./lib/tokenm.json$$$https://www.libvio.la$$$null",
+      "ext": "./lib/tokenm.json$$$https://www.libvio.fun$$$null",
       "quickSearch": 1,
       "changeable":1,
       "timeout": 60
@@ -990,7 +1023,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "./lib/tokenm.json$$$satoken=cae80541-1d61-4bb1-998d-7ceb1bdea29f",
+      "ext": "./lib/tokenm.json$$$satoken=d282d1a6-15f1-454e-8f15-4b09829e1025",
       "timeout": 60
     },
 {
@@ -1037,7 +1070,7 @@
             "changeable": 2,
             "filterable": 1,
             "timeout": 30,
-            "ext": "./lib/tokenm.json$$$https://pan.qianfan.app$$$null$$$QianFanID=3g7raewnjvpeittrsyacu4qn05ugncr7; _ga_6Z94VT54DV=GS1.1.1706727826.4.1.1706727986.0.0.0"
+            "ext": "./lib/tokenm.json$$$https://pan.qianfan.app$$$null$$$QianFanID=kfay98g9vxht1r8nmwxgyr61vz268hhe; _ga_6Z94VT54DV=GS1.1.1706727826.4.1.1706727986.0.0.0"
         },
 {
             "key": "Funletu",
