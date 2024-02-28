@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;2439bccf8b413976b3176f9a0aa8262e",
+  "spider": "./pg.jar;md5;0b03b3231ea0f3cd0adb2506e1715600",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -354,7 +354,7 @@
       "filterable": 1,
       "ext": {
         "type": "短剧合集#帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#抖音热歌#经典无损音乐合集#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#相声小品",
-        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=82181962_18D61248EAD; buvid_fp=1c0962ce584a4c104a234c96b7446190; SESSDATA=646ff31f%2C1722283816%2C5c451%2A21CjCYvrSP-2VYj9g5LEDXMOSz6JaHW52lSdhH_U8rrvtxhb2imoKuNs_mKsrFT5Xd3tISVmdhMzl2ckU2MTlrQy02eHVjU0RXRURCTFVKOTR4emNyY1k1ekJ1QXlWOFFpdGZtbUJEWjVvR1BMdFMxb3FMMnVqZ0hYQmJBLUx6YjhsTS0xUWtaWlpBIIEC; bili_jct=f107482c16a0fc989250e1648764530a; sid=7az6jho3; home_feed_column=4; browser_resolution=819-1292"
+        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=9994E286_18DE8F217A2; SESSDATA=a78a3bce%2C1724562227%2C778c9%2A21CjCKuxutBHdZD1netiqC6jHfxGD3Y42GnH-sUv9vFL1xubgIC4GxrNyAu4-4vPkq9mESVmtyY09ncy1ObXJlUy0yYnJCZmpjM1ljTTBXWEN6NU42VE0yWWpQSGh2Z0pYZ0tSUW14eko0d18za1dVTGZncUpYdW9XZmJab2xsbGxzUmZ0RnUzLThBIIEC; bili_jct=9ef67647fc2a240774ff69dafd8aeb04; sid=oypapai8; home_feed_column=4; browser_resolution=819-1292; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDkyNjk0MzcsImlhdCI6MTcwOTAxMDE3NywicGx0IjotMX0.zMny0q8uSBVbuzFXIpiht-0-zhhjunWYpscZAOWJiXM; bili_ticket_expires=1709269377; buvid_fp=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc"
       }
     },
 {
@@ -576,7 +576,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
-      "ext": "https://www.czz55.com/",
+      "ext": "https://bo.czys.me",
       "jar": "./qqqpm.jar"
     },
 {
@@ -589,11 +589,21 @@
       "filterable": 0
     },
 {
-      "key": "小胡",
-      "name": "🔥自营┃影视",
+	"key": "Fangniu4k",
+	"name": "🇨🇳放牛｜影视",
+	"type": 3,
+	"api": "csp_Fangniu4k",
+	"jar": "https://atomgit.com/smdy/top-level/raw/master/jar/放牛.jar",
+	"searchable": 1,
+	"changeable": 0
+},
+{
+      "key": "xh",
+      "name": "🀄自营┃剧集",
       "type": 1,
-      "playerType": 1,
-      "api": "http://xh.xn--yetu07f.icu/api.php/provide/vod/"
+      "playerType": 3,
+      "api": "http://cc.xzam.cn/api.php/provide/vod/",
+      "playUrl": ""
     },
 {
       "key": "酷看",
@@ -624,16 +634,36 @@
       "ext": "null$$$1"
     },
 {
-      "key": "巧技二",
-      "name": "巧技二┃App",
+      "key": "电影港",
+      "name": "🤍电影｜港湾",
       "type": 3,
-      "api": "csp_qiao2",
-      "playerType": 2,
-      "ext": "https://jihulab.com/qiaoji/open/-/raw/main/qiaoji2",
-      "jar": "http://cdn.qiaoji8.com/fix12210.jar;md5;a5c29d1840207b137a855e23526d6e32"
+      "api": "csp_XYQHiker",
+      "playerType": "1",
+      "ext": "https://atomgit.com/smdy/top-level/raw/master/json/电影港.json",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
-{"key":"初见影视","name":"初见影视","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"./lib/初见影视.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
-{"key":"初见自用","name":"初见自用","type":3,"api":"csp_XBPQ","searchable":1,"quickSearch":1,"filterable":0,"ext":"https://win11.asuscomm.com:63/json/初见自用.json","jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"},
+{
+	"key": "初见影视",
+	"name": "初见影视",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"searchable": 1,
+	"quickSearch": 1,
+	"filterable": 0,
+	"ext": "https://pan.shangui.cc/f/B87PSp/%E5%88%9D%E8%A7%81%E5%BD%B1%E8%A7%86.json",
+	"jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"
+},
+{
+	"key": "初见自用",
+	"name": "初见自用",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"searchable": 1,
+	"quickSearch": 1,
+	"filterable": 0,
+	"ext": "https://win11.asuscomm.com:63/json/初见自用.json",
+	"jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"
+},
 {
 	"key": "开心HK影视",
 	"name": "🎦开心HK影视",
@@ -662,38 +692,7 @@
       "quickSearch": 1,
       "jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar;md5;bb155c3f0133bbce4756ad52003f5968",
       "api": "csp_XBPQ",
-      "ext": {
-        "嗅探词": ".m3u8#.mp4#.m3u8?#freeok.mp4",
-        "分类url": "https://shdy2.com/list/{cateId}-{catePg}.html;;vr1au0",
-        "分类": "电影$1#电视剧$2#韩剧$22#美剧$23#动漫$4",
-        "数组二次截取": "class=\"v_list\">&&</ul>",
-        "数组": "\"v_img\"&&/div>",
-        "标题": "title=\"&&\"",
-        "副标题": "v_note\"&&</div",
-        "跳转播放链接": "<iframe*src=\"&&\"",
-        "二次跳转播放链接": "https://hhjx.hhplayer.com/api.php;post;url=+var url*\"&&\"+&t=+var t*\"&&\"+&key=+var key*\"&&\"+&act=0+&play=1",
-        "三次跳转播放链接": "\"url\"*\"&&\""
-      }
-    },
-{
-      "key": "fok",
-      "name": "🌙Frok┃影视",
-      "type": 3,
-      "api": "csp_XBPQ",
-      "jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar;md5;bb155c3f0133bbce4756ad52003f5968",
-      "ext": {
-        "分类url": "https://www.freeok.vip/vod-show/{cateId}-{area}-------{catePg}---{year}.html",
-        "分类": "FREE电影&FREE剧集&FREE动漫&FREE综艺&FREE短剧&FREE少儿",
-        "分类值": "1&2&3&4&12&5",
-        "播放请求头": "User-Agent$Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-        "副标题": "<div class=\"module-item-note\">&&</div>",
-        "嗅探词": "m3u8#.m3u8#.mp4#freeok.mp4#/obj/",
-        "线路数组": "data-dropdown-value=&&</div>[不包含:夸克]",
-        "线路标题": "<span>&&</small>",
-        "导演": "导演：&&</div>",
-        "主演": "主演：&&</div>",
-        "简介": "<p>&&</p>"
-      }
+      "ext": "http://xiaohu.xzam.cn/XBPQ/骚火.json"
     },
 {
       "key": "360",
@@ -726,6 +725,17 @@
             "timeout": 60
      },
 {
+      "key": "土豆阿里",
+      "name": "💯玩偶┃土豆",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "timeout": 60
+    },
+{
       "key": "玩偶哥哥",
       "name": "💯玩偶┃哥哥",
       "type": 3,
@@ -756,7 +766,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "http://rihou.vip:55/lib/玩偶哥哥.json",
-      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar"
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
 {
       "key": "yingshiche",
@@ -768,7 +778,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/玩偶运输车.json",
-      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar"
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
 {
       "key": "ttkx",
@@ -780,19 +790,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/玩我哥哥.json",
-      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar"
-    },
-{
-      "key": "xyq玩偶表哥",
-      "name": "📀表哥┃香",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 0,
-      "ext": "https://d.kstore.space/download/4974/GLL/json/XYQHiker/%E7%8E%A9%E5%81%B6%E8%A1%A8%E5%93%A5.json",
-      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar"
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
 {
       "key": "csp_XYQHikerAL_阿里苏苏",
@@ -896,7 +894,7 @@
             "key" : "UpYun",
             "name" : "📀Up搜┃搜索",
             "type" : 3,
-            "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar",
+            "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
             "api" : "csp_UpYun",
             "searchable" : 1,
             "quickSearch" : 1,
@@ -907,7 +905,7 @@
       "key": "xyq找资源",
       "name": "📀资源★云盘",
       "type": 3,
-      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
       "api": "csp_Zhaozy",
       "searchable": 1,
       "quickSearch": 1,
@@ -920,7 +918,7 @@
       "key": "Gitcafe",
       "name": "📀小纸条(搜索)",
       "type": 3,
-      "jar": "https://github.moeyy.xyz/https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/custom_spider.jar",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
       "api": "csp_Gitcafe",
       "searchable": 1,
       "quickSearch": 1,
