@@ -222,6 +222,15 @@
       "changeable": 0
     },
 {
+	"key": "Yinyuetai",
+	"name": "🛰音悦台┃音乐┃MV",
+	"type": 3,
+	"api": "csp_Yinyuetai",
+                "jar": "./fangniu.jar",
+	"searchable": 1,
+	"changeable": 0
+},
+{
       "key": "Aid",
       "name": "🚑急救┃教学",
       "type": 3,
@@ -583,17 +592,18 @@
       "key": "安博",
       "name": "🧷安博┃T4",
       "type": 4,
-      "api": "https://ali.xn--sxr.hz.cz/site/ub1818",
+      "api": "https://tang.serv00.net/power/ub1818",
       "searchable": 1,
       "changeable": 2,
-      "filterable": 0
+      "filterable": 0,
+      "ext":true
     },
 {
 	"key": "Fangniu4k",
 	"name": "🇨🇳放牛｜影视",
 	"type": 3,
 	"api": "csp_Fangniu4k",
-	"jar": "https://atomgit.com/smdy/top-level/raw/master/jar/放牛.jar",
+	"jar": "./fangniu.jar",
 	"searchable": 1,
 	"changeable": 0
 },
