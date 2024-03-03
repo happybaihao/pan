@@ -519,6 +519,16 @@
 	    "ext":"/lib/alistjar.json"
 	},
 {
+            "key": "小鸭备",
+            "name": "小雅┃网盘备",
+            "type": 3,
+            "api": "http://60.204.156.46:5678/tvbox/libs/alist.min.js",
+            "ext": "https://pan.shangui.cc/f/0X1Ehj/alist1.json",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable":0
+        },
+{
       "key": "小鸭1",
       "name": "小雅┃网盘1",
       "type": 3,
