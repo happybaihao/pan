@@ -519,15 +519,15 @@
 	    "ext":"/lib/alistjar.json"
 	},
 {
-            "key": "小鸭1",
-            "name": "小雅┃网盘1",
-            "type": 3,
-            "api": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/hjdhnx/dr_py/main/libs/alist.min.js",
-            "ext": "https://pan.shangui.cc/f/0X1Ehj/alist1.json",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable":0
-        },
+      "key": "小鸭1",
+      "name": "小雅┃网盘1",
+      "type": 3,
+      "api": "http://14.19.132.101:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://14.19.132.101:5678/tvbox/json/alist_ext.json;200;video"
+    },
 {
       "key": "小鸭2",
       "name": "小雅┃网盘2",
@@ -542,21 +542,21 @@
       "key": "小鸭3",
       "name": "小雅┃网盘3",
       "type": 3,
-      "api": "http://116.17.102.66:5678/tvbox/libs/alist.min.js",
+      "api": "http://27.16.216.110:5678/tvbox/libs/alist.min.js",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "http://116.17.102.66:5678/tvbox/json/alist_ext.json;200;video"
+      "ext": "http://27.16.216.110:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
       "key": "小鸭4",
       "name": "小雅┃网盘4",
       "type": 3,
-      "api": "http://124.70.161.86:5678/tvbox/libs/alist.min.js",
+      "api": "http://nas.taogestudio.cn:5678/tvbox/libs/alist.min.js",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "http://124.70.161.86:5678/tvbox/json/alist_ext.json;200;video"
+      "ext": "http://nas.taogestudio.cn:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
       "key": "小鸭5",
