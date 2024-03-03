@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;0b03b3231ea0f3cd0adb2506e1715600",
+  "spider": "./pg.jar;md5;740d2a732da879f7e620bd6c70dce295",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -569,6 +569,36 @@
       "ext": "http://43.142.51.65:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
+      "key": "小鸭6",
+      "name": "小雅┃网盘6",
+      "type": 3,
+      "api": "http://111.226.235.74:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://111.226.235.74:5678/tvbox/json/alist_ext.json;200;video"
+    },
+{
+      "key": "小鸭7",
+      "name": "小雅┃网盘7",
+      "type": 3,
+      "api": "http://119.99.136.63:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://119.99.136.63:5678/tvbox/json/alist_ext.json;200;video"
+    },
+{
+      "key": "小鸭8",
+      "name": "小雅┃网盘8",
+      "type": 3,
+      "api": "http://1.83.168.201:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://1.83.168.201:5678/tvbox/json/alist_ext.json;200;video"
+    },
+{
       "key": "csp_Czzy",
       "name": "📔厂长┃阿姨最爱",
       "type": 3,
@@ -683,7 +713,7 @@
 	"quickSearch": 1,
 	"filterable": 1,
 	"ext": "http://rihou.vip:55/lib/开心HK影视.json",
-	"jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"
+	"jar": "http://rihou.vip:55/lib/ttkx.jar"
 },
 {
       "key": "耐看",
