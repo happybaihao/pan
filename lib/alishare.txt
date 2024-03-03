@@ -1,2 +1,1 @@
-default 我的备份盘
-resource 我的资源盘
+self 我的阿里云盘
