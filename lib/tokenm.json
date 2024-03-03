@@ -1,7 +1,7 @@
 {
 "token":"http://127.0.0.1:9978/file/tvbox/token.txt",
 "open_token":"http://127.0.0.1:9978/file/tvbox/opentoken.txt",
-"thread_limit":96,
+"thread_limit":64,
 "is_vip":true,
 "vip_thread_limit":1,
 "vod_flags":"4k|4kz|auto",
@@ -11,7 +11,7 @@
 "quark_flags":"4kz|auto",
 "aliproxy":"",
 "proxy":"",
-"aliproxy_url": "https://d.kstore.space/download/7395/aliproxy.gz",
+"aliproxy_url": "https://d.kstore.space/download/7395/aliproxy.gz;md5;7071b71f973da0aef02c1d83a6534820",
 "open_api_url":"https://aliyundrive-oauth.messense.me/oauth/access_token",
 "danmu":true,
 "quark_danmu":true,
