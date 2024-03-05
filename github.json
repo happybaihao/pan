@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;740d2a732da879f7e620bd6c70dce295",
+  "spider": "./pg.jar;md5;9658eeb13ccd1c3a4974fe8ebef23df2",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -62,6 +62,14 @@
             "url": "./lib/xiutan.m3u"
         },
 {
+      "name": "📺拾光📺",
+      "type": 0,
+      "url": "https://gh.con.sh/https://raw.githubusercontent.com/xmbjm/vip4K/main/lib/tvlive.txt",
+      "playerType": 1,
+      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
       "name": " 📺Ray•综合📺",
       "type": 0,
       "url": "https://xhdwc.tk/tvlive.txt",
@@ -113,14 +121,6 @@
       "name": "📺俊于•综合📺",
       "type": 0,
       "url": "http://home.jundie.top:81/Cat/tv/live.txt",
-      "playerType": 1,
-      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "📺初见📺",
-      "type": 0,
-      "url": "http://win11.asuscomm.com:57/iptv/1214.txt",
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
@@ -222,14 +222,27 @@
       "changeable": 0
     },
 {
-	"key": "Yinyuetai",
-	"name": "🛰音悦台┃音乐┃MV",
-	"type": 3,
-	"api": "csp_Yinyuetai",
-                "jar": "./fangniu.jar",
-	"searchable": 1,
-	"changeable": 0
-},
+      "key": "Iktv",
+      "name": "KTV",
+      "type": 3,
+      "api": "csp_Iktv",
+      "searchable": 1,
+      "changeable": 0
+    },
+{
+      "key": "Yinyuetai",
+      "name": "音悦台",
+      "type": 3,
+      "api": "csp_Yinyuetai",
+      "searchable": 1,
+      "changeable": 0
+    },
+{
+      "key": "xiaoyi",
+      "name": "🍒小姨音乐",
+      "type": 4,
+      "api": "https://catbox.n13.club/wy.php"
+    },
 {
       "key": "Aid",
       "name": "🚑急救┃教学",
@@ -370,12 +383,12 @@
       "key": "哔哩影视",
       "name": "📺哔哩影视┃官源",
       "type": 3,
-      "api": "https://gitee.com/moyu0913/xiaohei/raw/master/json/py_bilibilimd.py",
+      "api": "https://api-lmteam.koyeb.app/files/py/py_bilibilimd.py",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
       "ext": {
-        "json": "https://gitee.com/moyu0913/xiaohei/raw/master/json/bili.json"
+        "json": "https://jihulab.com/tiantuhao/GitHubHonor/-/raw/master/json/bili.json"
       }
     },
 {
@@ -764,6 +777,17 @@
       "ext": "http://175.178.27.186:331/api.php/app/"
     },
 {
+      "key": "Moli",
+      "name": "HDmoli|网盘",
+      "type": 3,
+      "api": "csp_Moli",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://www.hdmoli.pro/$$$null$$$1$$$./lib/moli.json"
+    },
+{
             "key": "YSC",
             "name": "💯玩偶┃运输车",
             "type": 3,
@@ -771,7 +795,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 2,
-            "ext": "./lib/tokenm.json$$$https://www.weixine.link/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+            "ext": "./lib/tokenm.json$$$https://www.weixine.link/$$$null$$$1$$$./lib/wogg.json",
             "timeout": 60
      },
 {
@@ -782,7 +806,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 2,
-      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -793,7 +817,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -861,7 +885,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 2,
-      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -872,7 +896,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json"
+      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$./lib/wogg.json"
     },
 {
       "key": "Hdhive",
@@ -893,7 +917,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://www.ttkx.live/$$$null$$$1https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$http://www.ttkx.live/$$$null$$$1./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -904,7 +928,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "./lib/tokenm.json$$$http://tvfan.xxooo.cf/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$http://tvfan.xxooo.cf/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -915,7 +939,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.link/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$https://wogg.link/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -926,7 +950,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "./lib/tokenm.json$$$http://www.wogg.xyz/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$http://www.wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -937,7 +961,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.888484.xyz/$$$null$$$1$$$https://gitee.com/moyu0913/xiaohei/raw/master/lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$https://wogg.888484.xyz/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
