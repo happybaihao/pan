@@ -656,7 +656,7 @@
 	"name": "🇨🇳放牛｜影视",
 	"type": 3,
 	"api": "csp_Fangniu4k",
-	"jar": "./fangniu.jar",
+	"jar": "./zuixinfangniu.jar",
 	"searchable": 1,
 	"changeable": 0
 },
