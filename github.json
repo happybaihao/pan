@@ -638,7 +638,6 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
-      "ext": "https://bo.czys.me",
       "jar": "./qqqpm.jar"
     },
 {
@@ -668,6 +667,17 @@
       "api": "http://cc.xzam.cn/api.php/provide/vod/",
       "playUrl": ""
     },
+{
+	"key": "csp_XBPQ_白嫖影视",
+	"name": "白嫖┃影视",
+	"type": 3,
+	"api": "csp_XBPQ",
+                "jar": "http://rihou.vip:55/lib/ttkx.jar",
+	"searchable": 1,
+	"quickSearch": 1,
+	"filterable": 1,
+	"ext": "./lib/bpys.json"
+},
 {
       "key": "酷看",
       "name": "💡酷看┃App",
