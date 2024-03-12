@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;9658eeb13ccd1c3a4974fe8ebef23df2",
+  "spider": "./pg.jar;md5;818035a55579d7d625a70c01485f1cca",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -428,15 +428,21 @@
       "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishareqi.txt$$$db$$$1"
     },
 {
-      "key": "AliShare",
-      "name": "👦我的┃云盘",
-      "type": 3,
-      "api": "csp_AliShare",
-      "searchable": 1,
-      "changeable": 0,
-      "timeout": 60,
-      "ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/alishare.txt$$$db$$$1"
-    },
+	"key": "PushShare",
+	"name": "我的资源分享",
+	"type": 3,
+	"api": "csp_PushShare",
+	"searchable": 1,
+	"quickSearch": 1,
+	"changeable": 1,
+	"filterable": 0,
+	"timeout": 60,
+	"ext": "./lib/tokenm.json$$$https://d.kstore.space/download/4723/lib/pushshare.txt$$$db$$$1",
+	"style": {
+		"type": "list",
+		"ratio": 1.1
+	}
+},
 {
       "key": "AliShareEBook",
       "name": "阿里云盘书籍分享",
