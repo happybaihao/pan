@@ -376,7 +376,7 @@
       "filterable": 1,
       "ext": {
         "type": "短剧合集#帕梅拉#八段锦#广场舞#演唱会#贝瓦儿歌#抖音热歌#经典无损音乐合集#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#相声小品",
-        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=9994E286_18DE8F217A2; SESSDATA=a78a3bce%2C1724562227%2C778c9%2A21CjCKuxutBHdZD1netiqC6jHfxGD3Y42GnH-sUv9vFL1xubgIC4GxrNyAu4-4vPkq9mESVmtyY09ncy1ObXJlUy0yYnJCZmpjM1ljTTBXWEN6NU42VE0yWWpQSGh2Z0pYZ0tSUW14eko0d18za1dVTGZncUpYdW9XZmJab2xsbGxzUmZ0RnUzLThBIIEC; bili_jct=9ef67647fc2a240774ff69dafd8aeb04; sid=oypapai8; home_feed_column=4; browser_resolution=819-1292; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDkyNjk0MzcsImlhdCI6MTcwOTAxMDE3NywicGx0IjotMX0.zMny0q8uSBVbuzFXIpiht-0-zhhjunWYpscZAOWJiXM; bili_ticket_expires=1709269377; buvid_fp=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc"
+        "cookie": "i-wanna-go-back=-1; buvid_fp_plain=undefined; header_theme_version=CLOSE; PVID=1; b_ut=7; FEED_LIVE_VERSION=V8; CURRENT_BLACKGAP=0; buvid4=3A49A725-00D0-2AF2-7037-F442C85F130937725-022100900-zOXW6fOdu77ioX%2BIVm0nwA%3D%3D; CURRENT_FNVAL=4048; CURRENT_PID=84a2a660-ed72-11ed-b29f-d7eaa4f43fe4; buvid3=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc; b_nut=1696324033; _uuid=66C37D101-DB12-BDC3-810F1-8D436BE38D2728848infoc; enable_web_push=DISABLE; hit-dyn-v2=1; fingerprint=1c0962ce584a4c104a234c96b7446190; rpdid=|(ku|kk~JRRk0J'u~|R)k||YJ; b_lsid=FF6103469_18E055DE31F; home_feed_column=5; bp_video_offset_186957646=900538686481891449; SESSDATA=ec17f614%2C1725039067%2C5e71c%2A31CjC1PtB63lFJsbT6DBlPNeGxu1w1_Ex1io4DTDD1mdz3PZuzlvtiYPxMhheBe00KUI0SVlg3SU93a241Z2REMmZDdURiTjgxYXlETm5KaDhzVmNHd0Z0YXhOckdOLU1CdmFZNDVSUnAzdEFNRkpESXphb3UzVkV1NEJzdHVSRlk3ODhLTVR1N2VRIIEC; bili_jct=bf8ffaa65da575a1244259cc380c1b83; DedeUserID=186957646; DedeUserID__ckMd5=4f717c8832ee1e62; sid=p2p9lwr2; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDk3NDYyNzUsImlhdCI6MTcwOTQ4NzAxNSwicGx0IjotMX0.RilDwHod-aP5ugswwa2Kt616onepm040eAa-IQ1wAWI; bili_ticket_expires=1709746215; browser_resolution=2537-1282; buvid_fp=2FBAD7D5-658A-4DE3-B93F-34AEAB029A3B33241infoc"
       }
     },
 {
@@ -388,7 +388,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": {
-        "json": "https://jihulab.com/tiantuhao/GitHubHonor/-/raw/master/json/bili.json"
+        "json": "https://gitee.com/liu-jiahe20230908/xb/raw/master/json/bili.json"
       }
     },
 {
@@ -565,11 +565,11 @@
       "key": "小鸭3",
       "name": "小雅┃网盘3",
       "type": 3,
-      "api": "http://27.16.216.110:5678/tvbox/libs/alist.min.js",
+      "api": "http://221.8.167.123:5678/tvbox/libs/alist.min.js",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "http://27.16.216.110:5678/tvbox/json/alist_ext.json;200;video"
+      "ext": "http://221.8.167.123:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
       "key": "小鸭4",
@@ -631,6 +631,17 @@
       "jar": "https://gitee.com/moyu0913/xiaohei/raw/master/jar/qqq.jar"
     },
 {
+      "key": "csp_Czsapp",
+      "name": "📔厂长┃阿姨挚爱",
+      "type": 3,
+      "api": "csp_Czsapp",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "https://www.czzy55.com/",
+      "jar": "https://123.155123.xyz/南风.jar"
+    },
+{
       "key": "Czsapp",
       "name": "📔厂长┃阿姨偏爱",
       "type": 3,
@@ -668,15 +679,28 @@
       "playUrl": ""
     },
 {
-	"key": "csp_XBPQ_白嫖影视",
+	"key": "baipiaoys",
 	"name": "白嫖┃影视",
 	"type": 3,
-	"api": "csp_XBPQ",
-                "jar": "http://rihou.vip:55/lib/ttkx.jar",
+	"changeable": 1,
 	"searchable": 1,
 	"quickSearch": 1,
 	"filterable": 1,
-	"ext": "./lib/bpys.json"
+	"api": "csp_XBPQ",
+	"ext": {
+		"主页url": "http://www.baipiaoys.cc/",
+		"副标题": "pic-text text-right\">&&</b>",
+		"搜索模式": "1",
+		"搜索url": "https://www.baipiaoys.cc/search.html?wd={wd}",
+		"图片": "data-original=\"&&\"",
+		"嗅探词": ".mp4#m3u8#.m3u8#/tos/#.flv#video/tos",
+		"影片类型": "<div class=\"module-info-tag\">&&立即播放",
+		"导演": "导演：&&</div>",
+		"主演": "主演：&&</div>",
+		"分类": "电影$1#电视剧$2#动漫$3#短剧$4#综艺$5",
+		"分类url": "http://www.baipiaoys.cc/show/area/{area}/class/{class}/id/{cateId}/page/{catePg}/lang/{lang}/letter/{letter}/year/{year}.html"
+	},
+	"jar": "https://123.155123.xyz/南风.jar"
 },
 {
       "key": "酷看",
