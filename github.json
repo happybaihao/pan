@@ -380,10 +380,22 @@
       }
     },
 {
-      "key": "哔哩影视",
+      "key": "py_bilibilidy",
       "name": "📺哔哩影视┃官源",
       "type": 3,
       "api": "https://gitee.com/liu-jiahe20230908/xb/raw/master/lib/py_bilibilidy.py",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": {
+        "json": "https://gitee.com/liu-jiahe20230908/xb/raw/master/json/bili.json"
+      }
+    },
+{
+      "key": "py_bilibilimd",
+      "name": "☃️哔哩番剧┃官源",
+      "type": 3,
+      "api": "https://gitee.com/liu-jiahe20230908/xb/raw/master/lib/py_bilibilimd.py",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -755,6 +767,27 @@
       "ext": "http://175.178.27.186:331/api.php/app/"
     },
 {
+      "key": "团长影视",
+      "name": "🍡团长┃网盘",
+      "type": 3,
+      "api": "csp_TZFile",
+      "ext": "./lib/tokenm.json$$$null$$$1",
+      "quickSearch": 1,
+      "changeable": 0,
+      "timeout": 60
+    },
+{
+      "key": "Xpanpan",
+      "name": "小盘盘|网盘",
+      "type": 3,
+      "api": "csp_Xpanpan",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://xpanpan.site$$$null$$$1"
+    },
+{
       "key": "Moli",
       "name": "HDmoli|网盘",
       "type": 3,
@@ -895,7 +928,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://www.ttkx.live/$$$null$$$1./lib/wogg.json",
+      "ext": "./lib/tokenm.json$$$http://www.ttkx.live:3328$$$null$$$1./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -1010,16 +1043,6 @@
             "quickSearch": 1,
             "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
         },
-{
-      "key": "团长影视",
-      "name": "🍡团长┃网盘",
-      "type": 3,
-      "api": "csp_TZFile",
-      "ext": "./lib/tokenm.json$$$null$$$1",
-      "quickSearch": 1,
-      "changeable": 0,
-      "timeout": 60
-    },
 {
       "key": "Libvio",
       "name": "LIBVIO|网盘",
