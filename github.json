@@ -383,24 +383,24 @@
       "key": "py_bilibilidy",
       "name": "📺哔哩影视┃官源",
       "type": 3,
-      "api": "https://gitee.com/liu-jiahe20230908/xb/raw/master/lib/py_bilibilidy.py",
+      "api": "https://api-lmteam.koyeb.app/files/py/py_bilibilivd.py",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
       "ext": {
-        "json": "https://gitee.com/liu-jiahe20230908/xb/raw/master/json/bili.json"
+        "json": "https://d.kstore.space/download/4723/lib/bili.json"
       }
     },
 {
       "key": "py_bilibilimd",
       "name": "☃️哔哩番剧┃官源",
       "type": 3,
-      "api": "https://gitee.com/liu-jiahe20230908/xb/raw/master/lib/py_bilibilimd.py",
+      "api": "https://api-lmteam.koyeb.app/files/py/py_bilibilimd.py",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
       "ext": {
-        "json": "https://gitee.com/liu-jiahe20230908/xb/raw/master/json/bili.json"
+        "json": "https://d.kstore.space/download/4723/lib/bili.json"
       }
     },
 {
@@ -664,6 +664,14 @@
       "ext": "http://op.ysdqjs.cn$$$null$$$1"
     },
 {
+      "key": "追剧",
+      "name": "🦅追剧｜影视",
+      "type": 3,
+      "api": "csp_TTian",
+      "playerType": 1,
+      "ext": "http://app.kzjtv.com$$$null$$$1"
+    },
+{
       "key": "NanGua",
       "name": "🎃南瓜┃影视",
       "type": 3,
@@ -681,7 +689,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "changeable": 2,
-      "ext": "https://gitee.com/liu-jiahe20230908/xb/raw/master/lib/jianpian.json$$$1",
+      "ext": "https://atomgit.com/smdy/top-level/raw/master/json/jianpian.json$$$1",
       "timeout": 60
     },
 {
