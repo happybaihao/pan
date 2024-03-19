@@ -610,17 +610,6 @@
 	"changeable": 0
 },
 {
-      "key": "xh",
-      "name": "🀄自营┃剧集",
-      "type": 1,
-      "playerType": 2,
-      "api": "http://cc.xzam.cn/api.php/provide/vod/",
-      "playUrl": "http://pp.xzam.cn/player/?url=",
-      "style": {
-        "type": "list"
-      }
-    },
-{
 	"key": "baipiaoys",
 	"name": "白嫖┃影视",
 	"type": 3,
@@ -1623,34 +1612,10 @@
 			"flag": ["SMD"],"header":{"User-Agent":"okhttp/4.1.0"}
 		}    
 	},
-	  {
-      "name": "玉米",
-      "type": 1,
-      "url": "http://110.42.3.71:5000/api/jiexi/common?Key=LMo8E4YGA8q7smoL4F&url=",
-      "ext": {
-        "flag": [
-          "YuMi-vip"
-        ],
-        "header": {
-          "User-Agent": "okhttp/4.1.0"
-        }
-      }
-    },
-{
-      "name": "小胡解析1",
-      "type": 1,
-      "url": "https://json.oorl.cn/api/?key=gajpAki7cu8560ro4C&url="
-    },
-    {
-      "name": "小胡解析2",
-      "type": 1,
-      "url": "http://119.91.123.253:2345/Api/yun.php?url="
-    },
-    {
-      "name": "小胡解析3",
-      "type": 1,
-      "url": "https://cache.json.icu/a1804857380.php?url="
-    },
+{"name":"王","type":1,"url":"http://json.84jia.com/home/api?type=ys&uid=11154896&key=cefgiksvwyCGINV047&url="},
+{"name":"二","type":1,"url":"http://119.91.123.253:2345/Api/yun.php?url="},
+{"name":"小","type":1,"url":"http://122.228.84.103:7777/api/?key=qhBtN1ciPmdvPV83tX&url="},
+{"name":"帅","type":1,"url":"http://pan.qiaoji8.com/tvbox/neibu.php?url="},
 {
       "name": "推荐",
       "type": 1,
