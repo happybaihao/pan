@@ -783,6 +783,17 @@
       "timeout": 60
     },
 {
+      "key": "Libvio",
+      "name": "LIBVIO|网盘",
+      "type": 3,
+      "api": "csp_Libvio",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null"
+    },
+{
       "key": "Xpanpan",
       "name": "小盘盘|网盘",
       "type": 3,
@@ -1049,16 +1060,6 @@
             "quickSearch": 1,
             "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
         },
-{
-      "key": "Libvio",
-      "name": "LIBVIO|网盘",
-      "type": 3,
-      "api": "csp_Libvio",
-      "ext": "./lib/tokenm.json$$$https://www.libvio.fun$$$null",
-      "quickSearch": 1,
-      "changeable":1,
-      "timeout": 60
-    },
 {
       "key": "混合盘",
       "name": "🚗混合┃网盘",
