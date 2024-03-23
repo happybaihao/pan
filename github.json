@@ -550,24 +550,154 @@
 	    "ext":"/lib/alistjar.json"
 	},
 {
-      "key": "小鸭1",
+      "key": "Alist",
       "name": "小雅┃网盘1",
       "type": 3,
-      "api": "http://14.19.132.101:5678/tvbox/libs/alist.min.js",
+      "api": "http://60.204.149.162:5678/tvbox/libs/alist.min.js",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "http://14.19.132.101:5678/tvbox/json/alist_ext.json;200;video"
+      "ext": [
+        {
+          "name": "小雅",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/",
+          "search": true,
+          "showAll": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"
+            }
+          }
+        },
+        {
+          "name": "每日更新",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/每日更新",
+          "showAll": false,
+          "search": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"
+            }
+          }
+        },
+        {
+          "name": "电影",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/电影",
+          "showAll": false,
+          "search": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"
+            }
+          }
+        },
+        {
+          "name": "电视剧",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/电视剧",
+          "showAll": false,
+          "search": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"
+            }
+          }
+        },
+        {
+          "name": "综艺",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/综艺",
+          "showAll": false,
+          "search": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"
+            }
+          }
+        },
+        {
+          "name": "纪录片",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/纪录片",
+          "showAll": false,
+          "search": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"
+            }
+          }
+        },
+        {
+          "name": "动漫",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/动漫",
+          "showAll": false,
+          "search": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"
+            }
+          }
+        },
+        {
+          "name": "儿童",
+          "server": "http://60.204.149.162:5678/",
+          "startPage": "/动漫/儿童",
+          "showAll": false,
+          "search": false,
+          "params": {
+            "/abc": {
+              "password": "123"
+            },
+            "/abc/abc": {
+              "password": "123"}
+          }
+        }
+      ]
+    },
+{
+      "key": "小鸭4",
+      "name": "小雅┃网盘4",
+      "type": 3,
+      "api": "http://nas.taogestudio.cn:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://nas.taogestudio.cn:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
       "key": "小鸭7",
       "name": "小雅┃网盘7",
       "type": 3,
-      "api": "http://47.113.207.174:5678/tvbox/libs/alist.min.js",
+      "api": "http://101.43.106.170:5678/tvbox/libs/alist.min.js",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "http://47.113.207.174:5678/tvbox/json/alist_ext.json;200;video"
+      "ext": "http://101.43.106.170:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
       "key": "csp_Czzy",
@@ -614,7 +744,7 @@
 	"name": "🇨🇳放牛｜影视",
 	"type": 3,
 	"api": "csp_Fangniu4k",
-	"jar": "./zuixinfangniu.jar",
+	"jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fanniu.jar",
 	"searchable": 1,
 	"changeable": 0
 },
@@ -691,13 +821,14 @@
       "timeout": 60
     },
 {
-      "key": "电影港",
-      "name": "🤍电影｜港湾",
+      "key": "苹果",
+      "name": "😺苹果-蓝光",
       "type": 3,
-      "api": "csp_XYQHiker",
-      "playerType": "1",
-      "ext": "https://atomgit.com/smdy/top-level/raw/master/json/电影港.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+      "api": "csp_LiteApple",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fan.jar",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
     },
 {
 	"key": "初见影视",
@@ -720,17 +851,6 @@
 	"filterable": 0,
 	"ext": "https://win11.asuscomm.com:63/json/初见自用.json",
 	"jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar"
-},
-{
-	"key": "开心HK影视",
-	"name": "🎦开心HK影视",
-	"type": 3,
-	"api": "csp_XBPQ",
-	"searchable": 1,
-	"quickSearch": 1,
-	"filterable": 1,
-	"ext": "http://rihou.vip:55/lib/开心HK影视.json",
-	"jar": "http://rihou.vip:55/lib/ttkx.jar"
 },
 {
       "key": "saohuo",
@@ -949,6 +1069,26 @@
       "timeout": 60
     },
 {
+      "key": "校长影视",
+      "name": "🛶校长┃网盘",
+      "type": 3,
+      "api": "csp_XiaoZhang",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 0,
+      "ext": "./lib/tokenm.json$$$https://xzyshd.com$$$null$$$1",
+      "timeout": 60
+    },
+{
+      "key": "盘友圈",
+      "name": "盘友圈|网盘",
+      "type": 3,
+      "api": "csp_Panyq",
+      "timeout": 60,
+      "ext": "./lib/tokenm.json"
+    },
+{
       "key": "玩偶姐姐",
       "name": "💯玩偶┃姐姐",
       "type": 3,
@@ -1080,18 +1220,6 @@
       "ext": "./lib/tokenm.json$$$https://662688.xyz",
       "quickSearch": 1,
       "changeable":1,
-      "timeout": 60
-    },
-{
-      "key": "校长影视",
-      "name": "🛶校长┃网盘",
-      "type": 3,
-      "api": "csp_XiaoZhang",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 0,
-      "ext": "./lib/tokenm.json$$$https://xzyshd.com$$$null$$$1",
       "timeout": 60
     },
 {
@@ -1237,6 +1365,15 @@
       ]
     },
 {
+      "key": "Wexvipduanju",
+      "name": "🌸｜短剧VIP",
+      "type": 3,
+      "api": "csp_Wexvipduanju",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fanniu.jar",
+      "searchable": 1,
+      "changeable": 1
+    },
+{
       "key": "短剧",
       "name": "🐋短剧┃影视",
       "type": 3,
@@ -1253,22 +1390,6 @@
       "changeable": 0,
       "ext": "http://122.228.84.103:6822/api.php/app/"
     },
-{
-			"key": "河马",
-			"name": "河马┃App",
-			"type": 3,
-			"api": "csp_Hmys",
-			"playerType": 1,
-			"ext": "https://m.jmzp.net.cn$$$null$$$1"
-		},
-		{
-			"key": "蝴蝶",
-			"name": "蝴蝶┃App",
-			"type": 3,
-			"api": "csp_Hudie",
-			"playerType": 2,
-			"ext": "https://yundun-hdsign.zhuifeng100.cn|kT2taP|75f7fac7f56d812d1f9ce89d9f312984|b7688bd6347da0b2b62515b0730b872b$$$null$$$1"
-		},
 {
 			"key": "Bdys_spider",
 			"name": "哔滴┃直连",
@@ -1608,20 +1729,7 @@
         "name": "超级嗅探", 
         "type": 3, 
         "url": "Web" 
-    },{
-		"name": "KK",
-		"type": 1,
-		"url": "http://json.xn--654a.cc/home/api?type=ys&uid=1323246&key=dfiopqzEHJKNOPSTY5&url=","ext": {
-			"flag": [ "xinvip", "XYYDS"],"header":{"User-Agent":"okhttp/3.12.11"}
-		}    
-	},		
- {
-		"name": "SMD",
-		"type": 1,
-		"url": "http://110.42.2.247:880/analysis/json/?uid=2486&my=dmstxABDFIKLQRUVW8&format=json&url=","ext": {
-			"flag": ["SMD"],"header":{"User-Agent":"okhttp/4.1.0"}
-		}    
-	},
+    },
 {"name":"王","type":1,"url":"http://json.84jia.com/home/api?type=ys&uid=11154896&key=cefgiksvwyCGINV047&url="},
 {"name":"二","type":1,"url":"http://119.91.123.253:2345/Api/yun.php?url="},
 {"name":"小","type":1,"url":"http://122.228.84.103:7777/api/?key=qhBtN1ciPmdvPV83tX&url="},
