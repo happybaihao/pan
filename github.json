@@ -542,134 +542,14 @@
 	    "ext":"/lib/alistjar.json"
 	},
 {
-      "key": "Alist",
+      "key": "小鸭1",
       "name": "小雅┃网盘1",
       "type": 3,
-      "api": "http://60.204.149.162:5678/tvbox/libs/alist.min.js",
+      "api": "http://119.91.20.105:5678/tvbox/libs/alist.min.js",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": [
-        {
-          "name": "小雅",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/",
-          "search": true,
-          "showAll": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"
-            }
-          }
-        },
-        {
-          "name": "每日更新",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/每日更新",
-          "showAll": false,
-          "search": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"
-            }
-          }
-        },
-        {
-          "name": "电影",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/电影",
-          "showAll": false,
-          "search": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"
-            }
-          }
-        },
-        {
-          "name": "电视剧",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/电视剧",
-          "showAll": false,
-          "search": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"
-            }
-          }
-        },
-        {
-          "name": "综艺",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/综艺",
-          "showAll": false,
-          "search": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"
-            }
-          }
-        },
-        {
-          "name": "纪录片",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/纪录片",
-          "showAll": false,
-          "search": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"
-            }
-          }
-        },
-        {
-          "name": "动漫",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/动漫",
-          "showAll": false,
-          "search": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"
-            }
-          }
-        },
-        {
-          "name": "儿童",
-          "server": "http://60.204.149.162:5678/",
-          "startPage": "/动漫/儿童",
-          "showAll": false,
-          "search": false,
-          "params": {
-            "/abc": {
-              "password": "123"
-            },
-            "/abc/abc": {
-              "password": "123"}
-          }
-        }
-      ]
+      "ext": "http://119.91.20.105:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
       "key": "小鸭4",
@@ -709,7 +589,7 @@
       "quickSearch": 1,
       "filterable": 0,
       "ext": "https://www.czzy55.com/",
-      "jar": "https://123.155123.xyz/南风.jar"
+      "jar": "https://www.baipiaoys.com/tv/南风.jar"
     },
 {
       "key": "Czsapp",
@@ -733,9 +613,9 @@
     },
 {
 	"key": "Fangniu4k",
-	"name": "🇨🇳放牛｜影视",
+	"name": "👎放牛┃TV┃App",
 	"type": 3,
-	"api": "csp_Fangniu4k",
+	"api": "csp_WexFangniu4k",
 	"jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fanniu.jar",
 	"searchable": 1,
 	"changeable": 0
@@ -961,6 +841,28 @@
       "timeout": 60
     },
 {
+      "key": "Hdhive",
+      "name": "💯玩偶┃影巢",
+      "type": 3,
+      "playerType": 1,
+      "api": "csp_Hdhive",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "./lib/tokenm.json$$$null$$$1"
+    },
+{
+      "key": "nxog",
+      "name": "💯玩偶┃欧歌",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$https://wog.nxog.eu.org/$$$null$$$1$$$./lib/wogg.json",
+      "timeout": 60
+    },
+{
       "key": "csp_WoGG饭",
       "name": "👽玩偶┃饭",
       "type": 3,
@@ -980,6 +882,30 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "http://rihou.vip:55/lib/玩偶哥哥.json",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+    },
+{
+      "key": "csp_XYQHikerAL_nxog",
+      "name": "📀欧歌┃香 ",
+      "type": 3,
+      "api": "csp_XYQHikerAL",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "ext": "https://o.nxog.top/m/json/wou.json",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+    },
+{
+      "key": "csp_XYQHikerAL_玩偶土豆",
+      "name": "📀土豆┃香 ",
+      "type": 3,
+      "api": "csp_XYQHikerAL",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "ext": "https://o.nxog.top/m/json/wom.json",
       "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
 {
@@ -1018,17 +944,6 @@
       "ext": "https://notabug.org/dongchenys/pt/raw/json/json/alisusu.json"
     },
 {
-      "key": "土豆阿里",
-      "name": "💯玩偶┃土豆",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$./lib/wogg.json",
-      "timeout": 60
-    },
-{
       "key": "Wobg",
       "name": "💯玩偶┃表哥",
       "type": 3,
@@ -1037,17 +952,6 @@
       "quickSearch": 1,
       "changeable": 2,
       "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$./lib/wogg.json"
-    },
-{
-      "key": "Hdhive",
-      "name": "💯玩偶┃影巢",
-      "type": 3,
-      "playerType": 1,
-      "api": "csp_Hdhive",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "./lib/tokenm.json$$$null$$$1"
     },
 {
       "key": "玩我",
