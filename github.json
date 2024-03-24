@@ -12,14 +12,6 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": "小白ipv4",
-      "type": 0,
-      "url": "https://d.kstore.space/download/5413/肥猫宝贝.txt",
-      "ua": "okhttp/3.15",
-      "epg": "https://1060s677v8.goho.co/epg.php",
-      "logo": "https://epg.112114.xyz/logo/{name}.png"
-    },
-{
       "name": "春风",
       "url": "https://wds.ecsxs.com/230864.json",
       "type": 0,
@@ -37,6 +29,14 @@
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
+{
+            "name": "小黑",
+            "type": 0,
+            "url": "https://d.kstore.space/download/7395/xiaohei.txt",
+            "ua": "okhttp/3.15",
+            "epg": "https://1060s677v8.goho.co/epg.php",
+            "logo": "https://epg.112114.xyz/logo/{name}.png"
+        },
 {
       "name": "小米ipv4",
       "type": 0,
@@ -151,14 +151,6 @@
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
-{
-            "name": "小白ipv6",
-            "type": 0,
-            "url": "https://d.kstore.space/download/7395/xiaohei.txt",
-            "ua": "okhttp/3.15",
-            "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-            "logo": "https://epg.112114.xyz/logo/{name}.png"
-        },
 {
       "name": "📺Meroser IPV6📺",
       "type": 0,
