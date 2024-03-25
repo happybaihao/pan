@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;2516d2e46a5bfee7e6a4e5eb1743a6bd",
+  "spider": "./pg.jar;md5;22e2f505d45b89eb6febeed68fcb6c1b",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
   "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
   "lives": [
@@ -765,6 +765,14 @@
       "ext": "http://175.178.27.186:331/api.php/app/"
     },
 {
+      "key": "YingSo",
+      "name": "影搜|网盘",
+      "type": 3,
+      "api": "csp_YingSo",
+      "timeout": 60,
+      "ext": "./lib/tokenm.json"
+    },
+{
       "key": "团长影视",
       "name": "🍡团长┃网盘",
       "type": 3,
@@ -1271,14 +1279,15 @@
     },
 {
       "key": "短剧",
-      "name": "🐋短剧┃影视",
+      "name": "短剧",
       "type": 3,
       "api": "csp_Duanju",
-      "searchable": 1,
-      "changeable": 0
+      "searchable": 0,
+      "changeable": 1,
+      "ext": "https://www.duanjutv.icu"
     },
 {
-      "key": "短剧",
+      "key": "种子短剧",
       "name": "🐋种子┃短剧",
       "type": 3,
       "api": "csp_AppYsV2",
@@ -1286,16 +1295,6 @@
       "changeable": 0,
       "ext": "http://122.228.84.103:6822/api.php/app/"
     },
-{
-			"key": "Bdys_spider",
-			"name": "哔滴┃直连",
-			"api": "csp_Bdys01",
-			"type": 3,
-			"filterable": 1,
-			"quickSearch": 1,
-			"searchable": 1,
-			"ext": "https://www.bdys03.com/$$$null$$$1"
-		},
 { "key": "YQKan", "name": "一起看", "type": 3, "api": "csp_YQKan", "searchable": 1, "quickSearch": 1, "filterable": 1, "changeable": 1 },
 {
       "key": "索尼",
