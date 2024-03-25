@@ -112,13 +112,14 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": "📺BigBigGrandG源",
-      "type": 0,
-      "url": "https://raw.githubusercontent.com/BigBigGrandG/IPTV-URL/release/Gather.m3u",
-      "playerType": 1,
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png"
-    },
+	"name": "小苹果",
+	"type": 0,
+	"url": "http://tipu.xjqxz.top/live1213.txt",
+	"playerType": 1,
+	"ua": "okhttp/3.15",
+	"epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+	"logo": "https://epg.112114.xyz/logo/{name}.png"
+},
 {
       "name": "📺YanG Gather📺",
       "type": 0,
@@ -681,18 +682,6 @@
       "ext": "null$$$1"
     },
 {
-      "key": "荐片磁力",
-      "name": "手机观看|荐片",
-      "type": 3,
-      "api": "csp_Jianpian",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 2,
-      "ext": "https://atomgit.com/smdy/top-level/raw/master/json/jianpian.json$$$1",
-      "timeout": 60
-    },
-{
       "key": "苹果",
       "name": "😺苹果-蓝光",
       "type": 3,
@@ -702,6 +691,18 @@
       "quickSearch": 1,
       "changeable": 1
     },
+{
+	"key": "YZ",
+	"name": "🛸宇宙影视",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"jar": "https://d.kstore.space/download/6741/xbpq.jar",
+	"searchable": 1,
+	"quickSearch": 1,
+	"playerType": 2,
+	"filterable": 0,
+	"ext": "https://d.kstore.space/download/6741/lib/yz.json"
+},
 {
 	"key": "初见影视",
 	"name": "初见影视",
@@ -763,6 +764,18 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "http://175.178.27.186:331/api.php/app/"
+    },
+{
+      "key": "荐片磁力",
+      "name": "手机观看|荐片",
+      "type": 3,
+      "api": "csp_Jianpian",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 2,
+      "ext": "https://atomgit.com/smdy/top-level/raw/master/json/jianpian.json$$$1",
+      "timeout": 60
     },
 {
       "key": "YingSo",
