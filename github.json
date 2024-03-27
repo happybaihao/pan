@@ -531,18 +531,6 @@
 	    "ext":"./lib/alistjar.json"
 	},
 {
-	    "key":"alist",
-	    "name":"💞网盘 | alist",
-	    "type":3,
-                    "playerType": "1",
-	    "api":"csp_AList",
-                    "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
-                    "searchable":1,
-                    "changeable":1,
-                    "filterable":1,
-	    "ext":"/lib/alistjar.json"
-	},
-{
       "key": "小丫",
       "name": "🌱小丫搜",
       "type": 3,
