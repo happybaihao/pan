@@ -1,7 +1,7 @@
 {
-  "spider": "./pg.jar;md5;22e2f505d45b89eb6febeed68fcb6c1b",
+  "spider": "./pg.jar;md5;5a52dd5320895e1ae62bcd53d01089f2",
   "wallpaper": "https://gitee.com/moyu0913/jin/raw/master/1.jpg",
-  "warningText": "💞修复联系QQ476294817，祝您观影愉快💞",
+  "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
 {
       "name": " 📺百号•综合📺",
@@ -305,7 +305,7 @@
     },
 {
       "key": "csp_Yj1211",
-      "name": "📽️网红┃直播",
+      "name": "📽️虎牙/B站/斗鱼/网易直播",
       "type": 3,
       "api": "csp_Yj1211",
       "searchable": 1,
@@ -543,6 +543,16 @@
 	    "ext":"/lib/alistjar.json"
 	},
 {
+      "key": "小丫",
+      "name": "🌱小丫搜",
+      "type": 3,
+      "api": "http://121.36.255.202:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://121.36.255.202:5678/tvbox/json/alist_ext.json;200;video"
+    },
+{
       "key": "小鸭1",
       "name": "小雅┃网盘1",
       "type": 3,
@@ -561,6 +571,16 @@
       "quickSearch": 1,
       "filterable": 0,
       "ext": "http://nas.taogestudio.cn:5678/tvbox/json/alist_ext.json;200;video"
+    },
+{
+      "key": "小鸭5",
+      "name": "小雅┃网盘5",
+      "type": 3,
+      "api": "http://43.142.51.65:5678/tvbox/libs/alist.min.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "ext": "http://43.142.51.65:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
       "key": "小鸭7",
@@ -840,17 +860,6 @@
             "timeout": 60
      },
 {
-      "key": "土豆阿里",
-      "name": "💯玩偶┃土豆",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$https://ali.lvdoui.top/$$$null$$$1$$$./lib/wogg.json",
-      "timeout": 60
-    },
-{
       "key": "玩偶哥哥",
       "name": "💯玩偶┃哥哥",
       "type": 3,
@@ -860,6 +869,39 @@
       "filterable": 1,
       "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
+    },
+{
+      "key": "土豆阿里",
+      "name": "💯玩偶┃土豆",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$https://tudou.lvdoui.top/$$$null$$$1$$$./lib/wogg.json",
+      "timeout": 60
+    },
+{
+	"key": "yydsys",
+	"name": "💯玩偶|多多",
+	"type": 3,
+	"api": "csp_Wobg",
+	"quickSearch": 1,
+	"changeable": 1,
+	"filterable": 1,
+	"timeout": 60,
+	"ext": "./lib/tokenm.json$$$https://tv.yydsys.top/$$$null$$$1$$$./lib/wogg.json"
+},
+{
+      "key": "csp_WoGG饭",
+      "name": "👽玩偶┃饭",
+      "type": 3,
+      "api": "csp_WoGG",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 0,
+      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://www.wogg.xyz/$$$弹",
+      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
     },
 {
       "key": "Hdhive",
@@ -873,6 +915,27 @@
       "ext": "./lib/tokenm.json$$$null$$$1"
     },
 {
+      "key": "Wobg",
+      "name": "💯玩偶┃表哥",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$./lib/wogg.json"
+    },
+{
+      "key": "玩我",
+      "name": "💯玩偶┃天天开心",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://www.ttkx.live:3328$$$null$$$1./lib/wogg.json",
+      "timeout": 60
+    },
+{
       "key": "nxog",
       "name": "💯玩偶┃欧歌",
       "type": 3,
@@ -882,17 +945,6 @@
       "changeable": 2,
       "ext": "./lib/tokenm.json$$$https://wog.nxog.eu.org/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
-    },
-{
-      "key": "csp_WoGG饭",
-      "name": "👽玩偶┃饭",
-      "type": 3,
-      "api": "csp_WoGG",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://www.wogg.xyz/$$$弹",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
     },
 {
       "key": "csp_XYQHikerAL_玩偶哥哥",
@@ -906,18 +958,6 @@
       "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
 {
-      "key": "csp_XYQHikerAL_nxog",
-      "name": "📀欧歌┃香 ",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "https://o.nxog.top/m/json/wou.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
-    },
-{
       "key": "csp_XYQHikerAL_玩偶土豆",
       "name": "📀土豆┃香 ",
       "type": 3,
@@ -926,7 +966,19 @@
       "quickSearch": 1,
       "filterable": 1,
       "changeable": 1,
-      "ext": "https://o.nxog.top/m/json/wom.json",
+      "ext": "http://rihou.vip:55/lib/土豆阿里.json",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+    },
+{
+      "key": "csp_XYQHikerAL_玩偶多多",
+      "name": "📀多多┃香 ",
+      "type": 3,
+      "api": "csp_XYQHikerAL",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "ext": "http://rihou.vip:55/lib/多多阿里.json",
       "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
 {
@@ -954,36 +1006,27 @@
       "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
     },
 {
+      "key": "csp_XYQHikerAL_nxog",
+      "name": "📀欧歌┃香 ",
+      "type": 3,
+      "api": "csp_XYQHikerAL",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "ext": "https://o.nxog.top/m/json/wou.json",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+    },
+{
       "key": "csp_XYQHikerAL_阿里苏苏",
       "name": "📀阿里苏苏┃香",
       "type": 3,
       "api": "csp_XYQHikerAL",
-      "jar": "https://notabug.org/dongchenys/pt/raw/json/jar/xyqwogg.jar",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "https://notabug.org/dongchenys/pt/raw/json/json/alisusu.json"
-    },
-{
-      "key": "Wobg",
-      "name": "💯玩偶┃表哥",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$./lib/wogg.json"
-    },
-{
-      "key": "玩我",
-      "name": "💯玩偶┃天天开心",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://www.ttkx.live:3328$$$null$$$1./lib/wogg.json",
-      "timeout": 60
+      "ext": "http://我不是.摸鱼儿.top/0324/api/susu.php"
     },
 {
       "key": "校长影视",
