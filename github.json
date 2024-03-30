@@ -581,14 +581,16 @@
       "ext": "http://101.43.106.170:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
-      "key": "csp_Czzy",
-      "name": "📔厂长┃阿姨最爱",
-      "type": 3,
-      "api": "csp_Czzy",
-      "searchable": 1,
-      "changeable": 0,
-      "jar": "https://gitee.com/moyu0913/xiaohei/raw/master/jar/qqq.jar"
-    },
+            "key": "tudou2",
+            "name": "📔厂长┃阿姨最爱",
+            "playerType": 2,
+            "type": 3,
+            "api": "csp_AppYsV2",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 1,
+            "ext": "http://43.136.176.188:92/api.php/app/"
+        },
 {
       "key": "csp_Czsapp",
       "name": "📔厂长┃阿姨挚爱",
@@ -632,28 +634,25 @@
 	"changeable": 0
 },
 {
-      "key": "baipiaoys",
-      "name": "白嫖┃影视",
+      "key": "bp",
+      "name": "❄️白嫖┃影视",
       "type": 3,
-      "changeable": 1,
       "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
+      "changeable": 1,
+      "jar": "https://jihulab.com/xiaohutx/meisha/-/raw/main/1.jar",
       "api": "csp_XBPQ",
       "ext": {
-        "主页url": "http://www.baipiaoys.com:9092/",
+        "主页url": "https://www.baipiaoys.com:9092/",
         "副标题": "pic-text text-right\">&&</b>",
         "搜索模式": "1",
-        "搜索url": "https://www.baipiaoys.com:9092/search.html?wd={wd}",
+        "搜索url": "https://www.baipiaoys.com/search.html?wd={wd}",
         "图片": "data-original=\"&&\"",
-        "嗅探词": ".mp4#m3u8#.m3u8#/tos/#.flv#video/tos",
-        "影片类型": "<div class=\"module-info-tag\">&&立即播放",
-        "导演": "导演：&&</div>",
-        "主演": "主演：&&</div>",
-        "分类": "电影$1#电视剧$2#动漫$3#短剧$4#综艺$5",
-        "分类url": "http://www.baipiaoys.com:9092/show/area/{area}/class/{class}/id/{cateId}/page/{catePg}/lang/{lang}/letter/{letter}/year/{year}.html"
-      },
-        "jar": "https://www.baipiaoys.com:9092/tv/南风.jar"
+        "嗅探词": ".mp4#m3u8#.m3u8",
+        "线路标题": "百号+>&&<",
+        "线路数组": "</span><h3*>&&/h3>",
+        "分类": "电影$1#电视剧$2#动漫$3",
+        "分类url": "https://www.baipiaoys.com:9092/show/area/{area}/class/{class}/id/{cateId}/page/{catePg}/lang/{lang}/letter/{letter}/year/{year}.html"
+      }
     },
 { 
       "key": "csp_xBPQ_秒", 
@@ -1714,11 +1713,46 @@
         "type": 3, 
         "url": "Web" 
     },
+{
+            "name": "厂长嗅探",
+            "type": 1,
+            "url": "http://119.91.31.224:9004/changzhang.php?url=",
+            "ext": {
+                "flag": [
+                    "qq",
+                    "腾讯",
+                    "qiyi",
+                    "爱奇艺",
+                    "奇艺",
+                    "youku",
+                    "优酷",
+                    "tucheng",
+                    "sohu",
+                    "搜狐",
+                    "letv",
+                    "乐视",
+                    "mgtv",
+                    "芒果",
+                    "tnmb",
+                    "seven",
+                    "yzm",
+                    "aliyun",
+                    "RJuMao",
+                    "bilibili",
+                    "1905",
+                    "xinvip",
+                    "XAL",
+                    "qiqi",
+                    "KongBai-nwe",
+                    "czzy77",
+                    "XALS"
+                ]
+            }
+        },
 {"name":"王","type":1,"url":"http://json.84jia.com/home/api?type=ys&uid=11154896&key=cefgiksvwyCGINV047&url="},
 {"name":"二","type":1,"url":"http://119.91.123.253:2345/Api/yun.php?url="},
 {"name":"小","type":1,"url":"http://122.228.84.103:7777/api/?key=qhBtN1ciPmdvPV83tX&url="},
 {"name":"帅","type":1,"url":"http://pan.qiaoji8.com/tvbox/neibu.php?url="},
-{"name":"白嫖解析","url":"https://www.baipiao-ys.cc:6062/player/?url=","ext":{"flag":[],"header":{"User-Agent":""}}},
 {
       "name": "推荐",
       "type": 1,
