@@ -1328,10 +1328,29 @@
 	"changeable": 1
 },
 {
+      "key": "短剧剧场",
+      "name": "🌈｜短剧剧场",
+      "type": 3,
+      "api": "csp_Duanju",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fan.jar",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
+    },
+    {
       "key": "Wexvipduanju",
       "name": "🌸｜短剧VIP",
       "type": 3,
       "api": "csp_Wexvipduanju",
+      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fanniu.jar",
+      "searchable": 1,
+      "changeable": 1
+    },
+{
+      "key": "Wexduanju001",
+      "name": "😽短剧┃直连",
+      "type": 3,
+      "api": "csp_Wexduanju001",
       "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fanniu.jar",
       "searchable": 1,
       "changeable": 1
