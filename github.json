@@ -827,6 +827,48 @@
       "ext": "./lib/tokenm.json"
     },
 {
+      "key": "秒搜",
+      "name": "秒搜|网盘",
+      "type": 3,
+      "api": "csp_MiaoSou",
+      "timeout": 60,
+      "ext": "./lib/tokenm.json",
+      "style": {
+        "type": "list",
+        "ratio": 1.1
+      }
+    },
+{
+      "key": "Funletu",
+      "name": "趣盘搜┃夸克",
+      "type": 3,
+      "api": "csp_Funletu",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "timeout": 30,
+      "ext": "./lib/tokenm.json",
+      "style": {
+        "type": "list",
+        "ratio": 1.1
+      }
+    },
+    {
+      "key": "QuarkPanso",
+      "name": "夸克盘搜┃夸克",
+      "type": 3,
+      "api": "csp_QuarkPanso",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "timeout": 30,
+      "ext": "./lib/tokenm.json",
+      "style": {
+        "type": "list",
+        "ratio": 1.1
+      }
+    },
+{
       "key": "团长影视",
       "name": "🍡团长┃网盘",
       "type": 3,
@@ -846,28 +888,6 @@
       "filterable": 1,
       "timeout": 60,
       "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null"
-    },
-{
-      "key": "Xpanpan",
-      "name": "小盘盘|网盘",
-      "type": 3,
-      "api": "csp_Xpanpan",
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "timeout": 60,
-      "ext": "./lib/tokenm.json$$$https://xpanpan.site$$$null$$$1"
-    },
-{
-      "key": "Moli",
-      "name": "HDmoli|网盘",
-      "type": 3,
-      "api": "csp_Moli",
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "timeout": 60,
-      "ext": "./lib/tokenm.json$$$https://www.hdmoli.pro/$$$null$$$1$$$./lib/moli.json"
     },
 {
             "key": "YSC",
@@ -1050,6 +1070,28 @@
       "ext": "http://我不是.摸鱼儿.top/0324/api/susu.php"
     },
 {
+      "key": "Xpanpan",
+      "name": "小盘盘|网盘",
+      "type": 3,
+      "api": "csp_Xpanpan",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://xpanpan.site$$$null$$$1"
+    },
+{
+      "key": "Moli",
+      "name": "HDmoli|网盘",
+      "type": 3,
+      "api": "csp_Moli",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://www.hdmoli.pro/$$$null$$$1$$$./lib/moli.json"
+    },
+{
       "key": "校长影视",
       "name": "🛶校长┃网盘",
       "type": 3,
@@ -1137,28 +1179,6 @@
       "hide": 1,
       "ext": "{\"username\":\"zzygll\",\"password\":\"zzy555555\",\"searchurl\":\"http://zhaoziyuan.pw/so?filename={wd}\"}"
     },
-{
-      "key": "Gitcafe",
-      "name": "📀小纸条(搜索)",
-      "type": 3,
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
-      "api": "csp_Gitcafe",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "http://127.0.0.1:9978/file/XYQTVBox/alitoken.txt"
-     },
-    {
-      "key": "七夜",
-      "name": "👽七夜┃搜索",
-      "type": 3,
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
-      "api": "csp_Dovx",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
-    },
     {
       "key": "PanSearch",
       "name": "👽盘Se┃搜索",
@@ -1170,17 +1190,6 @@
       "changeable": 0,
       "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
     },
-{
-            "key": "盘搜",
-            "name": "👽盘搜┃搜索",
-            "type": 3,
-            "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
-            "api": "csp_PanSou",
-            "changeable": 0,
-            "searchable": 1,
-            "quickSearch": 1,
-            "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
-        },
 {
       "key": "混合盘",
       "name": "🚗混合┃网盘",
@@ -1216,18 +1225,6 @@
       "timeout": 60
     },
 {
-      "key": "秒搜",
-      "name": "🪂秒搜┃网盘",
-      "type": 3,
-      "api": "csp_MiaoSou",
-      "changeable": 2,
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "./lib/tokenm.json",
-      "timeout": 60
-    },
-{
       "key": "Panta",
       "name": "🚑盘他┃网盘",
       "type": 3,
@@ -1260,17 +1257,6 @@
             "filterable": 1,
             "timeout": 30,
             "ext": "./lib/tokenm.json$$$https://pan.qianfan.app$$$null$$$QianFanID=kfay98g9vxht1r8nmwxgyr61vz268hhe; _ga_6Z94VT54DV=GS1.1.1706727826.4.1.1706727986.0.0.0"
-        },
-{
-            "key": "Funletu",
-            "name": "趣盘|夸克",
-            "type": 3,
-            "api": "csp_Funletu",
-            "quickSearch": 1,
-            "changeable": 1,
-            "filterable": 1,
-            "timeout": 30,
-            "ext": "./lib/tokenm.json"
         },
 {
       "key": "云盘资源",
