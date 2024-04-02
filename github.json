@@ -1,6 +1,6 @@
 {
   "spider": "./pg.jar;md5;770ea0f5e2681a79047596a968f0f20b",
-  "wallpaper": "https://atomgit.com/smdy/top-level/raw/master/蓝.jpg",
+  "wallpaper": "https://放牛.王二小放牛娃.xyz/img.php",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
 {
@@ -531,16 +531,6 @@
 	    "ext":"./lib/alistjar.json"
 	},
 {
-      "key": "小丫",
-      "name": "🌱小丫搜",
-      "type": 3,
-      "api": "http://121.36.255.202:5678/tvbox/libs/alist.min.js",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "http://121.36.255.202:5678/tvbox/json/alist_ext.json;200;video"
-    },
-{
       "key": "小鸭1",
       "name": "小雅┃网盘1",
       "type": 3,
@@ -657,7 +647,7 @@
       "name": "😺苹果-蓝光",
       "type": 3,
       "api": "csp_LiteApple",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fan.jar",
+      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1
@@ -696,7 +686,7 @@
       "quickSearch": 1,
       "changeable": 1,
       "ext": "https://www.czzy77.com/",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fan.jar"
+      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
     },
 {
       "key": "Czsapp",
@@ -1035,7 +1025,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "http://rihou.vip:55/lib/玩偶哥哥.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
       "key": "csp_XYQHikerAL_玩偶土豆",
@@ -1047,7 +1037,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/土豆阿里.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
       "key": "csp_XYQHikerAL_玩偶多多",
@@ -1059,7 +1049,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/多多阿里.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
       "key": "yingshiche",
@@ -1071,7 +1061,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/玩偶运输车.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
       "key": "ttkx",
@@ -1083,7 +1073,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/玩我哥哥.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
       "key": "csp_XYQHikerAL_nxog",
@@ -1095,14 +1085,14 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "https://o.nxog.top/m/json/wou.json",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar"
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
       "key": "csp_XYQHikerAL_阿里苏苏",
       "name": "📀阿里苏苏┃香",
       "type": 3,
       "api": "csp_XYQHikerAL",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -1198,7 +1188,7 @@
             "key" : "UpYun",
             "name" : "📀Up搜┃搜索",
             "type" : 3,
-            "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
+            "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
             "api" : "csp_UpYun",
             "searchable" : 1,
             "quickSearch" : 1,
@@ -1209,7 +1199,7 @@
       "key": "xyq找资源",
       "name": "📀资源★云盘",
       "type": 3,
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/xyq.jar",
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
       "api": "csp_Zhaozy",
       "searchable": 1,
       "quickSearch": 1,
@@ -1352,16 +1342,6 @@
 	"searchable": 1,
 	"changeable": 1
 },
-{
-      "key": "短剧剧场",
-      "name": "🌈｜短剧剧场",
-      "type": 3,
-      "api": "csp_Duanju",
-      "jar": "https://atomgit.com/smdy/top-level/raw/master/jar/fan.jar",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1
-    },
     {
       "key": "Wexvipduanju",
       "name": "🌸｜短剧VIP",
