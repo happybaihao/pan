@@ -1,6 +1,6 @@
 {
   "spider": "./pg.jar;md5;770ea0f5e2681a79047596a968f0f20b",
-  "wallpaper": "https://放牛.王二小放牛娃.xyz/img.php",
+  "wallpaper": "http://摸鱼儿.xiyan.life/摸鱼壁纸/api.php",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
 {
@@ -24,6 +24,15 @@
       "name": "📺看电视呗📺",
       "type": 0,
       "url": "http://mywlkj.ddns.net:754/tv.php",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": "📺看电视呗群友📺",
+      "type": 0,
+      "url": "https://cloud.lxweb.cn/f/6GoQiw/0331.txt",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -80,14 +89,6 @@
             "url": "./lib/xiutan.m3u"
         },
 {
-      "name": "📺拾光📺",
-      "type": 0,
-      "url": "https://gh.con.sh/https://raw.githubusercontent.com/xmbjm/vip4K/main/lib/tvlive.txt",
-      "playerType": 1,
-      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
       "name": " 📺Ray•综合📺",
       "type": 0,
       "url": "https://xhdwc.tk/tvlive.txt",
@@ -96,11 +97,12 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": "📺探索📺",
+      "name": "📺摸鱼小电视📺",
       "type": 0,
-      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/tansuotv/IPTVindex/main/tv/tv.txt",
+      "url": "http://我不是.摸鱼儿.top/live.php",
       "playerType": 1,
-      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "ua": "okhttp/3.15",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
@@ -663,6 +665,27 @@
 	"playerType": 2,
 	"filterable": 0,
 	"ext": "https://d.kstore.space/download/6741/lib/yz.json"
+},
+{
+	"key": "XBPQ_电影先生",
+	"name": "电影先生┃XBPQ",
+	"jar": "./XBPQ.jar",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"ext": {
+		"分类url": "https://dianyi.ng/pianku-{cateId}-{area}-------{catePg}---{year}.html",
+		"简介": "class=\"video-info-item video-info-content vod_content\">&&</span>",
+		"搜索url": "https://dianyi.ng/search--------------.html?wd={wd}",
+		"搜索数组": "<div class=\"module-item-pic\">&&</div>",
+		"图片": "src=\"&&\"",
+		"搜索标题": "title=\"&&\"",
+		"搜索副标题": ">&&</a>",
+		"线路数组": "data-dropdown-value=&&</div>",
+		"线路标题": "<span>&&</small>[替换:<span></small>共]+集",
+		"播放数组": "<div class=\"scroll-content\">&&</div>",
+		"播放标题": "<span>&&</span>",
+		"分类": "电影$dianying#电视剧$dianshiju#动漫$dongman#综艺$zongyi"
+	}
 },
 {
             "key": "tudou2",
@@ -1342,6 +1365,17 @@
 	"searchable": 1,
 	"changeable": 1
 },
+{
+	"key": "XBPQ_duanjuxia",
+	"name": "全网短剧┃XBPQ",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"jar": "./XBPQ.jar",
+	"ext": {
+		"分类": "快手$21#抖音$22#都市$23#古装$24#重生$25#逆袭$26#虐恋$27#萌宝$28#言情$29#穿越$30#战神$31#神医$32#赘婿$33#甜宠$34#其他$35",
+		"分类url": "https://www.duanjuxia.cn/index.php/vod/show/area/{area}/by/{by}/class/{class}/id/{cateId}/lang/{lang}/year/{year}/page/{catePg}.html"
+	}
+},
     {
       "key": "Wexvipduanju",
       "name": "🌸｜短剧VIP",
@@ -1562,9 +1596,9 @@
 {"name":"小","type":1,"url":"http://122.228.84.103:7777/api/?key=qhBtN1ciPmdvPV83tX&url="},
 {"name":"帅","type":1,"url":"http://pan.qiaoji8.com/tvbox/neibu.php?url="},
 {
-      "name": "推荐",
+      "name": "摸鱼解析A",
       "type": 1,
-      "url": "https://api.tyun77.cn/api.php/provide/parseDicturl?url=",
+      "url": "https://api.qljson.xyz/api/?key=11781ab2890bcb53fdb4b2ad27503d7c&url=",
       "ext": {
         "flag": [
           "qq",
@@ -1580,7 +1614,6 @@
           "乐视",
           "mgtv",
           "芒果",
-          "imgo",
           "rx",
           "ltnb",
           "bilibili",
@@ -1589,29 +1622,58 @@
         ]
       }
     },
-{
-      "name": "搜狐",
+    {
+      "name": "摸鱼解析B",
       "type": 1,
-      "url": "http://110.42.2.247:880/analysis/json/?uid=2449&my=acfgikquvzFGJRW459&url=",
+      "url": "https://api.qljson.xyz/api/?key=11781ab2890bcb53fdb4b2ad27503d7c&url=",
       "ext": {
         "flag": [
+          "qq",
+          "腾讯",
           "qiyi",
           "爱奇艺",
           "奇艺",
           "youku",
           "优酷",
+          "sohu",
+          "搜狐",
           "letv",
           "乐视",
-          "pptv",
-          "PPTV",
-          "sohu",
+          "mgtv",
+          "芒果",
+          "rx",
+          "ltnb",
           "bilibili",
-          "哔哩哔哩",
-          "哔哩"
-        ],
-        "header": {
-          "User-Agent": "okhttp/4.1.0"
-        }
+          "1905",
+          "xigua"
+        ]
+      }
+    },
+    {
+      "name": "摸鱼解析C",
+      "type": 1,
+      "url": "https://mg.zrjx.xyz/?url=",
+      "ext": {
+        "flag": [
+          "qq",
+          "腾讯",
+          "qiyi",
+          "爱奇艺",
+          "奇艺",
+          "youku",
+          "优酷",
+          "sohu",
+          "搜狐",
+          "letv",
+          "乐视",
+          "mgtv",
+          "芒果",
+          "rx",
+          "ltnb",
+          "bilibili",
+          "1905",
+          "xigua"
+        ]
       }
     },
     {
@@ -1804,57 +1866,6 @@
 			"type": 0,
 			"url": "https://okjx.cc/?url="
 		},
-    {
-      "name": "毛尖嗅探",
-      "type": 0,
-      "url": "https://jx.bozrc.com:4433/player/?url=",
-      "ext": {
-        "header": {
-          "User-Agent": "okhttp/4.1.0"
-        },
-        "flag": [
-          "qq",
-          "腾讯",
-          "qiyi",
-          "爱奇艺",
-          "奇艺",
-          "youku",
-          "优酷",
-          "mgtv",
-          "芒果",
-          "letv",
-          "leshi",
-          "LS",
-          "乐视",
-          "pptv",
-          "PPTV",
-          "sohu",
-          "bilibili",
-          "哔哩哔哩",
-          "哔哩"
-        ]
-      }
-    },
-{
-            "name": "嗅探[主芒腾]",
-            "type": 0,
-            "url": "https://jx.xmflv.com/?url=",
-            "ext": {
-                "flag": [
-                    "qq",
-                    "腾讯",
-                    "mgtv",
-                    "芒果",
-                    "腾讯官解",
-                    "腾讯视频",
-                    "芒果官解",
-                    "芒果视频"
-                ],
-                "header": {
-                    "User-Agent": "okhttp/4.1.0"
-                }
-            }
-        },
     {
       "name": "普洱嗅探",
       "url": "https://jx.bozrc.com:4433/player/?url=",
