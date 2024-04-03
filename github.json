@@ -55,14 +55,13 @@
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
-      "name": "📺摸鱼小电视📺",
-      "type": 0,
-      "url": "http://我不是.摸鱼儿.top/live.php",
-      "playerType": 1,
-      "ua": "okhttp/3.15",
-      "epg": "https://1060s677v8.goho.co/epg.php",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
+            "name": "明日",
+            "type": 0,
+            "url": "https://catbox.n13.club/jk/live",
+            "ua": "okhttp/3.15",
+            "epg": "https://1060s677v8.goho.co/epg.php",
+            "logo": "https://epg.112114.xyz/logo/{name}.png"
+        },
 {
       "name": "📺APTV📺",
       "type": 0,
@@ -82,6 +81,15 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
+      "name": "📺摸鱼小电视📺",
+      "type": 0,
+      "url": "http://我不是.摸鱼儿.top/live.php",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "https://1060s677v8.goho.co/epg.php",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
             "name": "央视频",
             "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
             "type": 0,
@@ -93,15 +101,6 @@
       "type": 0,
       "url": "https://xhdwc.tk/tvlive.txt",
       "playerType": 1,
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "📺摸鱼小电视📺",
-      "type": 0,
-      "url": "http://我不是.摸鱼儿.top/live.php",
-      "playerType": 1,
-      "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
@@ -721,6 +720,12 @@
       "changeable": 0,
       "jar": "./qqqpm.jar"
     },
+{
+	"key": "T4-mingri",
+	"name": "明日看片子",
+	"type": 4,
+	"api": "https://catbox.n13.club/mingri.php"
+},
 {
       "key": "安博",
       "name": "🧷安博┃T4",
