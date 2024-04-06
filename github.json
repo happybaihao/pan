@@ -30,7 +30,7 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": "📺看电视呗群友📺",
+      "name": "📺看电视呗lve📺",
       "type": 0,
       "url": "https://cloud.lxweb.cn/f/6GoQiw/0331.txt",
       "playerType": 1,
@@ -47,7 +47,7 @@
             "logo": "https://epg.112114.xyz/logo/{name}.png"
         },
 {
-      "name": "小米ipv4",
+      "name": "小米",
       "type": 0,
       "url": "http://124.223.177.85:88/svip/直播挺快.txt",
       "ua": "okhttp/3.12.13",
@@ -63,14 +63,20 @@
             "logo": "https://epg.112114.xyz/logo/{name}.png"
         },
 {
-      "name": "📺APTV📺",
+      "name": " 📺拾光畅谈📺",
       "type": 0,
-      "url": "https://go.ipayyds.xyz/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u",
+      "url": "https://gh.con.sh/https://raw.githubusercontent.com/xmbjm/vip4K/main/lib/tvlive.txt",
       "playerType": 1,
-      "ua": "okhttp/3.15",
-      "epg": "https://1060s677v8.goho.co/epg.php",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
+{
+            "name": "央视频",
+            "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+            "type": 0,
+            "timeout": 40,
+            "url": "./lib/xiutan.m3u"
+        },
 {
       "name": "📺摸鱼大电视📺",
       "type": 0,
@@ -90,12 +96,14 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-            "name": "央视频",
-            "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
-            "type": 0,
-            "timeout": 40,
-            "url": "./lib/xiutan.m3u"
-        },
+      "name": "📺小胡📺",
+      "type": 0,
+      "url": "https://huhuys.top/live.txt",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    },
 {
       "name": " 📺Ray•综合📺",
       "type": 0,
@@ -113,6 +121,14 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
+      "name": "📺俊于•综合📺",
+      "type": 0,
+      "url": "http://home.jundie.top:81/Cat/tv/live.txt",
+      "playerType": 1,
+      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
 	"name": "小苹果",
 	"type": 0,
 	"url": "http://tipu.xjqxz.top/live1213.txt",
@@ -122,6 +138,15 @@
 	"logo": "https://epg.112114.xyz/logo/{name}.png"
 },
 {
+      "name": "📺APTV📺",
+      "type": 0,
+      "url": "https://go.ipayyds.xyz/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "https://1060s677v8.goho.co/epg.php",
+      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
       "name": "📺YanG Gather📺",
       "type": 0,
       "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u",
@@ -130,36 +155,11 @@
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
-      "name": " 📺小胡📺",
-      "type": 0,
-      "url": "http://xiaohu.xzam.cn/live.txt",
-      "playerType": 1,
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "📺俊于•综合📺",
-      "type": 0,
-      "url": "http://home.jundie.top:81/Cat/tv/live.txt",
-      "playerType": 1,
-      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
       "name": "📺QQ1779387745📺",
       "type": 0,
       "url": "https://gitcode.net/u012349622/iptv/-/raw/master/tv.m3u",
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "📺Meroser IPV6📺",
-      "type": 0,
-      "url": "https://raw.fgit.cf/Meroser/IPTV/main/IPTV-tvbox.txt",
-      "playerType": 1,
-      "ua": "okhttp/3.15",
-      "epg": "https://epg.erw.cc/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
@@ -171,20 +171,22 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": " 📺L大IPV6📺",
+      "name": "📺L大IPV6📺",
       "type": 0,
       "url": "https://d.laigc.com/m3.m3u",
       "playerType": 1,
+      "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
-      "name": " 📺FMM_IPV6📺",
+      "name": "📺FMM_IPV6📺",
       "type": 0,
       "url": "https://fanmingming.com/txt?url=https://live.fanmingming.com/tv/m3u/ipv6.m3u",
       "playerType": 1,
+      "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
     }
   ],
   "sites": [
@@ -703,6 +705,20 @@
 	"ext": "https://d.kstore.space/download/6741/lib/yz.json"
 },
 {
+      "key": "神仙影视",
+      "name": "影视 | 神仙自营",
+      "type": 3,
+      "api": "csp_XBPQ",
+      "jar": "./XBPQ.jar",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": {
+        "分类url": "http://dy.liuyunw.com/index.php/vod/type/id/{cateId}/area/{area}/by/{by}/class/{class}/page/{catePg}/year/{year}.html",
+        "分类": "电影$1#电视剧$2#综艺$3#动漫$4#电影解说$5"
+      }
+    },
+{
 	"key": "XBPQ_电影先生",
 	"name": "电影先生┃XBPQ",
 	"jar": "./XBPQ.jar",
@@ -1067,17 +1083,6 @@
       "timeout": 60
     },
 {
-      "key": "nxog",
-      "name": "💯玩偶┃欧歌",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$https://wog.nxog.eu.org/$$$null$$$1$$$./lib/wogg.json",
-      "timeout": 60
-    },
-{
       "key": "csp_XYQHikerAL_玩偶哥哥",
       "name": "📀玩偶┃香",
       "type": 3,
@@ -1134,18 +1139,6 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/玩我哥哥.json",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
-    },
-{
-      "key": "csp_XYQHikerAL_nxog",
-      "name": "📀欧歌┃香 ",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "https://o.nxog.top/m/json/wou.json",
       "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
@@ -1414,6 +1407,16 @@
 		"分类url": "https://www.duanjuxia.cn/index.php/vod/show/area/{area}/by/{by}/class/{class}/id/{cateId}/lang/{lang}/year/{year}/page/{catePg}.html"
 	}
 },
+{
+      "key": "上头短剧",
+      "name": "🌈上头┃短剧",
+      "type": 3,
+      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
+      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/上头短剧.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 0
+    },
     {
       "key": "Wexvipduanju",
       "name": "🌸｜短剧VIP",
