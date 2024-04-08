@@ -402,7 +402,7 @@
       "filterable": 1,
       "ext": {
         "type": "纪录片#短剧合集#帕梅拉#广场舞#演唱会#贝瓦儿歌#抖音热歌#经典无损音乐合集#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#相声小品",
-        "cookie": "SESSDATA=3981f680%2C1716050705%2C1a63f%2Ab1CjCVbk93WeR7pW4wZwPyn1pv2b3FQgk6egqUUdolxelwoDHyKLHzjTqzWuT7Nq11pGgSVnlnVEZfNEZpNkFvZ1JGRmp6YnF2Y3pMTVhralRtUDRFNGxJNzJURjhfYU81cXNfU3FNRFZmTlAzbFVRd2djeVdOVTJQQjJHWmROeFdQVGo1QjQxLWRnIIEC;bili_jct=fbbc23871519d7c42d9ddaa9fff598e1;DedeUserID=334021021;DedeUserID__ckMd5=347e518face04b4a;sid=4trphb70"
+        "cookie": "buvid3=4AD77F99-2599-CBB8-C77F-E110F2EBF37A45302infoc; b_nut=1711824045; i-wanna-go-back=-1; b_ut=7; b_lsid=3D549EA2_18E90A9FB50; bsource=search_bing; _uuid=1D4FE4B5-99101-4F8A-31B9-568EA9C110E10F42854infoc; enable_web_push=DISABLE; buvid4=9140B9B2-A1D9-F133-4907-1465289C4BE446150-024033018-X3KtWvfWty9VwtSdPHZM2g%3D%3D; buvid_fp=cd12ea2c307f983a6df10ab3707208c2; SESSDATA=8d144530%2C1727376055%2Cdcdc5%2A31CjC11wrgxtSxoA8AEy_qUsk1TqLtaqP5RmM_MiwXyo9jMtyPSo4uj5dNW7ZHpzTV39ISVmhPd19IVG9XaWFOTTdPRjdIaGpKQ0RqSGpiSzBFczlyZ25YdzUxal9CdF9KbkkyUVpNMm5YbEFZU0Y0SUN0d2ZCSzZySUFYeWxCbHJUakdtT1BjUzBRIIEC; bili_jct=2de386c90715e3d226761fcfd7e7751a; DedeUserID=3546609111533924; DedeUserID__ckMd5=7b3ecc045fe0ce26; sid=5o3zv30u; bp_video_offset_3546609111533924=910929067046338841; home_feed_column=4; browser_resolution=1114-1062; FEED_LIVE_VERSION=V_HEADER_LIVE_NEW_POP; header_theme_version=CLOSE; bmg_af_switch=1; bmg_src_def_domain=i0.hdslb.com"
       }
     },
 {
@@ -815,6 +815,12 @@
 	"api": "https://catbox.n13.club/mingri.php"
 },
 {
+	"key": "T4-nongmin",
+	"name": "农民影视",
+	"type": 4,
+	"api": "https://catbox.n13.club/nongmin.php"
+},
+{
 	"key": "Fangniu4k",
 	"name": "👎放牛┃TV┃App",
 	"type": 3,
@@ -870,28 +876,6 @@
         "分类url": "http://fagmn.com/list/{cateId}_{catePg}.html?order=time"
       }
     },
-{
-	"key": "初见影视",
-	"name": "初见影视",
-	"type": 3,
-	"api": "csp_XBPQ",
-	"searchable": 1,
-	"quickSearch": 1,
-	"filterable": 0,
-	"ext": "https://pan.shangui.cc/f/B87PSp/%E5%88%9D%E8%A7%81%E5%BD%B1%E8%A7%86.json",
-	"jar": "./XBPQ.jar"
-},
-{
-	"key": "初见自用",
-	"name": "初见自用",
-	"type": 3,
-	"api": "csp_XBPQ",
-	"searchable": 1,
-	"quickSearch": 1,
-	"filterable": 0,
-	"ext": "https://win11.asuscomm.com:63/json/初见自用.json",
-	"jar": "./XBPQ.jar"
-},
 {
       "key": "saohuo",
       "name": "🔥骚火┃电影",
