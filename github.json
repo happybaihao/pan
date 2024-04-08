@@ -26,8 +26,15 @@
       "type": 0,
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png",
-      "timeout": 10
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
+    },
+{
+      "name": "tg央卫",
+      "url": "http://xn--wnu643e.x10.mx/live.m3u",
+      "type": 0,
+      "playerType": 1,
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
       "name": "📺看电视呗lve📺",
@@ -685,7 +692,7 @@
       "name": "😺原创-蓝光",
       "type": 3,
       "api": "csp_YCyz",
-      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar",
+      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
       "timeout": 15,
       "searchable": 1,
       "quickSearch": 1,
@@ -1046,11 +1053,17 @@
       "name": "👽玩偶┃饭",
       "type": 3,
       "api": "csp_WoGG",
+      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd$$$https://www.wogg.xyz/$$$弹",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
+      "ext": {
+        "aliToken": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "quarkCookie": "tvfan/cookie.txt",
+        "from": "4k|auto|fhd",
+        "siteUrl": "https://api.wogg.xyz/",
+        "danMu": "弹"
+      }
     },
 {
       "key": "Hdhive",
