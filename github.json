@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;0923b6739cc6fdff09af82f31b7f78ef",
+  "spider": "./pg.jar;md5;7289ba74fc909ab7f9d2dd1f9a6923a6",
   "wallpaper": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/壁纸/蓝.jpg",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
@@ -179,12 +179,13 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": " 📺精选IPV6源📺",
+      "name": "📺看电视呗_IPV6📺",
       "type": 0,
-      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/Ftindy/IPTV-URL/main/GSYD-IPV6.m3u",
+      "url": "http://mywlkj.ddns.net:754/v6.php",
       "playerType": 1,
+      "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
       "name": "📺L大IPV6📺",
@@ -999,17 +1000,6 @@
       "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null"
     },
 {
-            "key": "YSC",
-            "name": "💯玩偶┃运输车",
-            "type": 3,
-            "api": "csp_Wogg",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 2,
-            "ext": "./lib/tokenm.json$$$https://www.weixine.link/$$$null$$$1$$$./lib/wogg.json",
-            "timeout": 60
-     },
-{
       "key": "玩偶哥哥",
       "name": "💯玩偶┃哥哥",
       "type": 3,
@@ -1018,6 +1008,17 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
+      "timeout": 60
+    },
+{
+      "key": "玩我",
+      "name": "💯玩偶┃天天开心",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://www.ttkx.live:3328$$$null$$$1./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -1081,17 +1082,6 @@
       "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$./lib/wogg.json"
     },
 {
-      "key": "玩我",
-      "name": "💯玩偶┃天天开心",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://www.ttkx.live:3328$$$null$$$1./lib/wogg.json",
-      "timeout": 60
-    },
-{
       "key": "csp_XYQHikerAL_玩偶哥哥",
       "name": "📀玩偶┃香",
       "type": 3,
@@ -1124,18 +1114,6 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/多多阿里.json",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
-    },
-{
-      "key": "yingshiche",
-      "name": "📀运输车┃香 ",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "http://rihou.vip:55/lib/玩偶运输车.json",
       "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
     },
 {
