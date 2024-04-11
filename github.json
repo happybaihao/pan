@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;7289ba74fc909ab7f9d2dd1f9a6923a6",
+  "spider": "./pg.jar;md5;7f25a34386674cfef092610c454cd271",
   "wallpaper": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/壁纸/蓝.jpg",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
@@ -426,20 +426,6 @@
 },
      "jar": "./bili.jar"
   },
-  {
-            "key": "哔哩",
-            "name": "哔哩┃运输车",
-            "type": 3,
-            "api": "csp_Bili_YS",
-            "searchable": 1,
-            "quickSearch": 1,
-            "changeable": 1,
-            "ext": {
-                "json": "https://bbs.ysctv.cn/json/bili_ys.json",
-                "cookie": "https://bbs.ysctv.cn/lib/bilikey.txt"
-            },
-            "jar": "./bili.jar"
-        },
 {
 	"key": "py_1905",
 	"name": "1905老电影",
@@ -831,6 +817,13 @@
 	"type": 4,
 	"api": "https://catbox.n13.club/nongmin.php"
 },
+{
+      "key": "农民",
+      "name": "农民┃秒播",
+      "type": 3,
+      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
+      "ext": "./lib/nmys.js"
+    },
 {
 	"key": "Fangniu4k",
 	"name": "👎放牛┃TV┃App",
