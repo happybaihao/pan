@@ -241,6 +241,17 @@
       "ext": "./lib/tokenm.json"
     },
 {
+	"key": "csp_KungFu404_TK设置‍",
+	"name": "🔨配置┃中心",
+	"type": 3,
+	"api": "csp_KungFu404",
+	"searchable": 0,
+	"filterable": 1,
+	"changeable": 0,
+	"ext": "http://127.0.0.1:9978/file/XYQTVBox/alitoken.txt",
+	"jar": "./alibaba.jar"
+},
+{
       "key": "T4-yugaopian",
       "name": "观影┃预告",
       "type": 4,
@@ -368,16 +379,6 @@
       "changeable": 0,
       "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
       "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/企鹅直播.json"
-    },
-{
-      "key": "csp_聚短视频",
-      "name": "📽️聚短┃视频",
-      "type": 3,
-      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://agit.ai/fantaiying/dr_py/raw/branch/main/js/短视频.js",
-      "searchable": 0,
-      "quickSearch": 0,
-      "changeable": 0
     },
 {"key": "抖音大妹子","name": "抖音","type": 4,"api": "http://120.53.102.254/xjj","searchable": 1,"quickSearch": 0,"filterable": 1},
 {
@@ -698,6 +699,27 @@
       "playerType": 1,
       "changeable": 2,
       "ext": "http://op.ysdqjs.cn$$$null$$$1"
+    },
+{
+	"key": "Bdys_spider",
+	"name": "哔滴〓秒播",
+	"api": "csp_Bdys01",
+	"type": 3,
+	"filterable": 1,
+	"searchable": 1,
+	"quickSearch": 1,
+	"ext": "https://www.yjys.me/$$$null$$$1"
+},
+{
+      "key": "csp_XYQHiker_龙龙影视",
+      "name": "👶龙龙☆影视",
+      "type": 3,
+      "api": "csp_XYQHiker",
+      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": "https://download.kstore.space/download/4927/ABxkl/xyqh/xyqh_龙龙影视.json"
     },
 {
 	"key": "YZ",
@@ -1042,6 +1064,17 @@
       "quickSearch": 1,
       "changeable": 2,
       "ext": "./lib/tokenm.json$$$http://ttkx.live:3328$$$null$$$1./lib/wogg.json",
+      "timeout": 60
+    },
+{
+      "key": "龙龙阿里",
+      "name": "💯玩偶┃龙龙",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://wanou.龙龙.top:3108/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -1543,6 +1576,12 @@
         "分类url": "https://www.psmp3.com/{cateId}/{catePg}.html;;av",
         "分类": "袁阔成$ykc#单田芳$stf#田连元$tly#刘兰芳$llf#连丽如$llr#张少佐$zsz#田战义$tzy"
       }
+    },
+{
+      "key": "T4-qingting",
+      "name": "音频-蜻蜓(T4)",
+      "type": 4,
+      "api": "https://catbox.n13.club/qingting.php"
     },
 {
       "key": "新6V",
