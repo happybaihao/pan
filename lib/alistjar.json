@@ -8,19 +8,33 @@
     },
 {
       "name": "🌱小雅搜",
-      "server": "http://116.204.127.178:5678/"
+      "server": "http://117.92.199.241:5678/",
+      "search": true,
+      "searchable": true
     },
 {
       "name": "🌱小丫搜",
-      "server": "http://121.36.255.202:5678/"
+      "server": "http://121.36.255.202:5678/",
+      "search": true,
+      "searchable": true
+    },
+{
+      "name": "🌱仙女搜",
+      "server": "http://123.60.83.29:5678/",
+      "search": true,
+      "searchable": true
     },
 {
       "name": "🐅环宇轩🐅",
-      "server": "https://alist.891218.xyz/"
+      "server": "https://alist.891218.xyz/",
+      "search": true,
+      "searchable": true
     },
 {
       "name": "失眠的夜🤍小雅网盘",
-      "server": "https://alist.891218.xyz/💢小雅"
+      "server": "https://alist.891218.xyz/💢小雅",
+      "search": true,
+      "searchable": true
     },
 {
       "name": "🦆alist",
@@ -36,20 +50,24 @@
     },
 {
       "name": "🌱瑶瑶",
-      "server": "http://123.60.78.63:1000/"
+      "server": "http://123.60.78.63:1000/",
+      "search": true,
+      "searchable": true
     },
 {
       "name": "🌱美云",
-      "server": "http://xiaoya.nebula-nas.space:5678/"
+      "server": "http://xiaoya.nebula-nas.space:5678/",
+      "search": true,
+      "searchable": true
     },
 {
-      "name": "🙋小雅搜索源1",
+      "name": "🙋小雅搜1",
       "server": "http://60.204.156.46:5678",
       "search": true,
       "searchable": true
     },
 {
-      "name": "🙋小雅搜索源6",
+      "name": "🙋小雅搜6",
       "server": "http://119.91.20.105:5678",
       "search": true,
       "searchable": true
