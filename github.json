@@ -21,8 +21,8 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-      "name": "春风",
-      "url": "https://wds.ecsxs.com/230864.json",
+      "name": "海鸥",
+      "url": "http://git.sxtv.top/jxnklgb/lgb/raw/master/tv/zhibo666.txt",
       "type": 0,
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -131,7 +131,7 @@
 {
       "name": " 📺Yoursmile•综合📺",
       "type": 0,
-      "url": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/live.txt",
+      "url": "https://152.32.170.60/Yoursmile7/TVBox/raw/branch/master/live.txt",
       "playerType": 1,
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
@@ -377,8 +377,8 @@
       "searchable": 0,
       "quickSearch": 0,
       "changeable": 0,
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/企鹅直播.json"
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar",
+      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/企鹅直播.json"
     },
 {"key": "抖音大妹子","name": "抖音","type": 4,"api": "http://120.53.102.254/xjj","searchable": 1,"quickSearch": 0,"filterable": 1},
 {
@@ -569,26 +569,6 @@
       "ext": "http://117.92.199.241:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
-      "key": "小鸭4",
-      "name": "小雅┃网盘4",
-      "type": 3,
-      "api": "http://nas.taogestudio.cn:5678/tvbox/libs/alist.min.js",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "http://nas.taogestudio.cn:5678/tvbox/json/alist_ext.json;200;video"
-    },
-{
-      "key": "小鸭5",
-      "name": "小雅┃网盘5",
-      "type": 3,
-      "api": "http://43.142.51.65:5678/tvbox/libs/alist.min.js",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "http://43.142.51.65:5678/tvbox/json/alist_ext.json;200;video"
-    },
-{
       "key": "小鸭7",
       "name": "小雅┃网盘7",
       "type": 3,
@@ -656,7 +636,7 @@
       "name": "💡酷看┃App",
       "type": 3,
       "api": "csp_Kkys",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1
@@ -677,7 +657,7 @@
       "name": "😺苹果-蓝光",
       "type": 3,
       "api": "csp_LiteApple",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1
@@ -731,53 +711,19 @@
 	"quickSearch": 1,
 	"playerType": 2,
 	"filterable": 0,
-	"ext": "https://d.kstore.space/download/6741/lib/yz.json"
+	"ext": "https://syc.lvdoui.top/jar/xyq/yz.json"
 },
 {
-      "key": "神仙影视",
-      "name": "影视 | 神仙自营",
-      "type": 3,
-      "api": "csp_XBPQ",
-      "jar": "./XBPQ.jar",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": {
-        "分类url": "http://dy.liuyunw.com/index.php/vod/type/id/{cateId}/area/{area}/by/{by}/class/{class}/page/{catePg}/year/{year}.html",
-        "分类": "电影$1#电视剧$2#综艺$3#动漫$4#电影解说$5"
-      }
-    },
-{
-	"key": "XBPQ_电影先生",
-	"name": "电影先生┃XBPQ",
-	"jar": "./XBPQ.jar",
-	"type": 3,
-	"api": "csp_XBPQ",
-	"ext": {
-		"分类url": "https://dianyi.ng/pianku-{cateId}-{area}-------{catePg}---{year}.html",
-		"简介": "class=\"video-info-item video-info-content vod_content\">&&</span>",
-		"搜索url": "https://dianyi.ng/search--------------.html?wd={wd}",
-		"搜索数组": "<div class=\"module-item-pic\">&&</div>",
-		"图片": "src=\"&&\"",
-		"搜索标题": "title=\"&&\"",
-		"搜索副标题": ">&&</a>",
-		"线路数组": "data-dropdown-value=&&</div>",
-		"线路标题": "<span>&&</small>[替换:<span></small>共]+集",
-		"播放数组": "<div class=\"scroll-content\">&&</div>",
-		"播放标题": "<span>&&</span>",
-		"分类": "电影$dianying#电视剧$dianshiju#动漫$dongman#综艺$zongyi"
-	}
-},
-{
-            "key": "tudou2",
+            "key": "baipiaoys4",
             "name": "📔厂长┃阿姨最爱",
-            "playerType": 2,
             "type": 3,
-            "api": "csp_AppYsV2",
+            "changeable": 1,
             "searchable": 1,
             "quickSearch": 1,
             "filterable": 1,
-            "ext": "http://43.136.176.188:92/api.php/app/"
+            "api": "csp_XBPQ",
+            "ext": "https://syc.lvdoui.top/jar/xyq/厂长.json",
+            "jar": "https://6741.kstore.space/xbpq.jar"
         },
 {
             "key": "XBPQ_厂长资源",
@@ -842,16 +788,22 @@
 	"api": "https://catbox.n13.club/mingri.php"
 },
 {
-	"key": "T4-nongmin",
-	"name": "农民影视",
-	"type": 4,
-	"api": "https://catbox.n13.club/nongmin.php"
+	"key": "农民",
+	"name": "🌾农民┃秒播",
+	"type": 3,
+	"api": "csp_Nmys",
+                "jar":"https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar",
+	"timeout": 15,
+	"searchable": 1,
+	"quickSearch": 1,
+	"changeable": 1,
+	"ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/nmys.json"
 },
 {
-      "key": "农民",
+      "key": "nongmin",
       "name": "农民┃秒播",
       "type": 3,
-      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
+      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
       "ext": "./lib/nmys.js"
     },
 {
@@ -871,6 +823,49 @@
       "playerType": 1,
       "ext": "http://app.kzjtv.com$$$null$$$1"
     },
+{
+	"key": "搬运工",
+	"name": "搬运工资源",
+	"type": 1,
+	"api": "http://159.75.155.189:1133/api.php/provide/vod/?ac=list",
+	"playUrl": "http://103.233.255.142:1133/?url=",
+	"categories": ["电影", "国产剧", "港台剧", "日韩剧", "欧美剧", "短剧", "综艺", "动漫"]
+},
+{
+      "key": "神仙影视",
+      "name": "影视 | 神仙自营",
+      "type": 3,
+      "api": "csp_XBPQ",
+      "jar": "./XBPQ.jar",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": {
+        "分类url": "http://dy.liuyunw.com/index.php/vod/type/id/{cateId}/area/{area}/by/{by}/class/{class}/page/{catePg}/year/{year}.html",
+        "分类": "电影$1#电视剧$2#综艺$3#动漫$4#电影解说$5"
+      }
+    },
+{
+	"key": "XBPQ_电影先生",
+	"name": "电影先生┃XBPQ",
+	"jar": "./XBPQ.jar",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"ext": {
+		"分类url": "https://dianyi.ng/pianku-{cateId}-{area}-------{catePg}---{year}.html",
+		"简介": "class=\"video-info-item video-info-content vod_content\">&&</span>",
+		"搜索url": "https://dianyi.ng/search--------------.html?wd={wd}",
+		"搜索数组": "<div class=\"module-item-pic\">&&</div>",
+		"图片": "src=\"&&\"",
+		"搜索标题": "title=\"&&\"",
+		"搜索副标题": ">&&</a>",
+		"线路数组": "data-dropdown-value=&&</div>",
+		"线路标题": "<span>&&</small>[替换:<span></small>共]+集",
+		"播放数组": "<div class=\"scroll-content\">&&</div>",
+		"播放标题": "<span>&&</span>",
+		"分类": "电影$dianying#电视剧$dianshiju#动漫$dongman#综艺$zongyi"
+	}
+},
 {
       "key": "XBPQ_黑狐影院",
       "name": "黑狐影院┃XBPQ",
@@ -936,7 +931,7 @@
       "name": "🐵360┃官源",
       "type": 3,
       "changeable": 2,
-      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
+      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
       "ext": "https://gitee.com/moyu0913/xiaohei/raw/master/js/360影视.js"
     },
 {
@@ -1104,7 +1099,7 @@
       "name": "👽玩偶┃饭",
       "type": 3,
       "api": "csp_WoGG",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
@@ -1309,7 +1304,7 @@
       "key": "PanSearch",
       "name": "👽盘Se┃搜索",
       "type": 3,
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar",
       "api": "csp_PanSearch",
       "searchable": 1,
       "quickSearch": 1,
@@ -1454,8 +1449,8 @@
       "key": "上头短剧",
       "name": "🌈上头┃短剧",
       "type": 3,
-      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/上头短剧.js",
+      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
+      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/上头短剧.js",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0
@@ -1523,7 +1518,7 @@
         "主页url": "https://www.xsmp3.com",
         "数组二次截取": "<ul id=\"post_list_box\">&&</ul",
         "数组": "<li class=\"www_xsmp3_com post_list_li\">&&</div>",
-        "图片": "https://agit.ai/lengniuge/api/raw/branch/master/xs.jpg",
+        "图片": "https://152.32.170.60/lengniuge/api/raw/branch/master/xs.jpg",
         "标题": "title=\"&&\"",
         "副标题": ">&&</a",
         "链接": "href=\"&&\"",
@@ -1558,7 +1553,7 @@
         "主页url": "https://www.psmp3.com",
         "数组二次截取": "<ul id=\"post_list_box\">&&</ul",
         "数组": "<li class=\"www_psmp3_com post_list_li\">&&</div>",
-        "图片": "https://agit.ai/lengniuge/api/raw/branch/master/ps.jpg",
+        "图片": "https://152.32.170.60/lengniuge/api/raw/branch/master/ps.jpg",
         "标题": "title=\"&&\"",
         "副标题": ">&&</a",
         "链接": "href=\"&&\"",
@@ -1597,8 +1592,8 @@
       "key": "dr_兔小贝",
       "name": "📚儿童┃启蒙",
       "type": 3,
-      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://agit.ai/fantaiying/dr_py/raw/branch/main/js/%E5%85%94%E5%B0%8F%E8%B4%9D.js",
+      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
+      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/%E5%85%94%E5%B0%8F%E8%B4%9D.js",
       "style": {
         "type": "rect",
         "ratio": 1.597
@@ -1615,8 +1610,8 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/少儿教育.json",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
+      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/少儿教育.json",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar"
     },
     {
       "key": "小学",
@@ -1626,8 +1621,8 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/小学课堂.json",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
+      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/小学课堂.json",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar"
     },
     {
       "key": "初中",
@@ -1637,8 +1632,8 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/初中课堂.json",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
+      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/初中课堂.json",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar"
     },
     {
       "key": "高中",
@@ -1648,26 +1643,15 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/sub/高中课堂.json",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
-    },
-{
-      "key": "小灯塔国学",
-      "name": "🌏灯塔┃国学",
-      "type": 3,
-      "api": "csp_Bili",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "http://yydf.540734621.xyz/yydf/yydf/bd/yydf/小灯塔国学.json",
-      "jar": "https://agit.ai/Yoursmile7/TVBox/raw/branch/master/Yoursmile.jar"
+      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/高中课堂.json",
+      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fan.jar"
     },
 {
       "key": "有声小说js",
       "name": "🎧有声┃小说",
       "type": 3,
-      "api": "https://agit.ai/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://agit.ai/fantaiying/dr_py/raw/branch/main/js/有声小说吧.js",
+      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
+      "ext": "https://152.32.170.60/fantaiying/dr_py/raw/branch/main/js/有声小说吧.js",
       "style": {
         "type": "rect",
         "ratio": 1
@@ -1733,6 +1717,46 @@
                 ]
             }
         },
+{"name": "夜猫超聚合", "type": 1, "url": "http://119.91.123.253:2345/Api/yun.php?url=","ext":{"flag":["qq",
+                    "腾讯",
+                    "企鹅",
+                    "IQiYi",
+                    "qiyi",
+                    "爱奇艺",
+                    "奇艺",
+                    "youku",
+                    "YouKu",
+                    "优酷",
+                    "sohu",
+                    "SoHu",
+                    "搜狐",
+                    "letv",
+                    "LeShi",
+                    "乐视",
+                    "imgo",
+                    "mgtv",
+                    "MangGuo",
+                    "芒果",
+                    "SLYS4k",
+                    "BYGA",
+                    "luanzi",
+                    "AliS",
+                    "dxzy",
+                    "bilibili",
+                    "QEYSS",
+                    "xigua",
+                    "西瓜视频",
+                    "腾讯视频",
+                    "奇艺视频",
+                    "优酷视频",
+                    "芒果视频",
+                    "乐视视频"
+                    ],"header":{"User-Agent":"Dart/2.18 (dart:io)"}}},
+{
+            "name": "土豆①",
+            "type": 1,
+            "url": "http://pan.qiaoji8.com/tvbox/gouzi.php?url="
+        },
 {
       "name": "永久解析",
       "type": 1,
@@ -1747,7 +1771,6 @@
       }
     },
 {"name":"王","type":1,"url":"http://json.84jia.com/home/api?type=ys&uid=11154896&key=cefgiksvwyCGINV047&url="},
-{"name":"二","type":1,"url":"http://119.91.123.253:2345/Api/yun.php?url="},
 {"name":"小","type":1,"url":"http://122.228.84.103:7777/api/?key=qhBtN1ciPmdvPV83tX&url="},
 {"name":"帅","type":1,"url":"http://pan.qiaoji8.com/tvbox/neibu.php?url="},
 {
@@ -1855,42 +1878,7 @@
           "User-Agent": "okhttp/3.12.11"
         }
       }
-    },
-{"name": "夜猫超聚合", "type": 1, "url": "http://119.91.123.253:2345/Api/yun.php?url=","ext":{"flag":["qq",
-                    "腾讯",
-                    "企鹅",
-                    "IQiYi",
-                    "qiyi",
-                    "爱奇艺",
-                    "奇艺",
-                    "youku",
-                    "YouKu",
-                    "优酷",
-                    "sohu",
-                    "SoHu",
-                    "搜狐",
-                    "letv",
-                    "LeShi",
-                    "乐视",
-                    "imgo",
-                    "mgtv",
-                    "MangGuo",
-                    "芒果",
-                    "SLYS4k",
-                    "BYGA",
-                    "luanzi",
-                    "AliS",
-                    "dxzy",
-                    "bilibili",
-                    "QEYSS",
-                    "xigua",
-                    "西瓜视频",
-                    "腾讯视频",
-                    "奇艺视频",
-                    "优酷视频",
-                    "芒果视频",
-                    "乐视视频"
-                    ],"header":{"User-Agent":"Dart/2.18 (dart:io)"}}},  
+    },  
  {"name": "夜猫超解析2", "type": 1, "url": "https://jxjson.cf/json_balabala.php?url=",
  "ext":{"flag":["qq",
                     "腾讯",
