@@ -14,7 +14,7 @@
 {
       "name": "📺看电视呗📺",
       "type": 0,
-      "url": "http://mywlkj.ddns.net:754/tv.php",
+      "url": "http://mywlkj.ddns.net:754/tv.php?key=2785",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -145,9 +145,9 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-	"name": "小苹果",
+	"name": "春盈天下",
 	"type": 0,
-	"url": "http://tipu.xjqxz.top/live1213.txt",
+	"url": "https://wds.ecsxs.com/231226.lua",
 	"playerType": 1,
 	"ua": "okhttp/3.15",
 	"epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -217,6 +217,15 @@
       "filterable": 0,
       "ext": "./lib/douban.json"
     },
+{
+            "key": "应用商店",
+            "name": "百号应用商店",
+            "type": 3,
+            "api": "csp_Market",
+            "searchable": 0,
+            "changeable": 0,
+            "ext": "https://d.kstore.space/download/4723/market.json"
+        },
 {
       "key": "lf_js_search",
       "name": "⬇️【阿里夸克先扫码】⬇️",
@@ -382,6 +391,19 @@
     },
 {"key": "抖音大妹子","name": "抖音","type": 4,"api": "http://120.53.102.254/xjj","searchable": 1,"quickSearch": 0,"filterable": 1},
 {
+	"key": "Wextangdou",
+	"name": "跳舞┃玩呗┃教学",
+	"type": 3,
+	"api": "csp_Wextangdou",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"searchable": 1,
+	"changeable": 0,
+	"style": {
+		"type": "rect",
+		"ratio": 2
+	}
+},
+{
       "key": "哔哩哔哩",
       "name": "🍻哔哩┃官源",
       "type": 3,
@@ -499,7 +521,7 @@
 	"searchable": 1,
 	"filterable": 0,
 	"switchable": 0,
-	"ext": "./lib/阿里集合.json;http://127.0.0.1:9978/file/tvbox/token.txt",
+	"ext": "./lib/阿里集合.json;http://122.230.249.118:1234/ali/token/6abd1529c8144284b2b1909f8da50c2f",
 	"jar": "./zx0204.jar"
 },
 {
@@ -549,6 +571,81 @@
 	    "ext":"./lib/alistjar.json"
 	},
 {
+            "ext": "eyJhcGkiOiJodHRwOi8vZGVuZ3Bhby5zcGFjZTo1Mjc3IiwidG9rZW4iOiJ5dTYyNjc0MCJ9",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒Alist|Tvbox",
+            "changeable": 1,
+            "jar": "http://dengpao.space:5277/spring.jar",
+            "style": {
+                "type": "rect"
+            },
+            "api": "csp_AList",
+            "type": 3,
+            "key": "csp_AList",
+            "searchable": 1
+        },
+{
+            "ext": "eyJhcGkiOiJodHRwOi8vZGVuZ3Bhby5zcGFjZTo1Mjc3IiwidG9rZW4iOiJ5dTYyNjc0MCJ9",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒小雅|仙女",
+            "changeable": 1,
+            "jar": "http://dengpao.space:5277/spring.jar",
+            "style": {
+                "type": "rect"
+            },
+            "api": "csp_XiaoYa",
+            "type": 3,
+            "key": "csp_XiaoYa",
+            "searchable": 1
+        },
+{
+            "ext": "eyJhcGkiOiJodHRwOi8vMTIyLjIzMC4yNDkuMTE4OjEyMzQiLCJ0b2tlbiI6IiJ9",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒小雅|仙女2",
+            "changeable": 1,
+            "jar": "http://122.230.249.118:1234/spring.jar",
+            "style": {
+                "type": "rect"
+            },
+            "api": "csp_XiaoYa",
+            "type": 3,
+            "key": "csp_XiaoYa2",
+            "searchable": 1
+        },
+{
+            "ext": "eyJhcGkiOiJodHRwOi8vMjA2LjIzNy4yLjEyMyIsInRva2VuIjoiIn0=",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒小雅|仙女3",
+            "changeable": 1,
+            "jar": "http://206.237.2.123/spring.jar",
+            "style": {
+                "type": "rect"
+            },
+            "api": "csp_XiaoYa",
+            "type": 3,
+            "key": "csp_XiaoYa3",
+            "searchable": 1
+        },
+{
+            "ext": "eyJhcGkiOiJodHRwOi8vdHh5LmxqaWFuZy50b3A6NDU2NyIsInRva2VuIjoibGppYW5nMTk2ODEwOCJ9",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒小雅|仙女4",
+            "changeable": 1,
+            "jar": "http://txy.ljiang.top:4567/spring.jar",
+            "style": {
+                "type": "rect"
+            },
+            "api": "csp_XiaoYa",
+            "type": 3,
+            "key": "csp_XiaoYa4",
+            "searchable": 1
+        },
+{
       "key": "小鸭1",
       "name": "小雅┃网盘1",
       "type": 3,
@@ -557,26 +654,6 @@
       "quickSearch": 1,
       "filterable": 0,
       "ext": "http://119.91.20.105:5678/tvbox/json/alist_ext.json;200;video"
-    },
-{
-      "key": "小鸭2",
-      "name": "小雅┃网盘2",
-      "type": 3,
-      "api": "http://117.92.199.241:5678/tvbox/libs/alist.min.js",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "http://117.92.199.241:5678/tvbox/json/alist_ext.json;200;video"
-    },
-{
-      "key": "小鸭7",
-      "name": "小雅┃网盘7",
-      "type": 3,
-      "api": "http://124.70.137.72:5678/tvbox/libs/alist.min.js",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "http://124.70.137.72:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
 	"key": "XBPQ_BaiPiao",
@@ -641,17 +718,6 @@
       "quickSearch": 1,
       "changeable": 1
     },
-{
-"key":"tudou1",
-"name":"土豆蓝光",
-"playerType":1,
-"type":3,
-"api":"csp_AppYsV2",
-"searchable":1,
-"quickSearch":1,
-"filterable":1,
-"ext":"https://muou.lvdoui.top/api.php/app/"
-},
 {
       "key": "苹果",
       "name": "😺苹果-蓝光",
@@ -736,7 +802,7 @@
             "ext": {
                 "作者": "小可乐/230105/第四版",
                 "站名": "厂长资源",
-                "主页url": "https://www.czys01.com",
+                "主页url": "https://www.cz233.com/",
                 "编码": "UTF-8",
                 "首页": "30",
                 "请求头": "手机",
@@ -811,7 +877,7 @@
 	"name": "👎放牛┃TV┃App",
 	"type": 3,
 	"api": "csp_WexFangniu4k",
-	"jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fanniu.jar",
+	"jar": "https://d.kstore.space/download/4723/wex.jar",
 	"searchable": 1,
 	"changeable": 0
 },
@@ -1104,7 +1170,7 @@
       "quickSearch": 1,
       "changeable": 0,
       "ext": {
-        "aliToken": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "aliToken": "http://122.230.249.118:1234/ali/token/6abd1529c8144284b2b1909f8da50c2f",
         "quarkCookie": "tvfan/cookie.txt",
         "from": "4k|auto|fhd",
         "siteUrl": "https://api.wogg.xyz/",
@@ -1309,7 +1375,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
+      "ext": "http://122.230.249.118:1234/ali/token/6abd1529c8144284b2b1909f8da50c2f+4k|auto|fhd"
     },
 {
       "key": "混合盘",
@@ -1460,19 +1526,28 @@
       "name": "🌸｜短剧VIP",
       "type": 3,
       "api": "csp_Wexvipduanju",
-      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fanniu.jar",
+      "jar": "https://d.kstore.space/download/4723/wex.jar",
       "searchable": 1,
       "changeable": 1
     },
 {
-      "key": "Wexduanjuso",
-      "name": "😍短剧┃搜索┃爽",
-      "type": 3,
-      "api": "csp_Wexduanjuso",
-      "jar": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/jar/fanniu.jar",
-      "searchable": 1,
-      "changeable": 0
-    },
+	"key": "Wexduanjuvop",
+	"name": "🌸短劇┃秒播┃直连",
+	"type": 3,
+	"api": "csp_Wexduanjuvop",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"searchable": 1,
+	"changeable": 1
+},
+{
+	"key": "Wexduanjuvmp",
+	"name": "🌸短劇┃极品┃直连",
+	"type": 3,
+	"api": "csp_Wexduanjuvmp",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"searchable": 1,
+	"changeable": 1
+},
 {
       "key": "短剧",
       "name": "短剧",
