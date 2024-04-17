@@ -1,7 +1,7 @@
 {
 "use_internal_storage":false,
-"token":"http://127.0.0.1:9978/file/tvbox/token.txt",
-"open_token":"http://127.0.0.1:9978/file/tvbox/opentoken.txt",
+"token":"",
+"open_token":"",
 "open_api_url":"https://aliyundrive-oauth.messense.me/oauth/access_token",
 "oauth_client_id": "",
 "oauth_client_secret": "",
