@@ -521,7 +521,7 @@
 	"searchable": 1,
 	"filterable": 0,
 	"switchable": 0,
-	"ext": "./lib/阿里集合.json;http://122.230.249.118:1234/ali/token/6abd1529c8144284b2b1909f8da50c2f",
+	"ext": "./lib/阿里集合.json;http://127.0.0.1:9978/file/tvbox/token.txt",
 	"jar": "./zx0204.jar"
 },
 {
@@ -1170,7 +1170,7 @@
       "quickSearch": 1,
       "changeable": 0,
       "ext": {
-        "aliToken": "http://122.230.249.118:1234/ali/token/6abd1529c8144284b2b1909f8da50c2f",
+        "aliToken": "http://127.0.0.1:9978/file/tvbox/token.txt",
         "quarkCookie": "tvfan/cookie.txt",
         "from": "4k|auto|fhd",
         "siteUrl": "https://api.wogg.xyz/",
@@ -1375,7 +1375,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
-      "ext": "http://122.230.249.118:1234/ali/token/6abd1529c8144284b2b1909f8da50c2f+4k|auto|fhd"
+      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
     },
 {
       "key": "混合盘",
