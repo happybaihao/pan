@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;d7ea766492d7bfebf5e1322c1743925a",
+  "spider": "./pg.jar;md5;431e3d26e68a26cc39a6c17fdab003c8",
   "wallpaper": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/壁纸/蓝.jpg",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
@@ -145,15 +145,6 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
-	"name": "春盈天下",
-	"type": 0,
-	"url": "https://wds.ecsxs.com/231226.lua",
-	"playerType": 1,
-	"ua": "okhttp/3.15",
-	"epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-	"logo": "https://epg.112114.xyz/logo/{name}.png"
-},
-{
       "name": "📺APTV📺",
       "type": 0,
       "url": "https://go.ipayyds.xyz/https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u",
@@ -250,16 +241,18 @@
       "ext": "./lib/tokenm.json"
     },
 {
-	"key": "csp_KungFu404_TK设置‍",
-	"name": "🔨配置┃中心",
-	"type": 3,
-	"api": "csp_KungFu404",
-	"searchable": 0,
-	"filterable": 1,
-	"changeable": 0,
-	"ext": "http://127.0.0.1:9978/file/XYQTVBox/alitoken.txt",
-	"jar": "./alibaba.jar"
-},
+            "key": "Wexconfig",
+            "name": "配置┃中心",
+            "type": 3,
+            "api": "csp_Wexconfig",
+           "jar": "./wex.jar",
+            "searchable": 0,
+            "changeable": 0,
+            "style": {
+                "type": "rect",
+                "ratio": 1.43
+            }
+        },
 {
       "key": "T4-yugaopian",
       "name": "观影┃预告",
@@ -523,6 +516,15 @@
 	"switchable": 0,
 	"ext": "./lib/阿里集合.json;http://127.0.0.1:9978/file/tvbox/token.txt",
 	"jar": "./zx0204.jar"
+},
+{
+	"key": "土豆",
+	"name": "土豆┃网盘┃综合",
+	"type": 3,
+	"api": "csp_Wextudou",
+               "jar": "./wex.jar",
+	"searchable": 1,
+	"changeable": 1
 },
 {
       "key": "QuarkShare",
@@ -866,13 +868,6 @@
 	"ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/nmys.json"
 },
 {
-      "key": "nongmin",
-      "name": "农民┃秒播",
-      "type": 3,
-      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "./lib/nmys.js"
-    },
-{
 	"key": "Fangniu4k",
 	"name": "👎放牛┃TV┃App",
 	"type": 3,
@@ -1020,6 +1015,15 @@
       "timeout": 60,
       "ext": "./lib/tokenm.json"
     },
+{
+	"key": "Wexyingso",
+	"name": "影子┃阿里┃搜",
+	"type": 3,
+	"api": "csp_Wexyingso",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"searchable": 1,
+	"changeable": 0
+},
 {
       "key": "秒搜",
       "name": "秒搜|网盘",
@@ -1394,21 +1398,9 @@
       "name": "88|网盘",
       "type": 3,
       "api": "csp_EightEight",
-      "ext": "./lib/tokenm.json$$$https://662688.xyz",
+      "ext": "./lib/tokenm.json$$$https://662688.xyz$$$",
       "quickSearch": 1,
       "changeable":1,
-      "timeout": 60
-    },
-{
-      "key": "易搜",
-      "name": "💯易搜┃网盘",
-      "type": 3,
-      "api": "csp_YiSo",
-      "changeable": 0,
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "./lib/tokenm.json$$$satoken=d282d1a6-15f1-454e-8f15-4b09829e1025",
       "timeout": 60
     },
 {
@@ -1434,29 +1426,6 @@
       "ext": "./lib/tokenm.json$$$https://ppxzy.net/$$$null$$$1",
       "timeout": 60
     },
-{
-            "key": "Qianfan",
-            "name": "⛵千帆┃网盘",
-            "type": 3,
-            "api": "csp_Qianfan",
-            "quickSearch": 1,
-            "changeable": 2,
-            "filterable": 1,
-            "timeout": 30,
-            "ext": "./lib/tokenm.json$$$https://pan.qianfan.app$$$null$$$QianFanID=kfay98g9vxht1r8nmwxgyr61vz268hhe; _ga_6Z94VT54DV=GS1.1.1706727826.4.1.1706727986.0.0.0"
-        },
-{
-      "key": "云盘资源",
-      "name": "🎠云盘┃网盘",
-      "type": 3,
-      "api": "csp_YunPanOne",
-      "changeable": 0,
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 0,
-      "ext": "./lib/tokenm.json",
-      "timeout": 60
-    },
     {
       "key": "小云",
       "name": "🚤小云┃网盘",
@@ -1466,9 +1435,20 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "./lib/tokenm.json",
+      "ext": "./lib/tokenm.json$$$https://www.yunso.net$$$null$$$1",
       "timeout": 60
     },
+{
+	"key": "YunPanOne",
+	"name": "云盘One|网盘搜索",
+	"type": 3,
+	"api": "csp_YunPanOne",
+	"quickSearch": 1,
+	"changeable": 1,
+	"filterable": 1,
+	"timeout": 60,
+	"ext": "./lib/tokenm.json$$$null$$$proxy$$$1"
+},
 {
       "key": "业余采集A",
       "name": "♻ 业余云自营 ",
