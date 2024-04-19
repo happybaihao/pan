@@ -316,6 +316,12 @@
       "filterable": 1,
       "api": "https://d.kstore.space/download/5413/DM/py/cc.py"
     },
+    {
+      "key": "T4-xuexi",
+      "name": "二哈学习",
+      "type": 4,
+      "api": "https://catbox.n13.club/xuexi.php"
+    },
 {
       "key": "直播转点播1",
       "name": "⛳ 直播.教学T4 ",
