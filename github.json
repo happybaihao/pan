@@ -440,7 +440,7 @@
 },
 {
       "key": "AliShare剧",
-      "name": "阿里分享┃剧集",
+      "name": "阿里分享|剧集",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
@@ -452,7 +452,7 @@
     },
 {
       "key": "AliShare影",
-      "name": "阿里分享┃电影",
+      "name": "阿里分享|电影",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
@@ -464,7 +464,7 @@
     },
 {
       "key": "AliShare其",
-      "name": "阿里分享┃其它",
+      "name": "阿里分享|其它",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
