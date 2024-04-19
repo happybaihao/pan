@@ -242,7 +242,7 @@
     },
 {
             "key": "Wexconfig",
-            "name": "配置┃中心",
+            "name": "🐮配置┃中心",
             "type": 3,
             "api": "csp_Wexconfig",
            "jar": "https://d.kstore.space/download/4723/wex.jar",
@@ -440,7 +440,7 @@
 },
 {
       "key": "AliShare剧",
-      "name": "阿里云盘分享┃剧集",
+      "name": "阿里分享┃剧集",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
@@ -452,7 +452,7 @@
     },
 {
       "key": "AliShare影",
-      "name": "阿里云盘分享┃电影",
+      "name": "阿里分享┃电影",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
@@ -464,7 +464,7 @@
     },
 {
       "key": "AliShare其",
-      "name": "阿里云盘分享┃其它",
+      "name": "阿里分享┃其它",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
@@ -492,7 +492,7 @@
 },
 {
       "key": "AliShareEBook",
-      "name": "阿里云盘书籍分享",
+      "name": "阿里书籍分享",
       "type": 3,
       "api": "csp_AliShare",
       "searchable": 1,
@@ -555,7 +555,7 @@
     },
 {
 	    "key":"Alist",
-	    "name":"💞网盘 | Alist",
+	    "name":"💞网盘|Alist",
 	    "type":3,
 	    "api":"csp_AList",
                     "searchable":1,
@@ -650,7 +650,7 @@
     },
 {
 	"key": "XBPQ_BaiPiao",
-	"name": "白嫖影视|XBPQ",
+	"name": "白嫖|XBPQ",
 	"type": 3,
 	"api": "csp_XBPQ",
 	"jar": "./XBPQ.jar",
@@ -860,7 +860,7 @@
 },
 {
 	"key": "Fangniu4k",
-	"name": "👎放牛┃TV┃App",
+	"name": "👎放牛┃TV",
 	"type": 3,
 	"api": "csp_WexFangniu4k",
 	"jar": "https://d.kstore.space/download/4723/wex.jar",
@@ -885,7 +885,7 @@
 },
 {
       "key": "神仙影视",
-      "name": "影视 | 神仙自营",
+      "name": "影视 | 神仙",
       "type": 3,
       "api": "csp_XBPQ",
       "jar": "./XBPQ.jar",
@@ -899,7 +899,7 @@
     },
 {
 	"key": "XBPQ_电影先生",
-	"name": "电影先生┃XBPQ",
+	"name": "先生┃XBPQ",
 	"jar": "./XBPQ.jar",
 	"type": 3,
 	"api": "csp_XBPQ",
@@ -920,7 +920,7 @@
 },
 {
       "key": "XBPQ_黑狐影院",
-      "name": "黑狐影院┃XBPQ",
+      "name": "黑狐┃XBPQ",
       "type": 3,
       "api": "csp_XBPQ",
       "jar": "./XBPQ.jar",
@@ -1154,7 +1154,7 @@
     },
 {
       "key": "玩我",
-      "name": "💯玩偶┃天天开心",
+      "name": "💯玩偶┃开心",
       "type": 3,
       "api": "csp_Wogg",
       "searchable": 1,
@@ -1254,7 +1254,7 @@
     },
 {
       "key": "ttkx",
-      "name": "📀天天开心┃香 ",
+      "name": "📀开心┃香 ",
       "type": 3,
       "api": "csp_XYQHikerAL",
       "searchable": 1,
@@ -1289,7 +1289,7 @@
     },
 {
       "key": "新6V",
-      "name": "手机观看┃新6v",
+      "name": "手机观看|新6v",
       "type": 3,
       "api": "csp_Xb6v",
       "searchable": 1,
@@ -1299,7 +1299,7 @@
     },
 {
 	"key": "Bt0",
-	"name": "手机观看┃不灵",
+	"name": "手机观看|不灵",
 	"type": 3,
 	"api": "csp_Bt0",
 	"playerType": 2,
