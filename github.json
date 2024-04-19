@@ -245,7 +245,7 @@
             "name": "配置┃中心",
             "type": 3,
             "api": "csp_Wexconfig",
-           "jar": "./wex.jar",
+           "jar": "https://d.kstore.space/download/4723/wex.jar",
             "searchable": 0,
             "changeable": 0,
             "style": {
@@ -516,15 +516,6 @@
 	"switchable": 0,
 	"ext": "./lib/阿里集合.json;http://127.0.0.1:9978/file/tvbox/token.txt",
 	"jar": "./zx0204.jar"
-},
-{
-	"key": "土豆",
-	"name": "土豆┃网盘┃综合",
-	"type": 3,
-	"api": "csp_Wextudou",
-               "jar": "./wex.jar",
-	"searchable": 1,
-	"changeable": 1
 },
 {
       "key": "QuarkShare",
@@ -988,17 +979,41 @@
       }
     },
 {
-      "key": "荐片磁力",
-      "name": "手机观看|荐片",
-      "type": 3,
-      "api": "csp_Jianpian",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 2,
-      "ext": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/json/jianpian.json$$$1",
-      "timeout": 60
-    },
+	"key": "玩偶牛",
+	"name": "🐮玩偶┃牛",
+	"type": 3,
+	"api": "csp_Wogg",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"searchable": 1,
+	"changeable": 1
+},
+{
+	"key": "Wexyingchao",
+	"name": "🦜鸟巢┃牛",
+	"type": 3,
+	"api": "csp_Wexyingchao",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"searchable": 1,
+	"changeable": 1
+},
+{
+	"key": "Wexyingso",
+	"name": "🎠影搜┃牛",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"type": 3,
+	"api": "csp_Wexyingso",
+	"searchable": 1,
+	"changeable": 0
+},
+{
+	"key": "土豆",
+	"name": "土豆┃牛",
+	"type": 3,
+	"api": "csp_Wextudou",
+                "jar": "https://d.kstore.space/download/4723/wex.jar",
+	"searchable": 1,
+	"changeable": 1
+},
 {
       "key": "YingSo",
       "name": "影搜|网盘",
@@ -1126,15 +1141,6 @@
         "danMu": "弹"
       }
     },
-{
-	"key": "玩偶牛",
-	"name": "🐮玩偶┃牛",
-	"type": 3,
-	"api": "csp_Wogg",
-                "jar": "./wex.jar",
-	"searchable": 1,
-	"changeable": 1
-},
 {
       "key": "玩偶哥哥",
       "name": "💯玩偶┃哥哥",
@@ -1269,6 +1275,40 @@
       "filterable": 1,
       "ext": "https://gitee.com/dongchenys/liu/raw/master/json/alisusu.json"
     },
+{
+      "key": "荐片磁力",
+      "name": "手机观看|荐片",
+      "type": 3,
+      "api": "csp_Jianpian",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 2,
+      "ext": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/json/jianpian.json$$$1",
+      "timeout": 60
+    },
+{
+      "key": "新6V",
+      "name": "手机观看┃新6v",
+      "type": 3,
+      "api": "csp_Xb6v",
+      "searchable": 1,
+      "changeable": 1,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://www.66ss.org$$$null$$$1"
+    },
+{
+	"key": "Bt0",
+	"name": "手机观看┃不灵",
+	"type": 3,
+	"api": "csp_Bt0",
+	"playerType": 2,
+	"quickSearch": 1,
+	"changeable": 1,
+	"filterable": 1,
+	"timeout": 60,
+	"ext": "null$$$null$$$1"
+},
 {
       "key": "Xpanpan",
       "name": "小盘盘|网盘",
@@ -1481,15 +1521,6 @@
       ]
     },
 {
-	"key": "索尼",
-	"name": "索尼 ",
-	"type": 1,
-	"api": "https://suoniapi.com/api.php/provide/vod",
-	"playUrl": "json:http://127.0.0.1:10079/parse/?thread=0&proxy=&url=",
-	"searchable": 1,
-	"changeable": 1
-},
-{
 	"key": "XBPQ_duanjuxia",
 	"name": "全网短剧┃XBPQ",
 	"type": 3,
@@ -1641,16 +1672,6 @@
       "name": "音频-蜻蜓(T4)",
       "type": 4,
       "api": "https://catbox.n13.club/qingting.php"
-    },
-{
-      "key": "新6V",
-      "name": "🧲新6V┃电视慎用",
-      "type": 3,
-      "api": "csp_Xb6v",
-      "searchable": 1,
-      "changeable": 1,
-      "timeout": 60,
-      "ext": "./lib/tokenm.json$$$https://www.66ss.org$$$null$$$1"
     },
 {
       "key": "dr_兔小贝",
