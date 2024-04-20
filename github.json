@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;431e3d26e68a26cc39a6c17fdab003c8",
+  "spider": "./pg.jar;md5;ed1e7d6fba20f4da79f09f29fe9f7faa",
   "wallpaper": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/壁纸/蓝.jpg",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
@@ -14,7 +14,7 @@
 {
       "name": "📺看电视呗📺",
       "type": 0,
-      "url": "http://mywlkj.ddns.net:754/tv.php?key=2785",
+      "url": "http://tvbox6.com/tv.php",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -168,15 +168,6 @@
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "📺看电视呗_IPV6📺",
-      "type": 0,
-      "url": "http://mywlkj.ddns.net:754/v6.php",
-      "playerType": 1,
-      "ua": "okhttp/3.15",
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
       "name": "📺L大IPV6📺",
@@ -417,9 +408,25 @@
       "filterable": 1,
       "ext": {
         "type": "纪录片#短剧合集#帕梅拉#广场舞#演唱会#贝瓦儿歌#抖音热歌#经典无损音乐合集#DJ#4K#8K#CCTV#模特#泳装秀#内衣秀#小姐姐#健身#相声小品",
-        "cookie": "SESSDATA=02f8fa4e%2C1716381348%2Cc1fe2%2Ab2CjBYxTAmRHHE7VtQ75kPk4HdAf3xWVIe6Jx8B81z9QeJbNtoc9ks8oCt1UfnVlmylcwSVkZPV2Q3TWdqTE1CN3o2RzlZVDctVGs5U2pydFlpa0JsVWFDd3Fwd1FGRWNIaGs5b1R0aHQ4dDJ4MV91MzBuNkZFMUNSSUJqV2lWa0syejE4SUNLc0ZnIIEC;bili_jct=cafd38c915579b354bbdedaf4c3f4bb3;DedeUserID=161674047;DedeUserID__ckMd5=a7add82b0e38e7a2;sid=pzh4rze8"
+        "cookie": "SESSDATA=57a55e3a%2C1724758782%2Ca22b6%2A22CjB0YrqrEWLs5LYu_BQX1cQmwvKpGbEre6NVggJ8Y9a9guTlVjDc_qdw98kBmiOHq94SVk1JUnFlTGlnczF2OWVzdS1pNHdfTVAzR0wwbWRqWjZfMVlXVWZfMURqaWNMUHByc0dDRUJCWHc4cUI5cDR5LU5hV25QNUVSTXJvempMR2VIN3JHZVl3IIEC;bili_jct=c7efa6b97aaf5f1c04ad41486a7086ef;DedeUserID=1784805770;DedeUserID__ckMd5=a8e5d8a848f2d88e;sid=6rm7t35f"
       }
     },
+{
+	"ext": "eyJhcGkiOiJodHRwOi8vMTUyLjY5LjIwOS4xNDo0NTY3IiwidG9rZW4iOiIifQ==",
+	"filterable": 1,
+	"quickSearch": 1,
+	"name": "BiliBili",
+	"changeable": 0,
+	"jar": "http://152.69.209.14:4567/spring.jar",
+	"style": {
+		"type": "rect",
+		"ratio": 1.597
+	},
+	"api": "csp_BiliBili",
+	"type": 3,
+	"key": "csp_BiliBili",
+	"searchable": 1
+},
 {
      "key":"哔哩影视",
      "name":"️📺哔哩影视",
@@ -585,6 +592,21 @@
             "searchable": 1
         },
 {
+            "ext": "eyJhcGkiOiJodHRwOi8vMTIyLjIzMC4yNDkuMTE4OjEyMzQiLCJ0b2tlbiI6IiJ9",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒Alist|tvbox",
+            "changeable": 1,
+            "jar": "http://122.230.249.118:1234/spring.jar",
+            "style": {
+                "type": "rect"
+            },
+            "api": "csp_AList",
+            "type": 3,
+            "key": "csp_AList",
+            "searchable": 1
+        },
+{
             "ext": "eyJhcGkiOiJodHRwOi8vZGVuZ3Bhby5zcGFjZTo1Mjc3IiwidG9rZW4iOiJ5dTYyNjc0MCJ9",
             "filterable": 1,
             "quickSearch": 1,
@@ -600,12 +622,12 @@
             "searchable": 1
         },
 {
-            "ext": "eyJhcGkiOiJodHRwOi8vMTIyLjIzMC4yNDkuMTE4OjEyMzQiLCJ0b2tlbiI6IiJ9",
+            "ext": "eyJhcGkiOiJodHRwOi8vMjA2LjIzNy4yLjEyMyIsInRva2VuIjoiIn0=",
             "filterable": 1,
             "quickSearch": 1,
             "name": "👩‍🚒小雅|仙女2",
             "changeable": 1,
-            "jar": "http://122.230.249.118:1234/spring.jar",
+            "jar": "http://206.237.2.123/spring.jar",
             "style": {
                 "type": "rect"
             },
@@ -615,12 +637,12 @@
             "searchable": 1
         },
 {
-            "ext": "eyJhcGkiOiJodHRwOi8vMjA2LjIzNy4yLjEyMyIsInRva2VuIjoiIn0=",
+            "ext": "eyJhcGkiOiJodHRwOi8vdHh5LmxqaWFuZy50b3A6NDU2NyIsInRva2VuIjoibGppYW5nMTk2ODEwOCJ9",
             "filterable": 1,
             "quickSearch": 1,
             "name": "👩‍🚒小雅|仙女3",
             "changeable": 1,
-            "jar": "http://206.237.2.123/spring.jar",
+            "jar": "http://txy.ljiang.top:4567/spring.jar",
             "style": {
                 "type": "rect"
             },
@@ -630,20 +652,20 @@
             "searchable": 1
         },
 {
-            "ext": "eyJhcGkiOiJodHRwOi8vdHh5LmxqaWFuZy50b3A6NDU2NyIsInRva2VuIjoibGppYW5nMTk2ODEwOCJ9",
-            "filterable": 1,
-            "quickSearch": 1,
-            "name": "👩‍🚒小雅|仙女4",
-            "changeable": 1,
-            "jar": "http://txy.ljiang.top:4567/spring.jar",
-            "style": {
-                "type": "rect"
-            },
-            "api": "csp_XiaoYa",
-            "type": 3,
-            "key": "csp_XiaoYa4",
-            "searchable": 1
-        },
+	"ext": "eyJhcGkiOiJodHRwOi8vMTUyLjY5LjIwOS4xNDo0NTY3IiwidG9rZW4iOiIifQ==",
+	"filterable": 1,
+	"quickSearch": 1,
+	"name": "👩‍🚒小雅|仙女4",
+	"changeable": 1,
+	"jar": "http://152.69.209.14:4567/spring.jar",
+	"style": {
+		"type": "rect"
+	},
+	"api": "csp_XiaoYa",
+	"type": 3,
+	"key": "csp_XiaoYa4",
+	"searchable": 1
+},
 {
       "key": "小鸭1",
       "name": "小雅┃网盘1",
@@ -851,18 +873,6 @@
 	"name": "明日看片子",
 	"type": 4,
 	"api": "https://catbox.n13.club/mingri.php"
-},
-{
-	"key": "农民",
-	"name": "🌾农民┃秒播",
-	"type": 3,
-	"api": "csp_Nmys",
-                "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
-	"timeout": 15,
-	"searchable": 1,
-	"quickSearch": 1,
-	"changeable": 1,
-	"ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/nmys.json"
 },
 {
 	"key": "Fangniu4k",
@@ -1281,6 +1291,17 @@
       "filterable": 1,
       "ext": "https://gitee.com/dongchenys/liu/raw/master/json/alisusu.json"
     },
+{
+	"key": "Gaoqing",
+	"name": "手机观看|高清网",
+	"type": 3,
+	"api": "csp_Gaoqing",
+	"quickSearch": 1,
+	"changeable": 1,
+	"filterable": 1,
+	"timeout": 60,
+	"ext": "./lib/tokenm.json$$$https://gaoqing.la/$$$proxy$$$1"
+},
 {
       "key": "荐片磁力",
       "name": "手机观看|荐片",
