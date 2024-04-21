@@ -782,7 +782,7 @@
       "name": "👶龙龙☆影视",
       "type": 3,
       "api": "csp_XYQHiker",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
+      "jar": "https://d.kstore.space/download/4907/Q/XL.jar",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -884,14 +884,6 @@
 	"changeable": 0
 },
 {
-      "key": "追剧",
-      "name": "🦅追剧｜影视",
-      "type": 3,
-      "api": "csp_TTian",
-      "playerType": 1,
-      "ext": "http://app.kzjtv.com$$$null$$$1"
-    },
-{
 	"key": "搬运工",
 	"name": "搬运工资源",
 	"type": 1,
@@ -900,19 +892,31 @@
 	"categories": ["电影", "国产剧", "港台剧", "日韩剧", "欧美剧", "短剧", "综艺", "动漫"]
 },
 {
-      "key": "神仙影视",
-      "name": "影视 | 神仙",
-      "type": 3,
-      "api": "csp_XBPQ",
-      "jar": "./XBPQ.jar",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": {
-        "分类url": "http://dy.liuyunw.com/index.php/vod/type/id/{cateId}/area/{area}/by/{by}/class/{class}/page/{catePg}/year/{year}.html",
-        "分类": "电影$1#电视剧$2#综艺$3#动漫$4#电影解说$5"
-      }
-    },
+	"key": "csp_蛋蛋",
+	"name": "蛋蛋〓BPQ",
+	"type": 3,
+	"api": "csp_XBPQ",
+	"jar": "./XBPQ.jar",
+	"ext": {
+		"站名": "蛋蛋影视",
+		"主页url": "https://www.dandanju.cc/",
+		"简介": "<p class=\"col-pd\">&&蛋蛋剧不参与",
+		"导演": "导演：&&</p>",
+		"主演": "主演：&&</p>",
+		"影片状态": "更新：&&</p>",
+		"影片类型": "类型：&&<span class=\"split-line\">",
+		"影片地区": "地区：&&<span class=\"split-line\">",
+		"影片年代": "年份：&&</p>",
+		"数组": "ewave-vodlist__thumb lazyload\"&&</a>",
+		"标题": "title=\"&&\"",
+		"图片": "data-original=\"&&\"",
+		"链接": "href=\"&&\"",
+		"线路数组": "#playlist&&</li>",
+		"线路标题": ">&&</a>[替换:（>>共#）>>集]",
+		"分类url": "https://www.dandanju.cc/show/{cateId}-{area}--{class}-----{catePg}---{year}.html;;ak",
+		"分类": "电影$1#电视剧$2#综艺$3#动漫$4"
+	}
+},
 {
 	"key": "XBPQ_电影先生",
 	"name": "先生┃XBPQ",
@@ -1133,8 +1137,8 @@
 	"filterable": 1,
 	"changeable": 1,
 	"ext": {
-		"token": "file://TV/ali_token.txt",
-		"cookie": "file://TV/quark_cookie.txt",
+		"token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+		"cookie": "https://d.kstore.space/download/4723/lib/cookie.txt",
 		"site": "https://wogg.xyz",
 		"danmu": true
 	},
@@ -1167,6 +1171,40 @@
       "filterable": 1,
       "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
+    },
+{
+      "key": "玩偶表哥",
+      "name": "🤓表哥┃OK",
+      "type": 3,
+      "api": "csp_Wobg",
+      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/dongchenok.jar",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "cookie": "https://d.kstore.space/download/4723/lib/cookie.txt",
+        "site": "https://wobge.run.goorm.io/",
+        "danmu": true
+      },
+      "timeout": 25
+    },
+{
+      "key": "土豆弹幕",
+      "name": "🤓土豆┃OK",
+      "type": 3,
+      "api": "csp_Wobg",
+      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/dongchenok.jar",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "cookie": "https://d.kstore.space/download/4723/lib/cookie.txt",
+        "site": "https://tudou.lvdoui.top",
+        "danmu": true
+      },
+      "timeout": 25
     },
 {
       "key": "玩我",
@@ -1242,7 +1280,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "http://rihou.vip:55/lib/玩偶哥哥.json",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
+      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
     },
 {
       "key": "csp_XYQHikerAL_玩偶土豆",
@@ -1254,7 +1292,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/土豆阿里.json",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
+      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
     },
 {
       "key": "csp_XYQHikerAL_玩偶多多",
@@ -1266,7 +1304,7 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/多多阿里.json",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
+      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
     },
 {
       "key": "ttkx",
@@ -1278,14 +1316,14 @@
       "filterable": 1,
       "changeable": 1,
       "ext": "http://rihou.vip:55/lib/玩我哥哥.json",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar"
+      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
     },
 {
       "key": "csp_XYQHikerAL_阿里苏苏",
       "name": "📀阿里苏苏┃香",
       "type": 3,
       "api": "csp_XYQHikerAL",
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
+      "jar": "https://d.kstore.space/download/4907/Q/XL.jar",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
@@ -1390,43 +1428,10 @@
       "timeout": 60
     },
 {
-      "key": "玩偶妹妹",
-      "name": "💯玩偶┃妹妹",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.link/$$$null$$$1$$$./lib/wogg.json",
-      "timeout": 60
-    },
-{
-      "key": "玩偶阿姨",
-      "name": "💯玩偶┃阿姨",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "./lib/tokenm.json$$$http://www.wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
-      "timeout": 60
-    },
-{
-      "key": "玩偶弟弟",
-      "name": "💯玩偶┃弟弟",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.888484.xyz/$$$null$$$1$$$./lib/wogg.json",
-      "timeout": 60
-    },
-{
             "key" : "UpYun",
             "name" : "📀Up搜┃搜索",
             "type" : 3,
-            "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
+            "jar": "https://d.kstore.space/download/4907/Q/XL.jar",
             "api" : "csp_UpYun",
             "searchable" : 1,
             "quickSearch" : 1,
@@ -1437,7 +1442,7 @@
       "key": "xyq找资源",
       "name": "📀资源★云盘",
       "type": 3,
-      "jar": "https://d.kstore.space/download/4974/GLL/jar/xyq_ol.jar",
+      "jar": "https://d.kstore.space/download/4907/Q/XL.jar",
       "api": "csp_Zhaozy",
       "searchable": 1,
       "quickSearch": 1,
@@ -1446,17 +1451,20 @@
       "hide": 1,
       "ext": "{\"username\":\"zzygll\",\"password\":\"zzy555555\",\"searchurl\":\"http://zhaoziyuan.pw/so?filename={wd}\"}"
     },
-    {
-      "key": "PanSearch",
-      "name": "👽盘Se┃搜索",
-      "type": 3,
-      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
-      "api": "csp_PanSearch",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "ext": "http://127.0.0.1:9978/file/tvbox/token.txt+4k|auto|fhd"
-    },
+{
+	"key": "PanSearch",
+	"name": "👽盘Se┃搜索",
+	"type": 3,
+	"api": "csp_PanSearch",
+                "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
+	"searchable": 1,
+	"quickSearch": 1,
+	"changeable": 0,
+	"ext": {
+		"aliToken": "tvfan/token.txt",
+		"from": "4k|auto|fhd"
+	}
+},
 {
       "key": "混合盘",
       "name": "🚗混合┃网盘",
@@ -1516,7 +1524,7 @@
     },
 {
 	"key": "YunPanOne",
-	"name": "云盘One|网盘搜索",
+	"name": "云盘One|网盘",
 	"type": 3,
 	"api": "csp_YunPanOne",
 	"quickSearch": 1,
