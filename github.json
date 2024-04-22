@@ -14,19 +14,11 @@
 {
       "name": "📺看电视呗📺",
       "type": 0,
-      "url": "http://tvbox6.com/tv.php",
+      "url": "http://tvbox6.com/tv.php?key=2785",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "海鸥",
-      "url": "http://git.sxtv.top/jxnklgb/lgb/raw/master/tv/zhibo666.txt",
-      "type": 0,
-      "playerType": 1,
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
       "name": "tg央卫",
@@ -85,9 +77,9 @@
             "url": "./lib/xiutan.m3u"
         },
 {
-      "name": "📺摸鱼大电视📺",
+      "name": "📺摸鱼YG📺",
       "type": 0,
-      "url": "https://moyu.xiyan.life/live/moyu1.txt",
+      "url": "http://m3u.ibert.me/txt/y_g.txt",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -158,6 +150,7 @@
       "type": 0,
       "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/YanG-1989/m3u/main/Gather.m3u",
       "playerType": 1,
+      "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
@@ -168,6 +161,15 @@
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
+    },
+{
+      "name": "php直播",
+      "type": 0,
+      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/happybaihao/pan/main/phpzb.txt",
+      "playerType": 1,
+      "ua": "okhttp/3.15",
+      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
+      "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
       "name": "📺L大IPV6📺",
@@ -380,6 +382,12 @@
       "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/企鹅直播.json"
     },
 {"key": "抖音大妹子","name": "抖音","type": 4,"api": "http://120.53.102.254/xjj","searchable": 1,"quickSearch": 0,"filterable": 1},
+{
+        "key":"T4-tangdou",
+        "name":"糖豆┃广场舞",
+        "type":4,
+        "api":"https://catbox.n13.club/tangdou.php"
+    },
 {
 	"key": "Wextangdou",
 	"name": "跳舞┃玩呗┃教学",
