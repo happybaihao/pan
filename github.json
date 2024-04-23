@@ -466,6 +466,18 @@
 	"filterable": 1
 },
 {
+      "key": "AliShare",
+      "name": "阿里分享|综合",
+      "type": 3,
+      "api": "csp_AliShare",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 0,
+      "timeout": 60,
+      "ext": "./lib/tokenm.json$$$https://4723.kstore.space/lib/alishare.txt$$$db$$$1"
+     },
+{
       "key": "AliShare剧",
       "name": "阿里分享|剧集",
       "type": 3,
