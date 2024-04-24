@@ -21,6 +21,22 @@
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
     },
 {
+            "name": "明日",
+            "type": 0,
+            "url": "https://catbox.n13.club/jk/live",
+            "ua": "okhttp/3.15",
+            "epg": "https://1060s677v8.goho.co/epg.php",
+            "logo": "https://epg.112114.xyz/logo/{name}.png"
+        },
+{
+            "name": "春盈",
+            "type": 0,
+            "url": "https://gitlink.org.cn/attachments/entries/get_file?download_url=https://www.gitlink.org.cn/api/hailin/tvboxme/raw/lives%2Ffeihu6.txt?ref=master",
+            "ua": "okhttp/3.15",
+            "epg": "https://1060s677v8.goho.co/epg.php",
+            "logo": "https://epg.112114.xyz/logo/{name}.png"
+        },
+{
       "name": "tg央卫",
       "url": "http://xn--wnu643e.x10.mx/live.m3u",
       "type": 0,
@@ -53,14 +69,6 @@
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
-{
-            "name": "明日",
-            "type": 0,
-            "url": "https://catbox.n13.club/jk/live",
-            "ua": "okhttp/3.15",
-            "epg": "https://1060s677v8.goho.co/epg.php",
-            "logo": "https://epg.112114.xyz/logo/{name}.png"
-        },
 {
       "name": " 📺拾光畅谈📺",
       "type": 0,
@@ -161,15 +169,6 @@
       "playerType": 1,
       "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
       "logo": "http://tvbox.top/tvbox/logo/{name}.png"
-    },
-{
-      "name": "php直播",
-      "type": 0,
-      "url": "https://mirror.ghproxy.com/https://raw.githubusercontent.com/happybaihao/pan/main/phpzb.txt",
-      "playerType": 1,
-      "ua": "okhttp/3.15",
-      "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
 {
       "name": "📺L大IPV6📺",
@@ -618,20 +617,17 @@
             "searchable": 1
         },
 {
-	"ext": "eyJhcGlLZXkiOiI4ZjMxMzQ1OC1mZWVkLTQzZGUtOWQwNC0wY2NiYjgwOTVlODIiLCJhcGkiOiJodHRwOi8vMTE3Ljg0LjE4My4yMDk6NDU2NyJ9",
-	"filterable": 1,
-	"quickSearch": 1,
-	"name": "👩‍🚒Alist|tvbox",
-	"changeable": 0,
-	"jar": "http://117.84.183.209:4567/spring.jar",
-	"style": {
-		"type": "rect"
-	},
-	"api": "csp_AList",
-	"type": 3,
-	"key": "csp_aList",
-	"searchable": 1
-},
+            "ext": "eyJhcGkiOiJodHRwOi8vMTUyLjcwLjkzLjIxOjQ1NjciLCJ0b2tlbiI6Im9yYWNsZWNsb3VkIn0=",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒Alist|tvbox",
+            "changeable": 0,
+            "jar": "http://152.70.93.21:4567/spring.jar",
+            "api": "csp_AList",
+            "type": 3,
+            "key": "csp_aList",
+            "searchable": 1
+        },
 {
             "ext": "eyJhcGkiOiJodHRwOi8vZGVuZ3Bhby5zcGFjZTo1Mjc3IiwidG9rZW4iOiJ5dTYyNjc0MCJ9",
             "filterable": 1,
@@ -696,11 +692,11 @@
       "key": "小鸭1",
       "name": "小雅┃网盘1",
       "type": 3,
-      "api": "http://119.91.20.105:5678/tvbox/libs/alist.min.js",
+      "api": "http://213.35.99.39:5678/tvbox/libs/alist.min.js",
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 0,
-      "ext": "http://119.91.20.105:5678/tvbox/json/alist_ext.json;200;video"
+      "ext": "http://213.35.99.39:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
 	"key": "XBPQ_BaiPiao",
