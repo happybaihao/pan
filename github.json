@@ -677,6 +677,18 @@
             "searchable": 1
         },
 {
+            "ext": "eyJhcGkiOiJodHRwOi8vMTM0LjY1LjE3LjEyNzo0NTY3IiwidG9rZW4iOiJ6enoueGlhb3lhIn0=",
+            "filterable": 1,
+            "quickSearch": 1,
+            "name": "👩‍🚒Alist|VPS",
+            "changeable": 0,
+            "jar": "http://134.65.17.127:4567/spring.jar",
+            "api": "csp_AList",
+            "type": 3,
+            "key": "csp_ALIST",
+            "searchable": 1
+        },
+{
             "ext": "eyJhcGkiOiJodHRwOi8vZGVuZ3Bhby5zcGFjZTo1Mjc3IiwidG9rZW4iOiJ5dTYyNjc0MCJ9",
             "filterable": 1,
             "quickSearch": 1,
