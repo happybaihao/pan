@@ -1778,6 +1778,18 @@
       "api": "https://catbox.n13.club/qingting.php"
     },
 {
+      "key": "T4-tingshu",
+      "name": "音频-听书(T4)",
+      "type": 4,
+      "api": "https://catbox.n13.club/275ts.php"
+    },
+{
+	"key": "bookan_book_open",
+	"name": "博看[cat]",
+	"type": 3,
+	"api": "https://4723.kstore.space/lib/MyCatBookan.js"
+},
+{
       "key": "dr_兔小贝",
       "name": "📚儿童┃启蒙",
       "type": 3,
