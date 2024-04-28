@@ -863,7 +863,7 @@
     },
 {
 	"key": "Bdys_spider",
-	"name": "哔滴〓秒播",
+	"name": "哔滴┃秒播",
 	"api": "csp_Bdys01",
 	"type": 3,
 	"filterable": 1,
@@ -883,16 +883,32 @@
       "ext": "https://download.kstore.space/download/4927/ABxkl/xyqh/xyqh_龙龙影视.json"
     },
 {
-	"key": "YZ",
-	"name": "🛸宇宙影视",
-	"type": 3,
-	"api": "csp_XBPQ",
-	"jar": "./XBPQ.jar",
+	"key": "秒播☪PG资源",
+	"name": "秒播┃采集",
+	"type": 1,
+	"api": "http://127.0.0.1:10079/p/0/proxy/https://360zy.com/api.php/seaxml/vod/from/360zy/?ac=list",
+	"playUrl": "json:http://127.0.0.1:10079/parse/?thread=0&proxy=proxy&url=",
+	"playerType": 1,
 	"searchable": 1,
-	"quickSearch": 1,
-	"playerType": 2,
-	"filterable": 0,
-	"ext": "https://syc.lvdoui.top/jar/xyq/yz.json"
+	"changeable": 1,
+	"categories": [
+		"动作片",
+		"喜剧片",
+		"科幻片",
+		"恐怖片",
+		"爱情片",
+		"剧情片",
+		"战争片",
+		"国产剧",
+		"欧美剧",
+		"犯罪片",
+		"香港剧",
+		"悬疑片",
+		"奇幻片",
+		"动画片",
+		"国产动漫",
+		"大陆综艺"
+	]
 },
 {
             "key": "baipiaoys4",
@@ -942,16 +958,8 @@
 	"changeable": 0
 },
 {
-	"key": "搬运工",
-	"name": "搬运工资源",
-	"type": 1,
-	"api": "http://159.75.155.189:1133/api.php/provide/vod/?ac=list",
-	"playUrl": "http://103.233.255.142:1133/?url=",
-	"categories": ["电影", "国产剧", "港台剧", "日韩剧", "欧美剧", "短剧", "综艺", "动漫"]
-},
-{
 	"key": "csp_蛋蛋",
-	"name": "蛋蛋〓BPQ",
+	"name": "蛋蛋┃BPQ",
 	"type": 3,
 	"api": "csp_XBPQ",
 	"jar": "./XBPQ.jar",
@@ -1066,6 +1074,51 @@
 	"changeable": 1
 },
 {
+	"key": "玩偶弹幕版",
+	"name": "🤓玩偶┃OK",
+	"type": 3,
+	"api": "csp_Wogg",
+	"jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
+	"searchable": 1,
+	"filterable": 1,
+	"changeable": 1,
+	"ext": {
+		"token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+		"cookie": "https://4723.kstore.space/lib/cookie.txt",
+		"site": "https://wogg.xyz",
+		"danmu": true
+	},
+	"timeout": 25
+},
+{
+      "key": "csp_WoGG饭",
+      "name": "👽玩偶┃饭",
+      "type": 3,
+      "api": "csp_WoGG",
+      "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 0,
+      "ext": {
+        "aliToken": "tvfan/token.txt",
+        "quarkCookie": "tvfan/cookie.txt",
+        "from": "4k|auto|fhd",
+        "siteUrl": "https://api.wogg.xyz/",
+        "danMu": "弹"
+      }
+    },
+{
+      "key": "玩偶哥哥",
+      "name": "💯玩偶┃哥哥",
+      "type": 3,
+      "api": "csp_Wogg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
+      "timeout": 60
+    },
+{
 	"key": "Wexyingchao",
 	"name": "🦜鸟巢┃牛",
 	"type": 3,
@@ -1127,21 +1180,6 @@
         "ratio": 1.1
       }
     },
-    {
-      "key": "QuarkPanso",
-      "name": "夸克盘搜┃夸克",
-      "type": 3,
-      "api": "csp_QuarkPanso",
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "timeout": 30,
-      "ext": "./lib/tokenm.json",
-      "style": {
-        "type": "list",
-        "ratio": 1.1
-      }
-    },
 {
       "key": "Xinshijue",
       "name": "新视觉|网盘",
@@ -1186,56 +1224,11 @@
       "ext": "./lib/tokenm.json$$$https://www.libvio.pro$$$null"
     },
 {
-	"key": "玩偶弹幕版",
-	"name": "🤓玩偶┃OK",
-	"type": 3,
-	"api": "csp_Wogg",
-	"jar": "https://gitee.com/dongchenys/liu/raw/master/jar/dongchenok.jar",
-	"searchable": 1,
-	"filterable": 1,
-	"changeable": 1,
-	"ext": {
-		"token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-		"cookie": "https://4723.kstore.space/lib/cookie.txt",
-		"site": "https://wogg.xyz",
-		"danmu": true
-	},
-	"timeout": 25
-},
-{
-      "key": "csp_WoGG饭",
-      "name": "👽玩偶┃饭",
-      "type": 3,
-      "api": "csp_WoGG",
-      "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "ext": {
-        "aliToken": "tvfan/token.txt",
-        "quarkCookie": "tvfan/cookie.txt",
-        "from": "4k|auto|fhd",
-        "siteUrl": "https://api.wogg.xyz/",
-        "danMu": "弹"
-      }
-    },
-{
-      "key": "玩偶哥哥",
-      "name": "💯玩偶┃哥哥",
-      "type": 3,
-      "api": "csp_Wogg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "./lib/tokenm.json$$$https://wogg.xyz/$$$null$$$1$$$./lib/wogg.json",
-      "timeout": 60
-    },
-{
       "key": "玩偶表哥",
       "name": "🤓表哥┃OK",
       "type": 3,
       "api": "csp_Wobg",
-      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/dongchenok.jar",
+      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
       "quickSearch": 1,
       "changeable": 1,
       "filterable": 1,
@@ -1248,18 +1241,18 @@
       "timeout": 25
     },
 {
-      "key": "土豆弹幕",
-      "name": "🤓土豆┃OK",
+      "key": "我哥哥弹幕",
+      "name": "🤓开心┃OK",
       "type": 3,
-      "api": "csp_Wobg",
-      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/dongchenok.jar",
+      "api": "csp_Wogg",
+      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
       "quickSearch": 1,
       "changeable": 1,
       "filterable": 1,
       "ext": {
         "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
         "cookie": "https://4723.kstore.space/lib/cookie.txt",
-        "site": "https://tudou.lvdoui.top",
+        "site": "http://kxys.site:3328",
         "danmu": true
       },
       "timeout": 25
@@ -1330,64 +1323,6 @@
       "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$./lib/wogg.json"
     },
 {
-      "key": "csp_XYQHikerAL_玩偶哥哥",
-      "name": "📀玩偶┃香",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "http://rihou.vip:55/lib/玩偶哥哥.json",
-      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
-    },
-{
-      "key": "csp_XYQHikerAL_玩偶土豆",
-      "name": "📀土豆┃香 ",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "http://rihou.vip:55/lib/土豆阿里.json",
-      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
-    },
-{
-      "key": "csp_XYQHikerAL_玩偶多多",
-      "name": "📀多多┃香 ",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "http://rihou.vip:55/lib/多多阿里.json",
-      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
-    },
-{
-      "key": "ttkx",
-      "name": "📀开心┃香 ",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "changeable": 1,
-      "ext": "http://rihou.vip:55/lib/玩我哥哥.json",
-      "jar": "https://d.kstore.space/download/4907/Q/XL.jar"
-    },
-{
-      "key": "csp_XYQHikerAL_阿里苏苏",
-      "name": "📀阿里苏苏┃香",
-      "type": 3,
-      "api": "csp_XYQHikerAL",
-      "jar": "https://d.kstore.space/download/4907/Q/XL.jar",
-      "searchable": 1,
-      "quickSearch": 1,
-      "filterable": 1,
-      "ext": "https://gitee.com/dongchenys/liu/raw/master/json/alisusu.json"
-    },
-{
 	"key": "Gaoqing",
 	"name": "手机观看|高清网",
 	"type": 3,
@@ -1410,6 +1345,13 @@
       "ext": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/json/jianpian.json$$$1",
       "timeout": 60
     },
+{
+	"key": "drpy_js_荐片",
+	"name": "手机观看┃荐片",
+	"type": 3,
+	"api": "https://4907.kstore.space/Q/lib/drpy2.min.js",
+	"ext": "https://4907.kstore.space/Q/js/荐片.js"
+},
 {
       "key": "新6V",
       "name": "手机观看|新6v",
