@@ -1,5 +1,5 @@
 {
-  "spider": "./pg.jar;md5;eb1c0e24f28a08405dd66f3e4e9de5e6",
+  "spider": "./pg.jar;md5;db05ba4f6d0a2f5eb57b277d3c2cf23c",
   "wallpaper": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/壁纸/蓝.jpg",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
@@ -285,16 +285,29 @@
       "api": "https://catbox.n13.club/yyt.php"
     },
 {
-      "key": "xiaoyi",
-      "name": "音频-小姨(T4)",
-      "type": 4,
-      "api": "https://catbox.n13.club/wy.php"
-    },
+            "key": "freeMusic",
+            "name": "音频-刘明野",
+            "type": 3,
+            "searchable": 1,
+            "changeable": 0,
+            "api": "https://152.32.170.60/564892076/box/raw/branch/main/js/cat/liumingye_music_open.js"
+        },
 {
-      "key": "T4-qingfeng",
-      "name": "音频-清风(T4)",
-      "type": 4,
-      "api": "https://catbox.n13.club/qingfengdj.php"
+	"key": "netease_music",
+	"name": "音频-小姨",
+	"type": 3,
+	"searchable": 1,
+	"changeable": 0,
+	"api": "https://152.32.170.60/564892076/box/raw/branch/main/js/cat/netease_music_open.js"
+},
+{
+      "key": "Wexqingfengdj",
+      "name": "🎼舞曲┃DJ",
+      "type": 3,
+      "api": "csp_Wexqingfengdj",
+      "jar": "https://pan.shangui.cc/f/pzeMuL/wex.jar",
+      "searchable": 1,
+      "changeable": 0
     },
 {
       "key": "Aid",
@@ -771,16 +784,12 @@
       "ext": "http://213.35.99.39:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
-	"key": "XBPQ_BaiPiao",
-	"name": "白嫖|XBPQ",
+	"key": "baipiaoys",
+	"name": "白嫖┃影视",
 	"type": 3,
-	"api": "csp_XBPQ",
-	"jar": "./XBPQ.jar",
-	"ext": {
-		"地区": "[替换:大陆>>中国大陆#香港>>中国香港#台湾>>中国台湾]",
-		"分类": "电影$1#电视剧$2#动漫$3#短剧$4#综艺$5",
-		"分类url": "https://www.baipiaoys.com:9092/show/area/{area}/by/{by}/class/{class}/id/{cateId}/page/{catePg}/year/{year}.html"
-	}
+	"api": "csp_BaiPiao",
+	"playerType": "2",
+	"jar": "https://www.baipiaoys.com:9092/tv/3366.jar"
 },
 {
 	"key": "XBPQ_文才",
@@ -943,10 +952,13 @@
       "jar": "./qqqpm.jar"
     },
 {
-	"key": "T4-mingri",
-	"name": "明日看片子",
-	"type": 4,
-	"api": "https://catbox.n13.club/mingri.php"
+	"key": "mingriyingshi",
+	"name": "☀️明日┃影视",
+	"type": 3,
+	"api": "csp_WexMingriys",
+                "jar": "https://4723.kstore.space/wex.jar",
+	"searchable": 1,
+	"changeable": 1
 },
 {
 	"key": "Fangniu4k",
@@ -1137,10 +1149,10 @@
 	"changeable": 0
 },
 {
-	"key": "土豆",
-	"name": "土豆┃牛",
+	"key": "Wexwanwo",
+	"name": "🧑‍玩我┃牛",
 	"type": 3,
-	"api": "csp_Wextudou",
+	"api": "csp_Wexwanwo",
                 "jar": "https://4723.kstore.space/wex.jar",
 	"searchable": 1,
 	"changeable": 1
@@ -1322,6 +1334,17 @@
       "changeable": 2,
       "ext": "./lib/tokenm.json$$$http://wobge.run.goorm.io$$$null$$$1$$$./lib/wogg.json"
     },
+{
+	"key": "Wo4k",
+	"name": "手机观看|Wo4k",
+	"type": 3,
+	"api": "csp_Wo4k",
+	"quickSearch": 1,
+	"changeable": 1,
+	"filterable": 1,
+	"timeout": 60,
+	"ext": "./lib/tokenm.json$$$https://www.wo4k.com/$$$proxy$$$1$$$./lib/wogg.json"
+},
 {
 	"key": "Gaoqing",
 	"name": "手机观看|高清网",
@@ -1556,14 +1579,14 @@
       ]
     },
 {
-	"key": "XBPQ_无忧短剧",
+	"key": "XBPQ_MmDuanJu",
 	"name": "无忧短剧",
 	"type": 3,
 	"api": "csp_XBPQ",
 	"jar": "./XBPQ.jar",
 	"ext": {
-		"分类": "逆袭$1#甜宠$3#虐恋$5#穿越$7#重生$9#都市$11#现代言情$13#古装$15#古装言情$17#战神$19#神医$21#神豪$23#超能$25#萌宝$27#复仇$29#脑洞$31#赘婿$33#玄幻$35#热血$37#其他$39",
-		"分类url": "http://5uduanju.com/vodshow/{cateId}--------{catePg}---.html"
+		"分类": "逆袭$1#甜宠$2#虐恋$3#穿越$4#重生$5#都市$6#现代言情$7#古装$8#古装言情$9#战神$10#神医$11#神豪$12#超能$13#萌宝$14#复仇$15#脑洞$16#赘婿$17#玄幻$18#热血$24#其他$19",
+		"分类url": "http://mmduanju.com/vodshow/{cateId}--------{catePg}---.html"
 	}
 },
 {
@@ -1632,17 +1655,6 @@
       "changeable": 0,
       "ext": "http://122.228.84.103:6822/api.php/app/"
     },
-{
-            "key": "T4-duanju",
-            "name": "线路|短剧",
-            "type": 4,
-            "api": "https://catbox.n13.club/duanju.php",
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 1,
-            "changeable": 0,
-            "ext": true
-},
 {
       "key": "XBPQ_XSmp3",
       "name": "随身相声",
@@ -1824,42 +1836,6 @@
         "type": 3, 
         "url": "Web" 
     },
-{
-            "name": "厂长嗅探",
-            "type": 1,
-            "url": "http://119.91.31.224:9004/changzhang.php?url=",
-            "ext": {
-                "flag": [
-                    "qq",
-                    "腾讯",
-                    "qiyi",
-                    "爱奇艺",
-                    "奇艺",
-                    "youku",
-                    "优酷",
-                    "tucheng",
-                    "sohu",
-                    "搜狐",
-                    "letv",
-                    "乐视",
-                    "mgtv",
-                    "芒果",
-                    "tnmb",
-                    "seven",
-                    "yzm",
-                    "aliyun",
-                    "RJuMao",
-                    "bilibili",
-                    "1905",
-                    "xinvip",
-                    "XAL",
-                    "qiqi",
-                    "KongBai-nwe",
-                    "czzy77",
-                    "XALS"
-                ]
-            }
-        },
 {"name": "夜猫超聚合", "type": 1, "url": "http://119.91.123.253:2345/Api/yun.php?url=","ext":{"flag":["qq",
                     "腾讯",
                     "企鹅",
@@ -2150,6 +2126,26 @@
       "url": "http://139.159.239.156:88/api/?key=vmft4BZienphzLd0LU&url="
     },
 {
+            "name": "嗅探[主芒腾]",
+            "type": 0,
+            "url": "https://jx.xmflv.com/?url=",
+            "ext": {
+                "flag": [
+                    "qq",
+                    "腾讯",
+                    "mgtv",
+                    "芒果",
+                    "腾讯官解",
+                    "腾讯视频",
+                    "芒果官解",
+                    "芒果视频"
+                ],
+                "header": {
+                    "User-Agent": "okhttp/4.1.0"
+                }
+            }
+        },
+{
         "name": "cv",
         "type": 0,
         "url": "https://www.ckmov.com/?url=",
@@ -2161,50 +2157,6 @@
         }
     },
     {"name":"秒嗅","type":0,"url":"https://jx.jsonplayer.com/player/?url=","header":{"User-Agent":"okhttp/4.1.0"}},
-{
-      "name": "小胡嗅探0",
-      "type": 0,
-      "url": "https://jj.1080dyw.cc/player/ec.php?code=qw&if=1&url="
-    },
-{
-			"name": "OK嗅探",
-			"type": 0,
-			"url": "https://okjx.cc/?url="
-		},
-    {
-      "name": "普洱嗅探",
-      "url": "https://jx.bozrc.com:4433/player/?url=",
-      "type": 0,
-      "ext": {
-        "flag": [
-          "qiyi",
-          "imgo",
-          "爱奇艺",
-          "奇艺",
-          "qq",
-          "腾讯",
-          "youku",
-          "优酷",
-          "pptv",
-          "PPTV",
-          "letv",
-          "乐视",
-          "leshi",
-          "bilibili",
-          "哔哩哔哩",
-          "哔哩",
-          "mgtv",
-          "芒果",
-          "sohu",
-          "xigua",
-          "fun",
-          "风行"
-        ],
-        "header": {
-          "User-Agent": "Mozilla/5.0"
-        }
-      }
-    },
     {
       "name": "红茶嗅探",
       "type": 0,
