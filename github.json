@@ -1156,7 +1156,7 @@
 },
 {
 	"key": "Wexwanwo",
-	"name": "🧑‍玩我┃牛",
+	"name": "🧑‍开心┃牛",
 	"type": 3,
 	"api": "csp_Wexwanwo",
                 "jar": "https://4723.kstore.space/wex.jar",
@@ -1270,7 +1270,24 @@
       "ext": {
         "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
         "cookie": "https://4723.kstore.space/lib/cookie.txt",
-        "site": "http://kxys.site:3328",
+        "site": "http://kxys.site:3328/",
+        "danmu": true
+      },
+      "timeout": 25
+    },
+{
+      "key": "龙龙弹幕",
+      "name": "🤓龙龙┃OK",
+      "type": 3,
+      "api": "csp_Wobg",
+      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "cookie": "https://4723.kstore.space/lib/cookie.txt",
+        "site": "http://wanou.xn--yi7aa.top:3108/",
         "danmu": true
       },
       "timeout": 25
@@ -1383,15 +1400,24 @@
 	}
 },
 {
-	"key": "BT天堂",
-	"name": "手机观看|BT天堂|XBPQ",
-	"type": 3,
-	"api": "csp_XBPQ",
-	"searchable": 1,
-	"quickSearch": 1,
-	"filterable": 1,
-	"ext": "https://4723.kstore.space/lib/bttt.json",
-	"jar": "./XBPQ.jar"
+      "key": "bt天堂",
+      "name": "手机观看|BT天堂|XBPQ",
+      "type": 3,
+      "api": "csp_XBPQ",
+      "jar": "./XBPQ.jar",
+      "ext": {
+        "数组": "class=\"col-md-6\">&&</li>",
+        "副标题": "span>更新时间：&&<a",
+        "简介": "<p>◎简*介&&<p>◎影片截图</p>",
+        "起始页": 0,
+        "线路标题": "磁力",
+        "搜索请求头参数": "User-Agent$PC_UA",
+        "搜索url": "https://www.bttt11.com/e/search/;post",
+        "POST请求数据": "show=title,newstext&keyboard={wd}&searchtype=影视搜索",
+        "分类url":"https://www.bttt11.com/html/page-{cateId}-{catePg}.html",
+        "分类": "畅影大陆电影&畅影港台电影&畅影欧美电影&畅影欧美剧&畅影日韩剧&畅影日韩电影&畅影动漫&畅影亚太剧&畅影亚太电影&畅影综艺&畅影纪录片",
+        "分类值": "4&3&1&6&7&2&11&10&5&12&13"
+      }
 },
 {
 	"key": "布谷tv",
@@ -1442,7 +1468,7 @@
 	"changeable": 1,
 	"filterable": 1,
 	"timeout": 60,
-	"ext": "./lib/tokenm.json$$$https://www.wo4k.com/$$$proxy$$$1$$$./lib/wogg.json"
+	"ext": "./lib/tokenm.json$$$https://www.wo4k.net/$$$proxy$$$1$$$./lib/wogg.json"
 },
 {
 	"key": "Gaoqing",
