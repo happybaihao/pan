@@ -1,6 +1,7 @@
 {
-  "spider": "./pg.jar;md5;1dacc915dd59fe91ac5684fc61718698",
+  "spider": "./pg.jar;md5;9985abfd355fb4af1465772281ab13b0",
   "wallpaper": "https://gitee.com/Qingttkx/xiaoyugan/raw/master/ys/壁纸/蓝.jpg",
+  "logo": "https://4723.kstore.space/logo.jpg",
   "warningText": "💞夜晚的星星虽然微小，却能给人带来希望和方向!QQ476294817,祝您观影愉快💞",
   "lives": [
 {
@@ -36,17 +37,9 @@
       "logo": "https://epg.112114.xyz/bingimg/logo/{name}.png"
     },
 {
-            "name": "春盈",
-            "type": 0,
-            "url": "https://gitlink.org.cn/attachments/entries/get_file?download_url=https://www.gitlink.org.cn/api/hailin/tvboxme/raw/lives%2Ffeihu6.txt?ref=master",
-            "ua": "okhttp/3.15",
-            "epg": "https://1060s677v8.goho.co/epg.php",
-            "logo": "https://epg.112114.xyz/logo/{name}.png"
-        },
-{
-      "name": "📺看电视呗lve📺",
+      "name": "📺天微科技📺",
       "type": 0,
-      "url": "https://cloud.lxweb.cn/f/6GoQiw/0331.txt",
+      "url": "https://gitlab.com/tvtg/vip/-/raw/main/log.txt",
       "playerType": 1,
       "ua": "okhttp/3.15",
       "epg": "http://epg.112114.xyz/?ch={name}&date={date}",
@@ -60,6 +53,12 @@
             "epg": "https://1060s677v8.goho.co/epg.php",
             "logo": "https://epg.112114.xyz/logo/{name}.png"
         },
+{
+	"name": "欧阳直播",
+	"url": "http://oy.oyxx-1.eu.org/p3p.php",
+	"epg": "http://epg.112114.eu.org/?ch={name}&date={date}",
+	"logo": "http://epg.112114.eu.org/logo/{name}.png"
+},
 {
       "name": "小米",
       "type": 0,
@@ -81,7 +80,7 @@
             "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
             "type": 0,
             "timeout": 40,
-            "url": "./lib/xiutan.m3u"
+            "url": "https://xhdwc.tk/xiutan.m3u"
         },
 {
       "name": "📺摸鱼YG📺",
@@ -236,7 +235,7 @@
             "name": "🐮配置┃中心",
             "type": 3,
             "api": "csp_Wexconfig",
-           "jar": "https://4723.kstore.space/wex.jar",
+           "jar": "https://4723.kstore.space/wex.txt",
             "searchable": 0,
             "changeable": 0,
             "style": {
@@ -245,15 +244,27 @@
             }
         },
 {
+	"key": "自定义",
+	"name": "我的┃🥇DIY",
+	"type": 3,
+	"api": "csp_Wexdiy",
+                "jar": "https://4723.kstore.space/wex.txt",
+	"searchable": 1,
+	"changeable": 0,
+	"style": {
+		"type": "list"
+	}
+},
+{"key":"道长直播2点播","name":"道┃💯百号电视","type":3,"api":"./lib/live2cms.js","changeable":0,"searchable":0,"ext":"./lib/live2mv_data.json"},
+{"key":"路飞直播2点播10","name":"路┃💯百号电视","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live.json"},
+{"key":"路飞直播2点播10-1","name":"路┃💯百号电视1","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_1.json"},
+{"key":"路飞直播2点播10-2","name":"路┃💯百号电视2","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_2.json"},
+{
       "key": "T4-yugaopian",
       "name": "观影┃预告",
       "type": 4,
       "api": "https://catbox.n13.club/t4/yugaopian.php"
     },
-{"key":"道长直播2点播","name":"道┃💯百号电视","type":3,"api":"./lib/live2cms.js","changeable":0,"searchable":0,"ext":"./lib/live2mv_data.json"},
-{"key":"路飞直播2点播10","name":"路┃💯百号电视","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live.json"},
-{"key":"路飞直播2点播10-1","name":"路┃💯百号电视1","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_1.json"},
-{"key":"路飞直播2点播10-2","name":"路┃💯百号电视2","type":3,"api":"./lib/lf_live10_min.js","searchable":1,"changeable":0,"quickSearch":1,"filterable":1,"ext":"./lib/lf_live_2.json"},
 {
       "key": "酷狗",
       "name": "酷狗",
@@ -264,9 +275,10 @@
     },
 {
       "key": "Iktv",
-      "name": "KTV",
+      "name": "🎤音乐┃MV",
       "type": 3,
-      "api": "csp_Iktv",
+      "api": "csp_WexIktv",
+      "jar": "https://4723.kstore.space/wex.txt",
       "searchable": 1,
       "changeable": 0
     },
@@ -413,7 +425,7 @@
       "searchable": 0,
       "quickSearch": 0,
       "changeable": 0,
-      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
+      "jar": "https://4723.kstore.space/fan.txt",
       "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/企鹅直播.json"
     },
 {"key": "抖音大妹子","name": "抖音","type": 4,"api": "http://120.53.102.254/xjj","searchable": 1,"quickSearch": 0,"filterable": 1},
@@ -428,7 +440,7 @@
 	"name": "跳舞┃玩呗┃教学",
 	"type": 3,
 	"api": "csp_Wextangdou",
-                "jar": "https://4723.kstore.space/wex.jar",
+                "jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 0,
 	"style": {
@@ -441,7 +453,7 @@
 	"name": "戏曲┃看呗┃秒播",
 	"type": 3,
 	"api": "csp_Wexliyuan",
-	"jar": "https://4723.kstore.space/wex.jar",
+	"jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 0,
 	"style": {
@@ -790,14 +802,6 @@
       "ext": "http://213.35.99.39:5678/tvbox/json/alist_ext.json;200;video"
     },
 {
-	"key": "baipiaoys",
-	"name": "白嫖┃影视",
-	"type": 3,
-	"api": "csp_BaiPiao",
-	"playerType": "2",
-	"jar": "https://www.baipiaoys.com:9092/tv/3366.jar"
-},
-{
 	"key": "XBPQ_文才",
 	"name": "文才|XBPQ",
 	"type": 3,
@@ -840,23 +844,47 @@
 },
 {
       "key": "酷看",
-      "name": "💡酷看┃App",
+      "name": "💡酷看┃秒播",
       "type": 3,
       "api": "csp_Kkys",
-      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
+      "jar":"https://4723.kstore.space/fan.txt",
+      "timeout": 15,
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1
+    },
+{
+      "key": "糯米",
+      "name": "🍙农民┃秒播",
+      "type": 3,
+      "api": "csp_Nmys",
+      "jar":"https://4723.kstore.space/fan.txt",
+      "timeout": 15,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "https://gitlab.com/fantaiying/ext/-/raw/main/nmys.json"
     },
 {
       "key": "苹果",
       "name": "😺苹果-蓝光",
       "type": 3,
       "api": "csp_LiteApple",
-      "jar": "https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
+      "jar": "https://4723.kstore.space/fan.txt",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 1
+    },
+{
+      "key": "小点",
+      "name": "💥小点┃多线",
+      "type": 3,
+      "api": "csp_Xdys",
+      "jar":"https://4723.kstore.space/fan.txt",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "changeable": 0
     },
 {
       "key": "NanGua",
@@ -895,7 +923,7 @@
       "searchable": 1,
       "quickSearch": 1,
       "filterable": 1,
-      "ext": "https://download.kstore.space/download/4927/ABxkl/xyqh/xyqh_龙龙影视.json"
+      "ext": "http://101.35.48.56/ABxkl/xyqh/xyqh_龙龙影视.json"
     },
 {
 	"key": "秒播☪PG资源",
@@ -926,27 +954,43 @@
 	]
 },
 {
-            "key": "baipiaoys4",
-            "name": "📔厂长┃阿姨最爱",
-            "type": 3,
-            "changeable": 1,
-            "searchable": 1,
-            "quickSearch": 1,
-            "filterable": 1,
-            "api": "csp_XBPQ",
-            "ext": "https://syc.lvdoui.top/jar/xyq/厂长.json",
-            "jar": "https://6741.kstore.space/xbpq.jar"
-        },
+      "key": "sp360",
+      "name": "🐛360┃解析",
+      "type": 3,
+      "api": "csp_Sp360",
+      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
+      "searchable": 1,
+      "filterable": 1,
+      "changeable": 1,
+      "ext": {
+        "danmu": true
+      },
+      "timeout": 25
+    },
 {
-	"key": "drpy_js_厂长资源",
-	"name": "📔厂长┃阿姨挚爱",
-	"type": 3,
-	"api": "https://4907.kstore.space/Q/lib/drpy2.min.js",
-	"searchable": 1,
-	"quickSearch": 1,
-	"filterable": 1,
-	"ext": "https://4907.kstore.space/Q/js/厂长资源.js"
-},
+      "key": "厂长",
+      "name": "📔厂长┃阿姨最爱",
+      "type": 3,
+      "api": "csp_NewCz",
+      "jar":"https://4723.kstore.space/fan.txt",
+      "timeout": 15,
+      "playerType": 2,
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "ext": "https://czzy.top/"
+    },
+{
+      "key": "csp_XBPQ_厂长资源",
+      "name": "📔厂长┃阿姨挚爱",
+      "type": 3,
+      "api": "csp_XBPQ",
+      "jar": "./XBPQ.jar",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": "https://4723.kstore.space/lib/xbpq_厂长资源.json"
+    },
 {
       "key": "Czsapp",
       "name": "📔厂长┃阿姨偏爱",
@@ -962,7 +1006,7 @@
 	"name": "☀️明日┃影视",
 	"type": 3,
 	"api": "csp_WexMingriys",
-                "jar": "https://4723.kstore.space/wex.jar",
+                "jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 1
 },
@@ -971,7 +1015,7 @@
 	"name": "👎放牛┃TV",
 	"type": 3,
 	"api": "csp_WexFangniu4k",
-	"jar": "https://4723.kstore.space/wex.jar",
+	"jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 0
 },
@@ -999,27 +1043,6 @@
 		"线路标题": ">&&</a>[替换:（>>共#）>>集]",
 		"分类url": "https://www.dandanju.cc/show/{cateId}-{area}--{class}-----{catePg}---{year}.html;;ak",
 		"分类": "电影$1#电视剧$2#综艺$3#动漫$4"
-	}
-},
-{
-	"key": "XBPQ_电影先生",
-	"name": "先生┃XBPQ",
-	"jar": "./XBPQ.jar",
-	"type": 3,
-	"api": "csp_XBPQ",
-	"ext": {
-		"分类url": "https://dianyi.ng/pianku-{cateId}-{area}-------{catePg}---{year}.html",
-		"简介": "class=\"video-info-item video-info-content vod_content\">&&</span>",
-		"搜索url": "https://dianyi.ng/search--------------.html?wd={wd}",
-		"搜索数组": "<div class=\"module-item-pic\">&&</div>",
-		"图片": "src=\"&&\"",
-		"搜索标题": "title=\"&&\"",
-		"搜索副标题": ">&&</a>",
-		"线路数组": "data-dropdown-value=&&</div>",
-		"线路标题": "<span>&&</small>[替换:<span></small>共]+集",
-		"播放数组": "<div class=\"scroll-content\">&&</div>",
-		"播放标题": "<span>&&</span>",
-		"分类": "电影$dianying#电视剧$dianshiju#动漫$dongman#综艺$zongyi"
 	}
 },
 {
@@ -1083,11 +1106,53 @@
       }
     },
 {
+      "key": "️爱看Bot弹幕版",
+      "name": "⛅️爱看Bot|弹幕",
+      "type": 3,
+      "api": "csp_Ikanbot",
+      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 1,
+      "ext": {
+        "danmu": true
+      },
+      "timeout": 10
+    },
+{
+      "key": "龙龙阿里",
+      "name": "💯玩偶┃龙龙",
+      "type": 3,
+      "api": "csp_Wobg",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 2,
+      "ext": "./lib/tokenm.json$$$http://wanou.龙龙.top:3108/$$$null$$$1$$$./lib/wogg.json",
+      "timeout": 60
+    },
+{
+      "key": "龙龙弹幕",
+      "name": "🤓龙龙┃OK",
+      "type": 3,
+      "api": "csp_Wobg",
+      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "ext": {
+        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
+        "cookie": "https://4723.kstore.space/lib/cookie.txt",
+        "site": "http://wanou.xn--yi7aa.top:3108/",
+        "danmu": true
+      },
+      "timeout": 25
+    },
+{
 	"key": "玩偶牛",
 	"name": "🐮玩偶┃牛",
 	"type": 3,
 	"api": "csp_Wogg",
-                "jar": "https://4723.kstore.space/wex.jar",
+                "jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 1
 },
@@ -1103,7 +1168,7 @@
 	"ext": {
 		"token": "http://127.0.0.1:9978/file/tvbox/token.txt",
 		"cookie": "https://4723.kstore.space/lib/cookie.txt",
-		"site": "https://wogg.xyz",
+		"site": "https://www.wogg.link/",
 		"danmu": true
 	},
 	"timeout": 25
@@ -1113,7 +1178,7 @@
       "name": "👽玩偶┃饭",
       "type": 3,
       "api": "csp_WoGG",
-      "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
+      "jar":"https://4723.kstore.space/fan.txt",
       "searchable": 1,
       "quickSearch": 1,
       "changeable": 0,
@@ -1141,27 +1206,18 @@
 	"name": "🦜鸟巢┃牛",
 	"type": 3,
 	"api": "csp_Wexyingchao",
-                "jar": "https://4723.kstore.space/wex.jar",
+                "jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 1
 },
 {
 	"key": "Wexyingso",
 	"name": "🎠影搜┃牛",
-                "jar": "https://4723.kstore.space/wex.jar",
+                "jar": "https://4723.kstore.space/wex.txt",
 	"type": 3,
 	"api": "csp_Wexyingso",
 	"searchable": 1,
 	"changeable": 0
-},
-{
-	"key": "Wexwanwo",
-	"name": "🧑‍开心┃牛",
-	"type": 3,
-	"api": "csp_Wexwanwo",
-                "jar": "https://4723.kstore.space/wex.jar",
-	"searchable": 1,
-	"changeable": 1
 },
 {
       "key": "YingSo",
@@ -1172,16 +1228,18 @@
       "ext": "./lib/tokenm.json"
     },
 {
-      "key": "秒搜",
-      "name": "秒搜|网盘",
+      "key": "csp_AiPanSou",
+      "name": "🥰爱盘搜┃OK",
       "type": 3,
-      "api": "csp_MiaoSou",
-      "timeout": 60,
-      "ext": "./lib/tokenm.json",
-      "style": {
-        "type": "list",
-        "ratio": 1.1
-      }
+      "api": "csp_AiPanSou",
+      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
+      "searchable": 1,
+      "filterable": 1,
+      "changeable": 0,
+      "ext": {
+        "cookie": "https://pan.shangui.cc/f/zVe3s0/cookie.txt"
+      },
+      "timeout": 15
     },
 {
       "key": "Funletu",
@@ -1276,23 +1334,6 @@
       "timeout": 25
     },
 {
-      "key": "龙龙弹幕",
-      "name": "🤓龙龙┃OK",
-      "type": 3,
-      "api": "csp_Wobg",
-      "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "ext": {
-        "token": "http://127.0.0.1:9978/file/tvbox/token.txt",
-        "cookie": "https://4723.kstore.space/lib/cookie.txt",
-        "site": "http://wanou.xn--yi7aa.top:3108/",
-        "danmu": true
-      },
-      "timeout": 25
-    },
-{
       "key": "玩我",
       "name": "💯玩偶┃开心",
       "type": 3,
@@ -1301,17 +1342,6 @@
       "quickSearch": 1,
       "changeable": 2,
       "ext": "./lib/tokenm.json$$$http://ttkx.live:3328$$$null$$$1./lib/wogg.json",
-      "timeout": 60
-    },
-{
-      "key": "龙龙阿里",
-      "name": "💯玩偶┃龙龙",
-      "type": 3,
-      "api": "csp_Wobg",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 2,
-      "ext": "./lib/tokenm.json$$$http://wanou.龙龙.top:3108/$$$null$$$1$$$./lib/wogg.json",
       "timeout": 60
     },
 {
@@ -1576,16 +1606,19 @@
       "timeout": 60
     },
 {
-            "key" : "UpYun",
-            "name" : "📀Up搜┃搜索",
-            "type" : 3,
-            "jar": "https://d.kstore.space/download/4907/Q/XL.jar",
-            "api" : "csp_UpYun",
-            "searchable" : 1,
-            "quickSearch" : 1,
-            "changeable" : 0,
-            "ext" : "http://127.0.0.1:9978/file/XYQTVBox/alitoken.txt"
-        },
+	"key": "Up云搜",
+	"name": "😻Up搜┃搜索",
+	"type": 3,
+	"api": "csp_Upys",
+                "jar": "https://jihulab.com/okcaptain/kko/-/raw/main/okpng.txt",
+	"searchable": 1,
+	"filterable": 0,
+	"changeable": 0,
+	"ext": {
+		"token": "http://127.0.0.1:9978/file/tvbox/token.txt"
+	},
+	"timeout": 15
+},
 {
       "key": "xyq找资源",
       "name": "📀资源★云盘",
@@ -1604,7 +1637,7 @@
 	"name": "👽盘Se┃搜索",
 	"type": 3,
 	"api": "csp_PanSearch",
-                "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt",
+                "jar":"https://4723.kstore.space/fan.txt",
 	"searchable": 1,
 	"quickSearch": 1,
 	"changeable": 0,
@@ -1726,21 +1759,11 @@
 	}
 },
 {
-      "key": "上头短剧",
-      "name": "🌈上头┃短剧",
-      "type": 3,
-      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/上头短剧.js",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0
-    },
-{
 	"key": "Wexduanjuvop",
 	"name": "🌸短劇┃秒播",
 	"type": 3,
 	"api": "csp_Wexduanjuvop",
-                "jar": "https://4723.kstore.space/wex.jar",
+                "jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 1
 },
@@ -1749,19 +1772,20 @@
 	"name": "🌸短劇┃极品",
 	"type": 3,
 	"api": "csp_Wexduanjuvmp",
-                "jar": "https://4723.kstore.space/wex.jar",
+                "jar": "https://4723.kstore.space/wex.txt",
 	"searchable": 1,
 	"changeable": 1
 },
 {
-	"key": "Wexduanjuso",
-	"name": "😍短剧┃搜索",
-	"type": 3,
-	"api": "csp_Wexduanjuso",
-                "jar": "https://4723.kstore.space/wex.jar",
-	"searchable": 1,
-	"changeable": 0
-},
+      "key": "上头短剧",
+      "name": "🌈上头┃短剧",
+      "type": 3,
+      "api": "csp_Djuu",
+      "jar":"https://4723.kstore.space/fan.txt",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1
+    },
 {
       "key": "短剧",
       "name": "短剧",
@@ -1869,8 +1893,8 @@
       "key": "dr_兔小贝",
       "name": "📚儿童┃启蒙",
       "type": 3,
-      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/%E5%85%94%E5%B0%8F%E8%B4%9D.js",
+      "api": "https://gitlab.com/fantaiying/ext/-/raw/main/drpy2.min.js",
+      "ext": "https://gitlab.com/fantaiying/ext/-/raw/main/%E5%85%94%E5%B0%8F%E8%B4%9D.js",
       "style": {
         "type": "rect",
         "ratio": 1.597
@@ -1888,7 +1912,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://4723.kstore.space/lib/少儿教育.json",
-      "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt"
+      "jar":"https://4723.kstore.space/fan.txt"
     },
     {
       "key": "小学",
@@ -1899,7 +1923,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://4723.kstore.space/lib/小学课堂.json",
-      "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt"
+      "jar":"https://4723.kstore.space/fan.txt"
     },
     {
       "key": "初中",
@@ -1910,7 +1934,7 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://4723.kstore.space/lib/初中课堂.json",
-      "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt"
+      "jar":"https://4723.kstore.space/fan.txt"
     },
     {
       "key": "高中",
@@ -1921,14 +1945,14 @@
       "quickSearch": 1,
       "filterable": 1,
       "ext": "https://4723.kstore.space/lib/高中课堂.json",
-      "jar":"https://gitee.com/dongchenys/liu/raw/master/jar/fanzx.txt"
+      "jar":"https://4723.kstore.space/fan.txt"
     },
 {
       "key": "有声小说js",
       "name": "🎧有声┃小说",
       "type": 3,
-      "api": "https://152.32.170.60/fantaiying/fty/raw/branch/master/ext/drpy2.min.js",
-      "ext": "https://152.32.170.60/fantaiying/dr_py/raw/branch/main/js/有声小说吧.js",
+      "api": "https://gitlab.com/fantaiying/ext/-/raw/main/drpy2.min.js",
+      "ext": "https://gitlab.com/fantaiying/ext/-/raw/main/有声小说吧.js",
       "style": {
         "type": "rect",
         "ratio": 1
@@ -1994,6 +2018,27 @@
                     "乐视视频"
                     ],"header":{"User-Agent":"Dart/2.18 (dart:io)"}}},
 {
+	"name": "777",
+	"type": 0,
+	"url": "https://110.42.2.247:9090/player/?url=",
+	"ext": {
+		"flag": [
+			"qq",
+			"腾讯",
+			"qiyi",
+			"爱奇艺",
+			"奇艺",
+			"youku",
+			"优酷",
+			"mgtv",
+			"芒果"
+		],
+		"header": {
+			"User-Agent": "okhttp/4.1.0"
+		}
+	}
+},
+{
             "name": "土豆①",
             "type": 1,
             "url": "http://pan.qiaoji8.com/tvbox/gouzi.php?url="
@@ -2016,33 +2061,6 @@
 {"name":"帅","type":1,"url":"http://pan.qiaoji8.com/tvbox/neibu.php?url="},
 {
       "name": "摸鱼解析A",
-      "type": 1,
-      "url": "https://api.qljson.xyz/api/?key=11781ab2890bcb53fdb4b2ad27503d7c&url=",
-      "ext": {
-        "flag": [
-          "qq",
-          "腾讯",
-          "qiyi",
-          "爱奇艺",
-          "奇艺",
-          "youku",
-          "优酷",
-          "sohu",
-          "搜狐",
-          "letv",
-          "乐视",
-          "mgtv",
-          "芒果",
-          "rx",
-          "ltnb",
-          "bilibili",
-          "1905",
-          "xigua"
-        ]
-      }
-    },
-    {
-      "name": "摸鱼解析B",
       "type": 1,
       "url": "https://api.qljson.xyz/api/?key=11781ab2890bcb53fdb4b2ad27503d7c&url=",
       "ext": {
@@ -2161,64 +2179,10 @@
 			"flag": ["YuMi","SMD","FYNB","qq", "腾讯", "qiyi", "爱奇艺", "奇艺", "youku", "优酷", "mgtv", "芒果", "letv", "乐视", "pptv", "PPTV", "sohu", "bilibili", "哔哩哔哩", "哔哩"],"header":{"User-Agent":"okhttp/3.12.11"}
 		} 
 	},
-{
-      "name": "qiyi",
-      "type": 1,
-      "url": "https://api.qljson.xyz/api/?key=e2df45a25abbdfe95bb28de1e751285f&url=",
-      "ext": {
-        "flag": [
-          "qq",
-          "腾讯",
-          "qiyi",
-          "爱奇艺",
-          "奇艺",
-          "youku",
-          "优酷",
-          "sohu",
-          "搜狐",
-          "letv",
-          "乐视",
-          "mgtv",
-          "芒果",
-          "rx",
-          "ltnb",
-          "bilibili",
-          "1905",
-          "xigua"
-        ]
-      }
-    },
     {
       "name": "tx",
       "type": 1,
       "url": "https://json..url88k.cn/api/?format=zl&key=ce252c4a116ff2613202e17e2269c2fb&url=",
-      "ext": {
-        "flag": [
-          "qq",
-          "腾讯",
-          "qiyi",
-          "爱奇艺",
-          "奇艺",
-          "youku",
-          "优酷",
-          "sohu",
-          "搜狐",
-          "letv",
-          "乐视",
-          "mgtv",
-          "芒果",
-          "rx",
-          "ltnb",
-          "bilibili",
-          "1905",
-          "xigua"
-        ]
-      }
-    },
-    {
-      "name": "yk",
-      "type": 1,
-      "url": "https://mg.zrjx.xyz/?url=",
       "ext": {
         "flag": [
           "qq",
