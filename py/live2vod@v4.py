@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Author  : 陆小凤
-# @Time    : 2026/8/6
+# @Time    : 2026/8/7
 """
-全能直播聚合插件 - 点播版 v5.6（修复缩进 + 启动即加载）
+全能直播聚合插件 - 点播版 v6.3（API子模块隔离优化）
+- 解决API接口配置丢失、重名覆盖等问题
+- 后台刷新时传递与首次加载相同的ext参数
+- 自动为重复名称添加后缀，确保唯一性
+- 保持URL接口逻辑不变
 """
 import re
 import sys
@@ -50,21 +54,7 @@ os.makedirs(MODULE_CACHE_DIR, exist_ok=True)
 
 EPG_LOGO_URL = "https://cdn.jsdmirror.com/gh/fanmingming/live@master/tv/{name}.png"
 EPG_API_URL = "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}"
-DEFAULT_IMAGE = "https://000.hfr1107.top/lives.jpg"  # 请替换为有效占位图
-
-PROXY_OFF = '关闭代理'
-PROXY_VIDEO = '视频代理'
-PROXY_ALL = '全局代理'
-PROXY_LIST = '列表代理'
-
-PROXY_ALIASES = {
-    '关闭代理': PROXY_OFF, 'noproxy': PROXY_OFF, 'no': PROXY_OFF, 'off': PROXY_OFF,
-    'false': PROXY_OFF, '0': PROXY_OFF, '': PROXY_OFF, False: PROXY_OFF, None: PROXY_OFF,
-    '视频代理': PROXY_VIDEO, 'proxy': PROXY_VIDEO, 'video': PROXY_VIDEO,
-    'true': PROXY_VIDEO, '1': PROXY_VIDEO, True: PROXY_VIDEO,
-    '全局代理': PROXY_ALL, 'allproxy': PROXY_ALL, 'all': PROXY_ALL, 'global': PROXY_ALL,
-    '列表代理': PROXY_LIST, 'listproxy': PROXY_LIST, 'list': PROXY_LIST,
-}
+DEFAULT_IMAGE = "https://000.hfr1107.top/lives.jpg"
 
 BOOL_MAP = {'是': True, '否': False, '下载': True, '不下载': False,
             'true': True, 'false': False, '1': True, '0': False, True: True, False: False}
@@ -72,8 +62,7 @@ BOOL_MAP = {'是': True, '否': False, '下载': True, '不下载': False,
 DEFAULT_LOG_DIR = '/storage/emulated/0/download/logs/'
 LOG_LEVELS = {'debug': 0, 'info': 1, '警告': 1, 'warn': 1, '错误': 2, 'error': 2}
 
-
-# ========================= 日志、缓存 =========================
+# ========================= 日志 =========================
 class Logger:
     def __init__(self):
         self.enabled = False
@@ -122,18 +111,16 @@ class Logger:
         with self._lock:
             self._flush()
 
-
+# ========================= 缓存 =========================
 class DiskCache:
     def __init__(self, cache_dir, ttl=3600):
         self.cache_dir = cache_dir
         self.ttl = ttl
         os.makedirs(cache_dir, exist_ok=True)
         self._lock = threading.Lock()
-
     def _get_path(self, key):
         key_hash = hashlib.md5(key.encode()).hexdigest()
         return os.path.join(self.cache_dir, f"{key_hash}.json")
-
     def get(self, key):
         path = self._get_path(key)
         try:
@@ -147,7 +134,6 @@ class DiskCache:
                 return json.load(f)
         except Exception:
             return None
-
     def put(self, key, value):
         path = self._get_path(key)
         try:
@@ -155,7 +141,6 @@ class DiskCache:
                 json.dump(value, f, ensure_ascii=False, default=str)
         except Exception:
             pass
-
     def clear(self):
         try:
             for fname in os.listdir(self.cache_dir):
@@ -163,7 +148,6 @@ class DiskCache:
                     os.remove(os.path.join(self.cache_dir, fname))
         except Exception:
             pass
-
 
 class LRUCache:
     def __init__(self, maxsize=2048, ttl=300):
@@ -191,8 +175,7 @@ class LRUCache:
         with self._lock:
             self._d.clear()
 
-
-# ========================= 解密模块（保留完整） =========================
+# ========================= 解密模块（完整） =========================
 _HAS_AES = False
 _AES_MODE = None
 try:
@@ -471,12 +454,10 @@ def try_decrypt_content(content, url='', external_api_url=DEFAULT_EXTERNAL_API_U
             pass
     return None
 
-
 # ========================= 智能匹配器 =========================
 class SmartMatcher:
     _REGEX_META = re.compile(r'[\\^$.|?*+(){}\[\]]')
     _cache = {}
-
     @classmethod
     def compile(cls, items):
         if isinstance(items, str):
@@ -501,7 +482,6 @@ class SmartMatcher:
             cls._cache[s] = m
             result.append(m)
         return result
-
     @staticmethod
     def match_any(ch, patterns, fields):
         for mode, pat in patterns:
@@ -514,7 +494,6 @@ class SmartMatcher:
                     if pat.search(val):
                         return True
         return False
-
 
 # ========================= 名称规范化模块 =========================
 class ChannelNormalizer:
@@ -548,7 +527,6 @@ class ChannelNormalizer:
         '九': 9, '十': 10, '十一': 11, '十二': 12, '十三': 13, '十四': 14,
         '十五': 15, '十六': 16, '十七': 17,
     }
-
     BUILTIN_MAP = {
         'CCTV1': 'CCTV1综合', 'CCTV2': 'CCTV2财经', 'CCTV3': 'CCTV3综艺',
         'CCTV4': 'CCTV4中文国际', 'CCTV5': 'CCTV5体育', 'CCTV5+': 'CCTV5+体育赛事',
@@ -583,13 +561,11 @@ class ChannelNormalizer:
         '民视无线台': '民视无线台', '台视': '台视', '中视': '中视', '华视': '华视',
         '公视': '公视', 'TVBS': 'TVBS', 'TVBS新闻台': 'TVBS新闻台',
     }
-
     def __init__(self, ext_config=None):
         self.config = ext_config or {}
         self.enabled = self.config.get('启用', True)
         self._canonical_map = {}
         self._build_map()
-
     def _build_map(self):
         self._canonical_map = {}
         def seed(canonical):
@@ -614,7 +590,6 @@ class ChannelNormalizer:
                             self._canonical_map[k] = canonical
             except Exception:
                 pass
-
     @staticmethod
     def to_half_width(s):
         result = []
@@ -627,11 +602,9 @@ class ChannelNormalizer:
             else:
                 result.append(ch)
         return ''.join(result)
-
     @staticmethod
     def to_simplified(s):
         return s.translate(ChannelNormalizer.T2S_MAP)
-
     @classmethod
     def yangshi_to_cctv(cls, s):
         pattern = re.compile(
@@ -645,7 +618,6 @@ class ChannelNormalizer:
                 n = cls.CN_NUM.get(num)
             return f'CCTV{n}' if n else m.group(0)
         return pattern.sub(replacer, s)
-
     @classmethod
     def normalize_key(cls, name):
         if not name:
@@ -673,13 +645,11 @@ class ChannelNormalizer:
         s = cls.OPERATOR_PATTERN.sub('', s)
         s = re.sub(r'[\s\-_·.|"\'’，,、（）()\[\]【】]', '', s)
         return s
-
     def normalize(self, name):
         if not name or not self.enabled:
             return name
         key = self.normalize_key(name)
         return self._canonical_map.get(key, name.strip())
-
     def logo_match_name(self, name):
         if not name:
             return ''
@@ -703,8 +673,7 @@ class ChannelNormalizer:
         s = re.sub(r'^[\s\-_·.|]+|[\s\-_·.|]+$', '', s).strip()
         return s if s else raw
 
-
-# ========================= 主类 Spider（所有方法在类内部） =========================
+# ========================= 主类 Spider =========================
 class Spider(BaseSpider):
     MODULE_CACHE_TTL = 600
     URL_CACHE_TTL = 3600
@@ -715,9 +684,10 @@ class Spider(BaseSpider):
         super().__init__()
         self.logger = Logger()
         self.session = None
-        self._proxy_session = None
-        self._proxy_ready = threading.Event()
-        self._proxy_url = None
+        # 缓存不同 proxy_url 对应的 Session（用于列表拉取）
+        self._proxy_sessions = LRUCache(maxsize=32, ttl=3600)
+        # 缓存线路 header 和 proxy 信息，用于播放时透传
+        self._header_cache = LRUCache(maxsize=4096, ttl=1800)
         self._disk_cache = DiskCache(os.path.join(CACHE_DIR, 'data'), ttl=3600)
         self._epg_cache = DiskCache(os.path.join(CACHE_DIR, 'epg'), ttl=self.EPG_CACHE_TTL)
         self._source_cache = DiskCache(os.path.join(CACHE_DIR, 'source'), ttl=self.URL_CACHE_TTL)
@@ -727,7 +697,7 @@ class Spider(BaseSpider):
         self._module_spiders = {}
         self._module_lock = threading.Lock()
         self._ext_cache = LRUCache(maxsize=512, ttl=300)
-        self._quick_cache = LRUCache(maxsize=4096, ttl=1800)
+        self._quick_cache = LRUCache(maxsize=4096, ttl=1800)  # 已废弃，保留兼容
         self.group_include = []
         self.group_exclude = []
         self.name_include = []
@@ -739,8 +709,7 @@ class Spider(BaseSpider):
         self.external_api_url = DEFAULT_EXTERNAL_API_URL
         self.download_playlist = False
         self.log_dir = DEFAULT_LOG_DIR
-        self.proxy_timeout = 10
-        self.proxy_test_timeout = 5
+        self.proxy_test_timeout = 5  # 保留但不使用
         self.placeholder_name = '↓↓↓↓↓↓'
         self.max_workers = 4
         self.connect_timeout = 5
@@ -758,10 +727,10 @@ class Spider(BaseSpider):
         self._display_names = {}
         self._channel_logos = {}
         self._source_groups = {}
-        self._category_map = {}          # 静态分类有序列表
-        self._category_order = []        # 所有分类顺序（接口+静态）
-        self._category_type = {}         # 分类类型：'interface' 或 'static'
-        self._interface_groups = {}      # 接口 -> {groups: list, group_channels: {group: [channels]}}
+        self._category_map = {}
+        self._category_order = []
+        self._category_type = {}
+        self._interface_groups = {}
         self._agg_lock = threading.Lock()
         self._sources_loaded = False
         self._last_refresh_ts = 0
@@ -771,13 +740,18 @@ class Spider(BaseSpider):
         self.epg_timeout = (3, 8)
         self.epg_name_map = {}
 
-        self.direct_play = True
+        self.direct_play = False  # 已废弃
         self.cache_ttl = 86400
-        self._cache_data = {}            # 半固化分类缓存
+        self._cache_data = {}
         self._cache_ready = False
         self._cache_lock = threading.Lock()
         self._cache_file = os.path.join(CACHE_DIR, 'full_cache.json')
         self._cache_building = False
+        self.enable_refresh = True
+
+        self.default_vod_pic = DEFAULT_IMAGE
+        self.epg_logo_url_cfg = EPG_LOGO_URL
+        self.epg_api_url_cfg = EPG_API_URL
 
     # ========================= 辅助方法 =========================
     def _load_config_file(self, path):
@@ -868,17 +842,6 @@ class Spider(BaseSpider):
         v = self._p(d, *keys, default=default)
         return BOOL_MAP.get(v, bool(v)) if not isinstance(v, bool) else v
 
-    def _resolve_proxy_mode(self, raw):
-        if raw is None:
-            return PROXY_OFF
-        if isinstance(raw, bool):
-            return PROXY_VIDEO if raw else PROXY_OFF
-        if isinstance(raw, str):
-            return PROXY_ALIASES.get(raw.lower().strip(), PROXY_OFF)
-        if isinstance(raw, list):
-            return PROXY_ALL if raw else PROXY_OFF
-        return PROXY_OFF
-
     def _extract_source_headers(self, live_item):
         headers = {}
         if not isinstance(live_item, dict):
@@ -898,7 +861,7 @@ class Spider(BaseSpider):
         if ref:
             headers['Referer'] = ref
         return headers
-        
+
     # ========================= 初始化 =========================
     def init(self, extend):
         self._init_session()
@@ -920,7 +883,7 @@ class Spider(BaseSpider):
                     self.logger.log(f"无法从 ext 加载配置: {extend}")
         self._last_extend = ext
         self.logger.set_enabled(self._p_bool(ext, '启用日志'))
-        self.logger.log("=" * 50 + " 启动 VOD v5.6（启动即加载） " + "=" * 50)
+        self.logger.log("=" * 50 + " 启动 VOD v6.3（API子模块隔离优化） " + "=" * 50)
 
         config_file = ext.get('config_file', '')
         if config_file:
@@ -937,17 +900,10 @@ class Spider(BaseSpider):
         self._parse_config(ext)
         self.logger.set_log_dir(self.log_dir)
 
-        proxy_list = self._p(ext, '代理', default=[])
-        if isinstance(proxy_list, str):
-            proxy_list = [proxy_list] if proxy_list else []
-        if proxy_list:
-            threading.Thread(target=self._init_proxy_bg, args=(proxy_list,), daemon=True).start()
-            self.logger.log(f"代理测试已启动后台任务({len(proxy_list)}个)")
-
         norm_config = self._p(ext, 'clean_rules', default={})
         self.normalizer = ChannelNormalizer({'clean_rules': norm_config})
 
-        # 读取静态分类（半固化）
+        # 读取静态分类
         self.categories = self._p(ext, 'categories', default=[])
         self._category_map = {}
         for cat in self.categories:
@@ -966,8 +922,25 @@ class Spider(BaseSpider):
                 if norm_list:
                     self._category_map[cat_name] = norm_list
 
-        # ----- 构建分类顺序（先接口，后半固化） -----
-        lives = self._p(ext, 'lives', default=[])
+        # 构建接口配置（处理重复名称，确保每个API接口name唯一）
+        raw_lives = self._p(ext, 'lives', default=[])
+        lives = []
+        name_counter = {}
+        for item in raw_lives:
+            if not isinstance(item, dict):
+                continue
+            # 复制一份，避免修改原数据
+            new_item = item.copy()
+            raw_name = new_item.get('name', '未命名')
+            if raw_name in name_counter:
+                name_counter[raw_name] += 1
+                new_name = f"{raw_name}_{name_counter[raw_name]}"
+            else:
+                name_counter[raw_name] = 1
+                new_name = raw_name
+            new_item['name'] = new_name
+            lives.append(new_item)
+
         self._source_configs = []
         for item in lives:
             if not isinstance(item, dict):
@@ -977,7 +950,8 @@ class Spider(BaseSpider):
             api = item.get('api')
             if not url and not api:
                 continue
-            proxy_mode = self._resolve_proxy_mode(item.get('代理', PROXY_OFF))
+            # 直接获取 proxy 字段（字符串或 None）
+            proxy = item.get('proxy')  # 不解析，原样保留
             headers = item.get('header', item.get('headers', {}))
             ua = item.get('ua', '')
             if ua:
@@ -987,7 +961,7 @@ class Spider(BaseSpider):
                 'name': name,
                 'url': url,
                 'api': api,
-                'proxy': proxy_mode,
+                'proxy': proxy,          # 字符串 URL 或 None
                 'headers': headers,
                 'ext': ext_cfg,
             }
@@ -1004,9 +978,8 @@ class Spider(BaseSpider):
             self._category_order.append(cat)
             self._category_type[cat] = 'static'
 
-        # ----- 同步加载第一个源（用于首页） -----
+        # 同步加载第一个源（用于首页）
         first_cfg = None
-        # 优先选 URL 类型（非 py），其次 api
         for cfg in self._source_configs:
             if cfg.get('url') and not cfg.get('api'):
                 first_cfg = cfg
@@ -1023,23 +996,21 @@ class Spider(BaseSpider):
             self.logger.log(f"同步加载第一个源: {first_cfg['name']}")
             self._load_one_source(first_cfg)
 
-        # ----- 后台加载剩余源 -----
+        # 后台加载剩余源
         if len(self._source_configs) > 1:
             threading.Thread(target=self._load_remaining_sources, daemon=True).start()
 
-        # ----- 尝试从磁盘加载完整缓存（若存在则直接使用） -----
+        # 尝试从磁盘加载完整缓存
         self._load_cache_from_disk()
         if self._cache_ready:
             self.logger.log("全量缓存加载成功，数据已就绪")
-            if self.refresh_interval > 0:
+            if self.refresh_interval > 0 and self.enable_refresh:
                 self._start_refresh()
         else:
-            # 如果缓存无效，启动后台构建完整缓存（包括半固化分类）
             threading.Thread(target=self._build_cache_bg, daemon=True).start()
         self.logger.flush()
 
     def _load_remaining_sources(self):
-        """后台加载除第一个外的所有源"""
         for cfg in self._source_configs[1:]:
             if self._shutdown_flag.is_set():
                 break
@@ -1053,7 +1024,6 @@ class Spider(BaseSpider):
 
     # ========================= 加载单个源（同步） =========================
     def _load_one_source(self, cfg, wait=True):
-        """同步加载一个源，返回频道列表"""
         name = cfg['name']
         with self._channels_lock:
             if name in self._source_groups:
@@ -1063,14 +1033,12 @@ class Spider(BaseSpider):
         if cfg.get('api'):
             channels = self._load_py_source(cfg['api'], cfg)
         elif cfg.get('url'):
-            # 修复：传入整个 cfg，而非拆分
             channels = self._load_url_source(cfg)
         else:
             self.logger.log(f"【{name}】跳过：无 url 或 api")
         if channels:
             with self._channels_lock:
                 self._channels.extend(channels)
-                # 也构建 source_groups
                 groups = {}
                 for ch in channels:
                     group = ch.get('group', '默认分类')
@@ -1079,50 +1047,40 @@ class Spider(BaseSpider):
             self.logger.log(f"【{name}】加载 {len(channels)} 个频道, {len(groups)} 个分组")
         return channels
 
+    # ========================= API子模块加载优化 =========================
     def _load_py_source(self, api, cfg):
         name = cfg['name']
+        # 我们不再向子模块传递任何 proxy 参数，完全尊重子模块自身逻辑
         try:
-            merged_ext = {}
-            if cfg.get('ext'):
-                merged_ext.update(cfg['ext'])
-            proxy_mode = cfg.get('proxy', PROXY_OFF)
-            if proxy_mode == PROXY_ALL:
-                merged_ext['proxy'] = [self._proxy_url] if self._proxy_url else []
-            elif proxy_mode == PROXY_VIDEO:
-                merged_ext['proxy'] = [self._proxy_url] if self._proxy_url else []
-                merged_ext['_proxy_hint'] = True
-            else:
-                merged_ext['proxy'] = []
-
+            # 构建 ext 字符串，使用接口自身的 ext（不添加额外字段）
+            ext_str = json.dumps(cfg.get('ext', {}), ensure_ascii=False)
             module = self._import_py_module(api)
             if not module or not hasattr(module, 'Spider'):
                 self.logger.log(f"【{name}】模块加载失败")
                 return []
             spider = module.Spider()
-            spider.init(json.dumps(merged_ext, ensure_ascii=False))
+            spider.init(ext_str)   # 传递 ext
             with self._module_lock:
                 self._module_spiders[name] = spider
             content = spider.liveContent('')
             if not content:
                 self.logger.log(f"【{name}】liveContent 为空")
                 return []
-            # 修复：正确传递 proxy_mode 和 headers
-            proxy_mode = cfg.get('proxy', PROXY_OFF)
+            # 解析内容时传入 proxy_url（用于我们自己管理播放透传，但不干扰子模块）
+            proxy_url = cfg.get('proxy')
             headers = cfg.get('headers', {})
-            channels = self._parse_content(content, name, proxy_mode, source_headers=headers)
+            channels = self._parse_content(content, name, proxy_url=proxy_url, source_headers=headers)
             return channels
         except Exception as e:
             self.logger.log(f"【{name}】加载异常: {e}")
             return []
 
-    def _load_url_source(self, item):
-        """加载 URL 或本地文件源，兼容两种传入格式"""
-        name = item.get('name', '未知源')
-        url = item.get('url', '')
-        # 兼容两种输入：优先使用已解析的 proxy，否则从原始 "代理" 解析
-        proxy_mode = item.get('proxy') or self._resolve_proxy_mode(item.get('代理', PROXY_OFF))
-        # 兼容两种输入：优先使用已合并的 headers，否则从原始字段提取
-        source_headers = item.get('headers', {}) or self._extract_source_headers(item)
+    # ========================= URL源加载（保持不变） =========================
+    def _load_url_source(self, cfg):
+        name = cfg.get('name', '未知源')
+        url = cfg.get('url', '')
+        proxy_url = cfg.get('proxy')  # 可能为 None 或 URL 字符串
+        source_headers = cfg.get('headers', {}) or self._extract_source_headers(cfg)
 
         if not url:
             return []
@@ -1133,7 +1091,7 @@ class Spider(BaseSpider):
                     with open(url, 'r', encoding='utf-8') as f:
                         content = f.read()
                     self.logger.debug(f"从本地文件加载 {name}: {url}")
-                    return self._parse_content(content, name, proxy_mode, source_url=url, source_headers=source_headers)
+                    return self._parse_content(content, name, proxy_url=proxy_url, source_url=url, source_headers=source_headers)
                 except Exception as e:
                     self.logger.log(f"【{name}】读取本地文件失败: {e}")
                     return []
@@ -1146,9 +1104,10 @@ class Spider(BaseSpider):
             cached = self._source_cache.get(cache_key)
             if cached:
                 self.logger.debug(f"URL缓存命中: {name}")
-                return self._parse_content(cached, name, proxy_mode, source_headers=source_headers)
+                return self._parse_content(cached, name, proxy_url=proxy_url, source_headers=source_headers)
 
-            session = self._get_playback_session(proxy_mode)
+            # 获取带代理的 session（如果有 proxy_url）
+            session = self._get_playback_session(proxy_url)
             req_headers = dict(session.headers)
             req_headers.update(source_headers)
 
@@ -1164,7 +1123,7 @@ class Spider(BaseSpider):
             if dec:
                 content = dec
             self._source_cache.put(cache_key, content)
-            return self._parse_content(content, name, proxy_mode, source_url=url, source_headers=source_headers)
+            return self._parse_content(content, name, proxy_url=proxy_url, source_url=url, source_headers=source_headers)
         except Exception as e:
             self.logger.log(f"加载URL失败 {name}: {e}")
             return []
@@ -1227,8 +1186,7 @@ class Spider(BaseSpider):
             self.log_dir = self.log_dir.rstrip('/') + '/'
         else:
             self.log_dir = DEFAULT_LOG_DIR
-        self.proxy_timeout = int(self._p(ext, '代理超时', 'proxy_timeout', default=10))
-        self.proxy_test_timeout = int(self._p(ext, '代理测试超时', 'proxy_test_timeout', default=max(3, self.proxy_timeout // 2)))
+        self.proxy_test_timeout = int(self._p(ext, '代理测试超时', 'proxy_test_timeout', default=5))  # 保留但不使用
         self.placeholder_name = self._p(ext, '占位名称', 'placeholder', default='↓↓↓↓↓↓')
         log_level = self._p(ext, '日志级别', 'log_level', default='info')
         self.logger.set_level(log_level)
@@ -1238,8 +1196,9 @@ class Spider(BaseSpider):
         self.read_timeout_api = max(5, int(self._p(ext, 'API读取超时', 'api_read_timeout', default=10)))
         self.sources_load_timeout = max(30, int(self._p(ext, '源加载超时', 'sources_load_timeout', default=90)))
 
-        self.epg_logo_url = self._p(ext, 'epg_logo_url', default=EPG_LOGO_URL)
-        self.epg_api_url = self._p(ext, 'epg_api_url', default=EPG_API_URL)
+        self.default_vod_pic = self._p(ext, 'vod_pic', default=DEFAULT_IMAGE)
+        self.epg_logo_url_cfg = self._p(ext, 'epg_logo_url', default=EPG_LOGO_URL)
+        self.epg_api_url_cfg = self._p(ext, 'epg_api_url', default=EPG_API_URL)
         self.epg_timeout = tuple(self._p(ext, 'epg_timeout', default=[3, 8]))
         ext_epg_map = self._p(ext, 'epg_name_map', default={})
         if ext_epg_map and isinstance(ext_epg_map, dict):
@@ -1247,8 +1206,9 @@ class Spider(BaseSpider):
         else:
             self.epg_name_map = {}
 
-        self.direct_play = self._p_bool(ext, '直连播放', 'direct_play', default=True)
+        self.direct_play = self._p_bool(ext, '直连播放', 'direct_play', default=False)  # 已废弃
         self.cache_ttl = max(60, int(self._p(ext, '缓存有效期', 'cache_ttl', default=86400)))
+        self.enable_refresh = self._p_bool(ext, '启用定时刷新', default=True)
 
     # ========================= Session & 代理 =========================
     def _init_session(self):
@@ -1259,95 +1219,30 @@ class Spider(BaseSpider):
         self.session.mount('https://', adapter)
         self.session.headers.update({'User-Agent': 'okhttp/4.12.0', 'Accept-Language': 'zh-CN,zh;q=0.9'})
 
-    def _init_proxy_bg(self, proxy_list):
-        cached = self._load_proxy_cache()
-        if cached:
-            self.logger.log(f"测试缓存代理: {cached}")
-            if self._test_single_proxy(cached):
-                self._apply_proxy(cached)
-                self.logger.log(f"缓存代理可用: {cached}")
-                self._proxy_ready.set()
-                return
-            self.logger.log("缓存代理已失效")
-        if not proxy_list:
-            self.logger.log("无代理列表且缓存失效，降级为直连")
-            self._proxy_ready.set()
-            return
-        self.logger.log(f"测试代理列表({len(proxy_list)}个)...")
-        found = threading.Event()
-        chosen = [None]
+    def _get_playback_session(self, proxy_url=None):
+        """
+        获取请求会话。若 proxy_url 非空，则返回配置了该代理的 Session（缓存）；
+        否则返回默认的直连 Session。
+        （仅用于列表拉取）
+        """
+        if not proxy_url:
+            return self.session
 
-        def test_one(p):
-            if found.is_set():
-                return
-            if self._test_single_proxy(p):
-                if not found.is_set():
-                    chosen[0] = p
-                    found.set()
+        cached = self._proxy_sessions.get(proxy_url)
+        if cached is not None:
+            return cached
 
-        with ThreadPoolExecutor(max_workers=len(proxy_list)) as ex:
-            futures = [ex.submit(test_one, p) for p in proxy_list]
-            found.wait(timeout=self.proxy_timeout)
-            for f in futures:
-                f.cancel()
-        if chosen[0]:
-            self._apply_proxy(chosen[0])
-            self._save_proxy_cache(chosen[0])
-            self.logger.log(f"代理就绪: {chosen[0]}")
-        else:
-            self.logger.log("所有代理不可用，降级为直连")
-        self._proxy_ready.set()
-
-    def _test_single_proxy(self, proxy_url):
-        try:
-            timeout = self.proxy_test_timeout
-            r = requests.get('https://www.google.com',
-                proxies={'http': proxy_url, 'https': proxy_url},
-                timeout=(timeout, timeout))
-            return r.status_code < 400
-        except Exception:
-            return False
-
-    def _apply_proxy(self, proxy_url):
-        self._proxy_url = proxy_url
-        self._proxy_session = requests.Session()
-        retry = Retry(total=2, backoff_factor=0.3)
+        new_sess = requests.Session()
+        retry = Retry(total=2, backoff_factor=0.3, status_forcelist=[429, 500, 502, 503, 504])
         adapter = HTTPAdapter(max_retries=retry, pool_connections=10, pool_maxsize=20)
-        self._proxy_session.mount('http://', adapter)
-        self._proxy_session.mount('https://', adapter)
-        self._proxy_session.headers.update({'User-Agent': 'okhttp/4.12.0'})
-        self._proxy_session.proxies = {'http': proxy_url, 'https': proxy_url}
+        new_sess.mount('http://', adapter)
+        new_sess.mount('https://', adapter)
+        new_sess.headers.update({'User-Agent': 'okhttp/4.12.0', 'Accept-Language': 'zh-CN,zh;q=0.9'})
+        new_sess.proxies = {'http': proxy_url, 'https': proxy_url}
+        new_sess.verify = False
 
-    def _save_proxy_cache(self, proxy_url):
-        try:
-            path = os.path.join(CACHE_DIR, 'proxy_cache.json')
-            with open(path, 'w') as f:
-                json.dump({'proxy': proxy_url, 'time': time.time()}, f)
-        except Exception:
-            pass
-
-    def _load_proxy_cache(self):
-        try:
-            path = os.path.join(CACHE_DIR, 'proxy_cache.json')
-            if os.path.exists(path):
-                with open(path) as f:
-                    data = json.load(f)
-                if time.time() - data.get('time', 0) < 86400:
-                    return data.get('proxy')
-        except Exception:
-            pass
-        return None
-
-    def _get_playback_session(self, proxy_mode):
-        if proxy_mode == PROXY_LIST:
-            return self.session
-        if proxy_mode in (PROXY_VIDEO, PROXY_ALL):
-            if self._proxy_ready.is_set() and self._proxy_session:
-                return self._proxy_session
-            if self._proxy_ready.wait(timeout=5) and self._proxy_session:
-                return self._proxy_session
-            return self.session
-        return self.session
+        self._proxy_sessions.put(proxy_url, new_sess)
+        return new_sess
 
     # ========================= 获取远程源（用于缓存构建） =========================
     def _fetch_and_merge_lives(self, ext):
@@ -1473,7 +1368,7 @@ class Spider(BaseSpider):
                     data[i] = self._resolve_paths(item, base_url)
         return data
 
-    # ========================= 加载所有源（用于后台缓存构建） =========================
+    # ========================= 加载所有源（用于后台缓存构建，含API子模块配置传递优化） =========================
     def _load_all_sources(self, lives, timeout=90):
         self._channels.clear()
         with ThreadPoolExecutor(max_workers=self.max_workers) as ex:
@@ -1503,7 +1398,9 @@ class Spider(BaseSpider):
     def _load_module_source(self, item):
         name = item.get('name', '未知模块')
         api_path = item.get('api', '')
-        proxy_mode = self._resolve_proxy_mode(item.get('代理'))
+        # 获取该接口自身的 ext（用于初始化）
+        ext_str = json.dumps(item.get('ext', {}), ensure_ascii=False)
+        proxy_url = item.get('proxy')  # 仅用于播放透传
         try:
             if api_path.startswith(('http://', 'https://')):
                 cache_key = hashlib.md5(api_path.encode()).hexdigest()
@@ -1516,20 +1413,21 @@ class Spider(BaseSpider):
                         return []
                     with open(local_path, 'w', encoding='utf-8') as f:
                         f.write(resp.text)
-                content = self._load_py_module(local_path, name, proxy_mode)
+                content = self._load_py_module(local_path, name, ext_str)
             else:
                 if not os.path.exists(api_path):
                     self.logger.log(f"模块文件不存在: {api_path}")
                     return []
-                content = self._load_py_module(api_path, name, proxy_mode)
+                content = self._load_py_module(api_path, name, ext_str)
             if content:
                 self._module_m3u[name] = content
-                return self._parse_content(content, name, proxy_mode)
+                return self._parse_content(content, name, proxy_url=proxy_url)
         except Exception as e:
             self.logger.log(f"加载模块失败 {name}: {e}")
         return []
 
-    def _load_py_module(self, api_path, name, proxy_mode):
+    def _load_py_module(self, api_path, name, ext_str='{}'):
+        # 加载模块并传入指定的 ext_str，确保与首次加载配置一致
         try:
             spec = importlib.util.spec_from_file_location(name, api_path)
             if not spec or not spec.loader:
@@ -1541,7 +1439,7 @@ class Spider(BaseSpider):
                 return None
             spider = spider_cls()
             if hasattr(spider, 'init'):
-                spider.init('{}')
+                spider.init(ext_str)
             with self._module_lock:
                 self._module_spiders[name] = spider
             if hasattr(spider, 'liveContent'):
@@ -1552,33 +1450,27 @@ class Spider(BaseSpider):
             return None
 
     # ========================= 内容解析 =========================
-    def _parse_content(self, content, source_name, proxy_mode, source_url='', source_headers=None):
+    def _parse_content(self, content, source_name, proxy_url=None, source_url='', source_headers=None):
         if not content:
             return []
         source_headers = source_headers or {}
         if isinstance(content, str):
             content = content.strip()
             if content.startswith('#EXTM3U') or content.startswith('#EXTINF'):
-                return self._parse_m3u(content, source_name, proxy_mode, source_url, source_headers)
-            elif content.startswith('{'):
+                return self._parse_m3u(content, source_name, proxy_url, source_url, source_headers)
+            elif content.startswith('{') or content.startswith('['):
                 try:
                     data = json.loads(content)
-                    return self._parse_json(data, source_name, proxy_mode, source_url, source_headers)
-                except Exception:
-                    pass
-            elif content.startswith('['):
-                try:
-                    data = json.loads(content)
-                    return self._parse_json(data, source_name, proxy_mode, source_url, source_headers)
+                    return self._parse_json(data, source_name, proxy_url, source_url, source_headers)
                 except Exception:
                     pass
             elif '#genre#' in content:
-                return self._parse_txt(content, source_name, proxy_mode, source_url, source_headers)
+                return self._parse_txt(content, source_name, proxy_url, source_url, source_headers)
         elif isinstance(content, (dict, list)):
-            return self._parse_json(content, source_name, proxy_mode, source_url, source_headers)
+            return self._parse_json(content, source_name, proxy_url, source_url, source_headers)
         return []
 
-    def _parse_m3u(self, content, source_name, proxy_mode, source_url='', source_headers=None):
+    def _parse_m3u(self, content, source_name, proxy_url, source_url='', source_headers=None):
         channels = []
         source_headers = source_headers or {}
         lines = content.split('\n')
@@ -1588,7 +1480,7 @@ class Spider(BaseSpider):
             line = line.strip()
             if line.startswith('#EXTINF'):
                 current = {'name': '', 'group': group_title, 'source': source_name,
-                           'proxy_mode': proxy_mode, 'headers': dict(source_headers)}
+                           'proxy_url': proxy_url, 'headers': dict(source_headers)}
                 m = re.search(r'tvg-name="([^"]*)"', line)
                 if m:
                     current['name'] = m.group(1)
@@ -1615,7 +1507,7 @@ class Spider(BaseSpider):
                 current = None
         return channels
 
-    def _parse_txt(self, content, source_name, proxy_mode, source_url='', source_headers=None):
+    def _parse_txt(self, content, source_name, proxy_url, source_url='', source_headers=None):
         channels = []
         source_headers = source_headers or {}
         lines = content.split('\n')
@@ -1634,33 +1526,33 @@ class Spider(BaseSpider):
                 if name and url:
                     channels.append({
                         'name': name, 'group': group, 'url': url,
-                        'source': source_name, 'proxy_mode': proxy_mode,
+                        'source': source_name, 'proxy_url': proxy_url,
                         'headers': dict(source_headers)
                     })
         return channels
 
-    def _parse_json(self, data, source_name, proxy_mode, source_url='', source_headers=None):
+    def _parse_json(self, data, source_name, proxy_url, source_url='', source_headers=None):
         channels = []
         source_headers = source_headers or {}
         if isinstance(data, list):
             for item in data:
-                ch = self._extract_channel(item, source_name, proxy_mode, source_headers)
+                ch = self._extract_channel(item, source_name, proxy_url, source_headers)
                 if ch:
                     channels.append(ch)
         elif isinstance(data, dict):
             for k, v in data.items():
                 if isinstance(v, list):
                     for item in v:
-                        ch = self._extract_channel(item, source_name, proxy_mode, source_headers, group=k)
+                        ch = self._extract_channel(item, source_name, proxy_url, source_headers, group=k)
                         if ch:
                             channels.append(ch)
                 elif isinstance(v, dict):
-                    ch = self._extract_channel(v, source_name, proxy_mode, source_headers, group=k)
+                    ch = self._extract_channel(v, source_name, proxy_url, source_headers, group=k)
                     if ch:
                         channels.append(ch)
         return channels
 
-    def _extract_channel(self, item, source_name, proxy_mode, source_headers, group=None):
+    def _extract_channel(self, item, source_name, proxy_url, source_headers, group=None):
         if not isinstance(item, dict):
             return None
         name = item.get('name') or item.get('title') or item.get('channel')
@@ -1688,7 +1580,7 @@ class Spider(BaseSpider):
             'url': str(url).strip(),
             'logo': item.get('logo', ''),
             'source': source_name,
-            'proxy_mode': proxy_mode,
+            'proxy_url': proxy_url,      # 存储代理 URL（仅用于我们自己的播放透传）
             'headers': headers
         }
 
@@ -1739,7 +1631,7 @@ class Spider(BaseSpider):
                             'name': line_name,
                             'url': s.get('url', ''),
                             'headers': s.get('headers', {}),
-                            'proxy_mode': s.get('proxy_mode', PROXY_OFF)
+                            'proxy_url': s.get('proxy_url')
                         })
                     display = self._display_names.get(norm, norm)
                     logo = self._get_logo(norm)
@@ -1778,7 +1670,7 @@ class Spider(BaseSpider):
         if norm_name in self._channel_logos:
             return self._channel_logos[norm_name]
         epg_name = self.epg_name_map.get(norm_name, norm_name)
-        return self.epg_logo_url.format(name=epg_name)
+        return self.epg_logo_url_cfg.format(name=epg_name)
 
     def _get_epg(self, norm_name):
         epg_name = self.epg_name_map.get(norm_name, norm_name)
@@ -1787,7 +1679,7 @@ class Spider(BaseSpider):
         if cached:
             return cached
         try:
-            url = self.epg_api_url.format(name=requests.utils.quote(epg_name), date=time.strftime('%Y%m%d'))
+            url = self.epg_api_url_cfg.format(name=requests.utils.quote(epg_name), date=time.strftime('%Y%m%d'))
             r = self.session.get(url, timeout=self.epg_timeout)
             if r.status_code == 200:
                 data = r.json()
@@ -1863,7 +1755,7 @@ class Spider(BaseSpider):
             self._build_caches()
             self._save_cache_to_disk()
             self.logger.log(f"全量缓存构建完成，耗时 {time.time()-t0:.1f}s")
-            if self.refresh_interval > 0:
+            if self.refresh_interval > 0 and self.enable_refresh:
                 self._start_refresh()
         except Exception as e:
             self.logger.log(f"缓存构建异常: {e}")
@@ -1892,6 +1784,8 @@ class Spider(BaseSpider):
             self.logger.flush()
 
     def _start_refresh(self):
+        if not self.enable_refresh or self.refresh_interval <= 0:
+            return
         if self._refresh_thread and self._refresh_thread.is_alive():
             return
         self._stop_refresh = False
@@ -1926,7 +1820,7 @@ class Spider(BaseSpider):
                             videos.append({
                                 "vod_id": f"{cat}###{group}",
                                 "vod_name": group,
-                                "vod_pic": DEFAULT_IMAGE,
+                                "vod_pic": self.default_vod_pic,
                                 "vod_remarks": ""
                             })
                     else:
@@ -1938,7 +1832,7 @@ class Spider(BaseSpider):
                             videos.append({
                                 "vod_id": f"{cat}###{norm}",
                                 "vod_name": info['display'],
-                                "vod_pic": info['logo'] or DEFAULT_IMAGE,
+                                "vod_pic": info['logo'] or self.default_vod_pic,
                                 "vod_remarks": f"{len(info['sources'])}个源"
                             })
                 if videos:
@@ -1956,7 +1850,7 @@ class Spider(BaseSpider):
                 videos.append({
                     "vod_id": f"{first_iface}###{g}",
                     "vod_name": g,
-                    "vod_pic": DEFAULT_IMAGE,
+                    "vod_pic": self.default_vod_pic,
                     "vod_remarks": f"{len(groups[g])}个频道"
                 })
             if videos:
@@ -1981,7 +1875,7 @@ class Spider(BaseSpider):
                     videos.append({
                         "vod_id": f"{tid}###{group}",
                         "vod_name": group,
-                        "vod_pic": DEFAULT_IMAGE,
+                        "vod_pic": self.default_vod_pic,
                         "vod_remarks": ""
                     })
             else:
@@ -1996,7 +1890,7 @@ class Spider(BaseSpider):
                     videos.append({
                         "vod_id": f"{tid}###{norm}",
                         "vod_name": info['display'],
-                        "vod_pic": info['logo'] or DEFAULT_IMAGE,
+                        "vod_pic": info['logo'] or self.default_vod_pic,
                         "vod_remarks": f"{len(info['sources'])}个源"
                     })
         return {
@@ -2005,9 +1899,9 @@ class Spider(BaseSpider):
             "pagecount": max(1, (total + page_size - 1) // page_size),
             "limit": page_size,
             "total": total
-        }
+    }
 
-    # ========================= 详情页（修复版） =========================
+    # ========================= 详情页 =========================
     def detailContent(self, ids):
         if not ids:
             return {"list": []}
@@ -2016,14 +1910,13 @@ class Spider(BaseSpider):
         if len(parts) != 2:
             return {"list": []}
         cat_or_interface, item = parts
-    
+
         with self._cache_lock:
             cat_type = self._category_type.get(cat_or_interface, 'static')
-    
+
             # ---------- 接口分类（动态源） ----------
             if cat_type == 'interface':
                 group_channels = None
-                # 从缓存中获取分组频道列表（忽略大小写匹配）
                 groups_dict = self._interface_groups.get(cat_or_interface, {}).get('group_channels', {})
                 item_clean = item.strip().lower()
                 for g, ch_list in groups_dict.items():
@@ -2036,7 +1929,6 @@ class Spider(BaseSpider):
                         if g.strip().lower() == item_clean:
                             group_channels = ch_list
                             break
-                # 若仍未找到，从 _channels 实时筛选
                 if not group_channels:
                     with self._channels_lock:
                         matched = [ch for ch in self._channels
@@ -2044,61 +1936,59 @@ class Spider(BaseSpider):
                                    ch.get('group', '').strip().lower() == item_clean]
                     if matched:
                         group_channels = matched
-    
+
                 if not group_channels:
                     return {"list": []}
-    
-                # 生成唯一的频道名称（重复加序号）
+
                 from collections import Counter
                 name_counter = {}
                 play_from_list = []
                 play_url_list = []
                 seen = set()
-    
+
                 for ch in group_channels:
                     name = ch.get('name', '未知频道')
                     url = ch.get('url', '')
                     if not url or (name, url) in seen:
                         continue
                     seen.add((name, url))
-    
-                    # 统计相同名称出现次数
+
                     name_counter[name] = name_counter.get(name, 0) + 1
                     if name_counter[name] == 1:
                         display_name = name
                     else:
                         display_name = f"{name}-{name_counter[name]}"
-    
+
                     play_from_list.append(display_name)
-    
-                    # 生成缓存键和播放代理地址
-                    key = hashlib.md5(
-                        (url + json.dumps(ch.get('headers', {}), sort_keys=True) +
-                         ch.get('proxy_mode', PROXY_OFF)).encode()
-                    ).hexdigest()[:16]
-                    self._quick_cache.put(key, {
-                        'url': url,
-                        'headers': ch.get('headers', {}),
-                        'proxy_mode': ch.get('proxy_mode', PROXY_OFF)
-                    })
-                    play_url = f"http://127.0.0.1:9978/proxy?do=py&fun=quick&id={key}"
-                    play_url_list.append(play_url)
-    
-                # 构造vod对象，同时设置线路（vod_play_from）和选集（vod_play_list）
+
+                    # ★★★ 直接使用原始地址，不生成代理链接 ★★★
+                    play_url = url
+
+                    # 存储 Header 和 Proxy 信息（如果有）
+                    headers = ch.get('headers', {})
+                    proxy_url = ch.get('proxy_url')
+                    if headers or proxy_url:
+                        cache_key = f"{display_name}||{url}"
+                        self._header_cache.put(cache_key, {
+                            'headers': headers,
+                            'proxy_url': proxy_url
+                        })
+
+                    play_url_list.append(f"{display_name}${play_url}")
+
                 vod = {
                     "vod_id": vid,
                     "vod_name": item,
-                    "vod_pic": DEFAULT_IMAGE,
+                    "vod_pic": self.default_vod_pic,
                     "vod_content": "",
-                    "vod_director": " | ".join(play_from_list),          # 线路名称汇总
+                    "vod_director": " | ".join(play_from_list),
                     "vod_actor": f"共{len(play_from_list)}个频道",
-                    "vod_play_from": "$$$".join(play_from_list),         # 线路列表
-                    "vod_play_url": "$$$".join(play_url_list),           # 对应地址
-                    "vod_play_list": "$$$".join(play_from_list)          # 选集列表（与线路同步）
+                    "vod_play_from": "$$$".join(play_from_list),
+                    "vod_play_url": "$$$".join(play_url_list),
                 }
                 return {"list": [vod]}
-    
-            # ---------- 半固化分类（静态）保持原逻辑 ----------
+
+            # ---------- 半固化分类（静态） ----------
             else:
                 if cat_or_interface not in self._cache_data or item not in self._cache_data[cat_or_interface]:
                     return {"list": []}
@@ -2107,62 +1997,56 @@ class Spider(BaseSpider):
                 sources = info['sources']
                 if not sources:
                     return {"list": []}
-    
+
                 play_from_list = [s['name'] for s in sources]
                 play_url_list = []
                 for s in sources:
                     url = s['url']
                     if not url:
                         continue
-                    key = hashlib.md5(
-                        (url + json.dumps(s['headers'], sort_keys=True) +
-                         s['proxy_mode']).encode()
-                    ).hexdigest()[:16]
-                    self._quick_cache.put(key, {
-                        'url': url,
-                        'headers': s['headers'],
-                        'proxy_mode': s['proxy_mode']
-                    })
-                    play_url = f"http://127.0.0.1:9978/proxy?do=py&fun=quick&id={key}"
+
+                    play_url = url
+
+                    headers = s.get('headers', {})
+                    proxy_url = s.get('proxy_url')
+                    if headers or proxy_url:
+                        cache_key = f"{s['name']}||{url}"
+                        self._header_cache.put(cache_key, {
+                            'headers': headers,
+                            'proxy_url': proxy_url
+                        })
+
                     play_url_list.append(f"{display}${play_url}")
-    
+
                 vod = {
                     "vod_id": vid,
                     "vod_name": display,
-                    "vod_pic": info['logo'] or DEFAULT_IMAGE,
+                    "vod_pic": info['logo'] or self.default_vod_pic,
                     "vod_content": self._format_epg(item),
                     "vod_director": " | ".join(play_from_list),
                     "vod_actor": f"共{len(sources)}条线路",
                     "vod_play_from": "$$$".join(play_from_list),
                     "vod_play_url": "$$$".join(play_url_list)
-                    # 半固化分类不添加 vod_play_list，保持原样
                 }
                 return {"list": [vod]}
 
+    # ========================= 播放接口 =========================
     def playerContent(self, flag, id, vipFlags):
-        if id.startswith('http://127.0.0.1:9978/proxy') and 'fun=quick' in id:
-            qid = parse_qs(urlparse(id).query).get('id', [''])[0]
-            if qid:
-                ch = self._quick_cache.get(qid)
-                if ch:
-                    if self.direct_play:
-                        return {
-                            "parse": 0,
-                            "url": ch['url'],
-                            "playUrl": "",
-                            "header": json.dumps(ch['headers']),
-                            "flag": flag
-                        }
-                    else:
-                        return {
-                            "parse": 0,
-                            "url": id,
-                            "playUrl": "",
-                            "header": "{}",
-                            "flag": flag
-                        }
-        return {"parse": 0, "url": id, "playUrl": "", "header": "{}", "flag": flag}
+        # flag 为线路名，id 为原始 URL
+        cache_key = f"{flag}||{id}"
+        cached = self._header_cache.get(cache_key)
+        if cached:
+            result = {"parse": 0, "url": id, "playUrl": "", "flag": flag}
+            headers = cached.get('headers', {})
+            result['header'] = json.dumps(headers, ensure_ascii=False) if headers else "{}"
+            proxy = cached.get('proxy_url')
+            if proxy:
+                result['proxy'] = proxy
+            return result
+        else:
+            return {"parse": 0, "url": id, "playUrl": "", "header": "{}", "flag": flag}
 
+    # ========================= 搜索 =========================
     def searchContent(self, key, quick):
         key_norm = self.normalizer.normalize(key) if self.normalizer else key
         results = []
@@ -2174,7 +2058,7 @@ class Spider(BaseSpider):
                         results.append({
                             "vod_id": f"搜索###{norm}",
                             "vod_name": display,
-                            "vod_pic": info['logo'] or DEFAULT_IMAGE,
+                            "vod_pic": info['logo'] or self.default_vod_pic,
                             "vod_remarks": f"{len(info['sources'])}个源"
                         })
                     if len(results) >= 20:
@@ -2183,7 +2067,9 @@ class Spider(BaseSpider):
                     break
         return {"list": results}
 
+    # ========================= 本地代理 =========================
     def localProxy(self, params):
+        # 优先调用子模块的 localProxy（如果指定了 __src）
         src = params.get('__src')
         if src and src in self._module_spiders:
             try:
@@ -2194,10 +2080,7 @@ class Spider(BaseSpider):
             except Exception:
                 pass
 
-        fun = params.get('fun')
-        if fun == 'quick':
-            return self._handle_quick(params)
-
+        # 遍历所有已加载的子模块，尝试 localProxy
         for sp in self._module_spiders.values():
             try:
                 result = sp.localProxy(params)
@@ -2205,74 +2088,9 @@ class Spider(BaseSpider):
                     return result
             except Exception:
                 continue
-        return self._err("无法处理")
 
-    def _handle_quick(self, params):
-        qid = params.get('id')
-        if not qid:
-            return self._err("缺少id")
-        ch = self._quick_cache.get(qid)
-        if not ch:
-            return self._err("缓存过期")
-        proxy_mode = ch.get('proxy_mode', PROXY_OFF)
-        sess = self._get_playback_session(proxy_mode)
-        if 'ts' in params:
-            return self._proxy_ts(self._b64d(params['ts']), ch['headers'], sess)
-        return self._request_with_retry(sess, ch['url'], ch['headers'], qid)
-
-    def _request_with_retry(self, sess, url, headers, ch_id):
-        for attempt in range(2):
-            try:
-                resp = sess.get(url, headers=headers, timeout=(5, 12), verify=False)
-                if resp and resp.status_code == 200:
-                    ct = resp.headers.get('Content-Type', '')
-                    if 'mpegurl' in ct or '#EXTM3U' in resp.text[:1000]:
-                        return [200, "application/vnd.apple.mpegurl", self._rewrite_m3u8(resp.text, ch_id, url)]
-                    return [200, ct or 'application/octet-stream', resp.content,
-                            {'Content-Type': ct, 'Content-Length': str(len(resp.content)), 'Cache-Control': 'no-cache'}]
-                if attempt == 0:
-                    continue
-                return self._err(f"请求失败")
-            except Exception as e:
-                if attempt == 0:
-                    continue
-                return self._err("请求异常")
-        return self._err("请求失败")
-
-    def _proxy_ts(self, url, headers, sess):
-        for attempt in range(2):
-            try:
-                resp = sess.get(url, headers=headers, timeout=(5, 12), verify=False)
-                if resp and resp.status_code == 200:
-                    return [200, "video/MP2T", resp.content,
-                            {'Content-Type': 'video/MP2T', 'Content-Length': str(len(resp.content)), 'Cache-Control': 'no-cache'}]
-                if attempt == 0:
-                    continue
-                return self._err("TS失败")
-            except Exception:
-                if attempt == 0:
-                    continue
-                return self._err("TS异常")
-        return self._err("TS失败")
-
-    def _rewrite_m3u8(self, text, ch_id, base_url):
-        lines = []
-        for line in text.splitlines():
-            if line.startswith('#'):
-                lines.append(line)
-            else:
-                ts = urljoin(base_url, line.strip())
-                lines.append(f"http://127.0.0.1:9978/proxy?do=py&fun=quick&ts={self._b64e(ts)}&id={ch_id}")
-        return '\n'.join(lines) + '\n'
-
-    def _b64e(self, s):
-        return base64.urlsafe_b64encode(s.encode()).decode().rstrip('=')
-
-    def _b64d(self, s):
-        p = 4 - len(s) % 4
-        if p != 4:
-            s += '=' * p
-        return base64.urlsafe_b64decode(s).decode()
+        # 如果没有子模块处理，返回错误
+        return self._err("无法处理该请求")
 
     def _err(self, msg):
         return [500, "application/vnd.apple.mpegurl", f"#EXTM3U\n#EXT-X-ENDLIST\n# {msg}"]
@@ -2285,7 +2103,9 @@ class Spider(BaseSpider):
                 ex.shutdown(wait=False)
             except Exception:
                 pass
-        if hasattr(self, '_quick_cache') and self._quick_cache:
-            self._quick_cache.clear()
+        if hasattr(self, '_header_cache'):
+            self._header_cache.clear()
+        if hasattr(self, '_proxy_sessions'):
+            self._proxy_sessions.clear()
         self.logger.flush()
         return ""
