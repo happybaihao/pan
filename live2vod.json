@@ -1,0 +1,39 @@
+[{
+		"name": "裤佬[M]",
+		"type": 0,
+		"url": "https://live.445569.xyz/live.m3u"
+	},
+	{
+		"name": "Jack[M]",
+		"url": "https://php.946985.filegear-sg.me/jackTV.m3u",
+		"header": {
+			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+		}
+	},
+	{
+		"name": "易发[T]",
+		"type": 1,
+		"url": "https://gh-proxy.org/https://raw.githubusercontent.com/fafa002/yf2025/refs/heads/main/yiyifafa.txt"
+	},
+	{
+		"name": "央视频[P]",
+		"type": 3,
+		"api": "https://000.hfr1107.top/lz/py/live_ysp.py"
+	},
+	{
+		"name": "裤佬TikTok直播[P]",
+		"type": 0,
+		"url": "https://tiktok.445569.xyz/live.m3u",
+		"ext": {
+			"代理": "http://127.0.0.1:10172"
+		}
+	},
+	{
+		"name": "油管[P]",
+		"type": 3,
+		"api": "https://000.hfr1107.top/lz/py/ytbzb.py",
+		"ext": {
+			"代理": "http://127.0.0.1:10172"
+		}
+	}
+]
