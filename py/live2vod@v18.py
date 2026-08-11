@@ -2,11 +2,13 @@
 # @Author  : 陆小凤
 # @Time    : 2026/8/11
 """
-全能直播聚合插件 - 点播版 v18（最终修复）
+全能直播聚合插件 - 点播版 v18（统一资源加载器 + 本地文件支持）
 - 忽略规则绝对优先：被忽略的频道不可被任何后续规则救回
 - 启用过滤规则时强制同步构建缓存，输出即过滤后数据
 - 接口名使用子串匹配，分类名支持正则
 - 保留规则保护频道不被全局过滤误伤
+- 统一资源加载器：所有配置字段均支持本地文件路径和远程URL
+- config_file / lives / lives_urls / 接口_单仓 / 接口_直播 全支持本地+远程
 """
 import re
 import sys
@@ -753,43 +755,113 @@ class Spider(BaseSpider):
         self.display_aliases = {}
 
     # ========================= 辅助方法 =========================
+    def _resolve_resource_path(self, source):
+        """
+        解析资源路径，返回 (类型, 实际路径)
+        类型: 'local' 或 'remote'
+        """
+        if not source:
+            return None, None
+        source = source.strip()
+        # 检测是否为本地文件
+        is_local = False
+        if source.startswith(('./', '.\\', '/')):
+            is_local = True
+        elif not source.lower().startswith(('http://', 'https://', 'ftp://')):
+            is_local = True
+
+        if is_local:
+            # 解析相对路径（相对于 SCRIPT_DIR）
+            if source.startswith('./') or source.startswith('.\\'):
+                file_path = os.path.join(SCRIPT_DIR, source[2:])
+            elif source.startswith('/'):
+                file_path = source
+            elif not os.path.isabs(source):
+                file_path = os.path.join(SCRIPT_DIR, source)
+            else:
+                file_path = source
+            return 'local', file_path
+        else:
+            return 'remote', source
+
+    def _load_json_resource(self, source, allow_decrypt=False):
+        """
+        统一加载 JSON 资源（本地文件或远程 URL）
+        - allow_decrypt: 是否尝试解密（用于 lives 源）
+        """
+        if not source:
+            return None
+        res_type, res_path = self._resolve_resource_path(source)
+        if not res_type:
+            return None
+
+        if res_type == 'local':
+            if not os.path.exists(res_path):
+                self.logger.log(f"本地文件不存在: {res_path}")
+                return None
+            try:
+                with open(res_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except json.JSONDecodeError as e:
+                self.logger.log(f"本地文件JSON解析失败 {res_path}: {e}")
+                return None
+            except Exception as e:
+                self.logger.log(f"读取本地文件失败 {res_path}: {e}")
+                return None
+        else:  # remote
+            try:
+                resp = self.session.get(
+                    res_path,
+                    timeout=(self.connect_timeout, self.read_timeout_url),
+                    verify=False
+                )
+                if resp.status_code != 200:
+                    self.logger.log(f"远程资源返回非200: {res_path} [{resp.status_code}]")
+                    return None
+                text = resp.text
+                try:
+                    return json.loads(text)
+                except Exception:
+                    if allow_decrypt:
+                        dec = try_decrypt_content(text, res_path, self.external_api_url, self.session)
+                        if dec:
+                            try:
+                                return json.loads(dec)
+                            except Exception:
+                                # 尝试提取 JSON 片段
+                                m = re.search(r'\{[\s\S]*\}', dec)
+                                if m:
+                                    try:
+                                        return json.loads(m.group())
+                                    except Exception:
+                                        pass
+                                m2 = re.search(r'"(?:lives)"\s*:\s*(\[[\s\S]*?\])', dec)
+                                if m2:
+                                    try:
+                                        return {"lives": json.loads(m2.group(1))}
+                                    except Exception:
+                                        pass
+                    return None
+            except Exception as e:
+                self.logger.log(f"远程加载失败 {res_path}: {e}")
+                return None
+
+    # ========================= 原有辅助方法（保持兼容） =========================
     def _load_config_file(self, path):
+        """加载配置文件（统一资源加载器）"""
         if not path:
             return None
-        if path.startswith(('http://', 'https://', 'ftp://')):
-            try:
-                sess = self.session if self.session else requests.Session()
-                r = sess.get(path, timeout=(5, 10))
-                if r.status_code == 200:
-                    return r.json()
-            except Exception as e:
-                self.logger.log(f"远程配置下载失败: {e}")
-            return None
-        try:
-            if path.startswith('./') or path.startswith('.\\'):
-                path = os.path.join(SCRIPT_DIR, path[2:])
-            elif not os.path.isabs(path):
-                path = os.path.join(SCRIPT_DIR, path)
-            if not os.path.exists(path):
-                self.logger.log(f"配置文件不存在: {path}")
-                return None
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception as e:
-            self.logger.log(f"加载配置文件失败: {e}")
-            return None
+        return self._load_json_resource(path, allow_decrypt=False)
 
     def _load_ext_from_path(self, path):
         if not path:
             return None
+        # 直接使用统一加载器
+        result = self._load_json_resource(path, allow_decrypt=False)
+        if result is not None:
+            return result
+        # 如果统一加载器失败，回退到原有的多路径查找逻辑
         if path.startswith(('http://', 'https://', 'ftp://')):
-            try:
-                sess = self.session if self.session else requests.Session()
-                r = sess.get(path, timeout=(5, 10))
-                if r.status_code == 200:
-                    return r.json()
-            except Exception as e:
-                self.logger.log(f"远程配置下载失败: {e}")
             return None
         candidates = []
         if os.path.isabs(path):
@@ -1038,7 +1110,9 @@ class Spider(BaseSpider):
                 if norm_list:
                     self._category_map[cat_name] = norm_list
 
-        raw_lives = self._p(ext, 'lives', default=[])
+        # ----- 获取并合并 lives（支持本地文件/远程URL） -----
+        raw_lives = self._fetch_and_merge_lives(ext)
+        # 处理名称去重
         lives = []
         name_counter = {}
         for item in raw_lives:
@@ -1535,34 +1609,41 @@ class Spider(BaseSpider):
                 return (int(parts[0]), int(parts[1]))
         return default
 
+    # ========================= 统一资源加载：fetch_and_merge_lives =========================
     def _fetch_and_merge_lives(self, ext):
         all_lives = []
+
+        # ----- 处理 lives 数组（统一使用 _load_json_resource） -----
         raw_lives = self._p(ext, 'lives', default=[])
         if isinstance(raw_lives, list):
-            all_lives.extend(raw_lives)
+            for item in raw_lives:
+                if isinstance(item, str):
+                    item = item.strip()
+                    if not item:
+                        continue
+                    # 直接调用统一加载器
+                    data = self._load_json_resource(item, allow_decrypt=True)
+                    if data:
+                        if isinstance(data, list):
+                            all_lives.extend(data)
+                            self.logger.debug(f"从资源加载 {len(data)} 个源: {item}")
+                        elif isinstance(data, dict) and 'lives' in data and isinstance(data['lives'], list):
+                            all_lives.extend(data['lives'])
+                            self.logger.debug(f"从资源加载 {len(data['lives'])} 个源: {item}")
+                        else:
+                            self.logger.log(f"资源数据格式无效: {item}")
+                else:
+                    all_lives.append(item)
 
+        # ----- 处理 接口_单仓 / lives_urls（统一使用 _load_json_resource） -----
         urls = self._p(ext, '接口_单仓', 'lives_urls', default=[])
         if isinstance(urls, str):
             urls = [urls] if urls else []
         elif not isinstance(urls, list):
             urls = []
 
-        simple_urls = self._p(ext, '接口_直播', 'lives_url', default=[])
-        if isinstance(simple_urls, str):
-            simple_urls = [simple_urls] if simple_urls else []
-        elif not isinstance(simple_urls, list):
-            simple_urls = []
-
-        for u in simple_urls:
-            if isinstance(u, str) and u.strip():
-                u = u.strip()
-                if u.endswith('.py'):
-                    all_lives.append({'name': f'接口_{len(all_lives)+1}', 'api': u})
-                else:
-                    all_lives.append({'name': f'接口_{len(all_lives)+1}', 'url': u})
-
         if urls:
-            self.logger.log(f"获取远程配置: {len(urls)} 个URL")
+            self.logger.log(f"加载配置源: {len(urls)} 个")
             with ThreadPoolExecutor(max_workers=min(self.max_workers, len(urls))) as ex:
                 self._executors.append(ex)
                 try:
@@ -1583,42 +1664,38 @@ class Spider(BaseSpider):
                                     if isinstance(lv, list):
                                         all_lives.extend(lv)
                         except Exception as e:
-                            self.logger.log(f"远程源异常: {e}")
+                            self.logger.log(f"加载配置源异常: {e}")
                 finally:
                     if ex in self._executors:
                         self._executors.remove(ex)
+
+        # ----- 处理 接口_直播 / lives_url（统一使用 _fetch_one_remote） -----
+        simple_urls = self._p(ext, '接口_直播', 'lives_url', default=[])
+        if isinstance(simple_urls, str):
+            simple_urls = [simple_urls] if simple_urls else []
+        elif not isinstance(simple_urls, list):
+            simple_urls = []
+
+        for u in simple_urls:
+            if isinstance(u, str) and u.strip():
+                u = u.strip()
+                data = self._fetch_one_remote(u)
+                if data:
+                    if isinstance(data, list):
+                        all_lives.extend(data)
+                    elif isinstance(data, dict):
+                        lv = self._p(data, 'lives')
+                        if isinstance(lv, list):
+                            all_lives.extend(lv)
+
         return self._dedup_lives(all_lives)
 
+    # ========================= 统一资源加载：_fetch_one_remote =========================
     def _fetch_one_remote(self, url):
-        try:
-            resp = self.session.get(url, timeout=(self.connect_timeout, self.read_timeout_url), verify=False)
-            if resp.status_code != 200:
-                return None
-            text = resp.text
-            try:
-                return json.loads(text)
-            except Exception:
-                pass
-            dec = try_decrypt_content(text, url, self.external_api_url, self.session)
-            if dec:
-                try:
-                    return json.loads(dec)
-                except Exception:
-                    m = re.search(r'\{[\s\S]*\}', dec)
-                    if m:
-                        try:
-                            return json.loads(m.group())
-                        except Exception:
-                            pass
-                    m2 = re.search(r'"(?:lives)"\s*:\s*(\[[\s\S]*?\])', dec)
-                    if m2:
-                        try:
-                            return {"lives": json.loads(m2.group(1))}
-                        except Exception:
-                            pass
-        except Exception:
-            pass
-        return None
+        """从远程URL或本地文件加载配置数据（使用统一加载器）"""
+        if not url:
+            return None
+        return self._load_json_resource(url, allow_decrypt=True)
 
     def _dedup_lives(self, lives):
         seen = set()
