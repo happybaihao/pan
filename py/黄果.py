@@ -8,26 +8,20 @@ import urllib3
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from urllib.parse import quote, unquote
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 try:
     from base.spider import Spider as BaseSpider
 except Exception:
     class BaseSpider:
         pass
-
 try:
     from Crypto.Cipher import AES
 except Exception:
     AES = None
-
 # 预编译正则（避免每次代理调用都重新编译）
 _RE_URI = re.compile(r'URI="([^"]*)"')
 _RE_HTTP = re.compile(r'https?://')
 _RE_HOST = re.compile(r'https?://[^/]+')
-
-
 class Spider(BaseSpider):
     def __init__(self):
         super().__init__()
@@ -86,13 +80,34 @@ class Spider(BaseSpider):
         self.key = bytes(int(c) for c in "102_53_100_57_54_53_100_102_55_53_51_51_54_50_55_48".split("_"))
         self.iv = bytes(int(c) for c in "57_55_98_54_48_51_57_52_97_98_99_50_102_98_101_49".split("_"))
         self.filter_map = {"": {}}
-
     def getName(self):
         return self.name
-
     def init(self, extend=""):
-        pass
-
+        # ==========新增：解析pg内置代理proxy参数==========
+        if extend:
+            try:
+                cfg = json.loads(extend)
+                proxy = cfg.get("proxy")
+                if proxy:
+                    proxies_dict = {}
+                    if isinstance(proxy, str):
+                        if not proxy.startswith("http"):
+                            p = f"http://{proxy}"
+                        else:
+                            p = proxy
+                        proxies_dict["http"] = p
+                        proxies_dict["https"] = p
+                    elif isinstance(proxy, dict):
+                        for k, v in proxy.items():
+                            if k in ("http", "https") and v:
+                                if not v.startswith("http"):
+                                    v = f"http://{v}"
+                                proxies_dict[k] = v
+                    if proxies_dict:
+                        self.session.proxies = proxies_dict
+            except Exception:
+                pass
+        # =================================================
     def getHtml(self, url):
         # 无需 DNS 解析，Session 自带连接池和自动重试
         # 缩短超时到 8s 快速失败，每线路重试 2 次
@@ -113,7 +128,6 @@ class Spider(BaseSpider):
                 except Exception:
                     continue
         return ""
-
     def fix_url(self, url):
         if not url:
             return ""
@@ -125,7 +139,6 @@ class Spider(BaseSpider):
         if url.startswith("/"):
             return self.host + url
         return url
-
     def proc_pic(self, pic):
         if not pic:
             return ""
@@ -139,7 +152,6 @@ class Spider(BaseSpider):
             return b + "&url=" + quote(pic)
         except Exception:
             return "http://127.0.0.1:9978/proxy?do=py&url=" + quote(pic)
-
     def extract_cards(self, html, link_prefix="detail"):
         result = []
         seen = set()
@@ -185,7 +197,6 @@ class Spider(BaseSpider):
             except Exception:
                 continue
         return result
-
     def extract_rank(self, html):
         result = []
         seen = set()
@@ -216,7 +227,6 @@ class Spider(BaseSpider):
             except Exception:
                 continue
         return result
-
     def extract_topics(self, html):
         result = []
         for m in re.finditer(r'<a class="hg-topic-card" href="(/topics/[^"]*/)"', html):
@@ -239,7 +249,6 @@ class Spider(BaseSpider):
             except Exception:
                 continue
         return result
-
     def extract_posts(self, html):
         result = []
         seen = set()
@@ -267,7 +276,6 @@ class Spider(BaseSpider):
             except Exception:
                 continue
         return result
-
     def parse_api_list(self, items):
         result = []
         for it in items:
@@ -299,7 +307,6 @@ class Spider(BaseSpider):
             except Exception:
                 continue
         return result
-
     def homeContent(self, filter):
         result = {"class": [], "filters": {}}
         for cat in self.cat_map:
@@ -309,7 +316,6 @@ class Spider(BaseSpider):
                 result["filters"][cat["type_id"]] = [{"key": "sub", "name": "子分类", "value": [{"n": t["n"], "v": t["v"]} for t in tabs]}]
         result["list"] = self.homeVideoContent().get("list", [])
         return result
-
     def homeVideoContent(self):
         result = {"list": []}
         html = self.getHtml(self.host)
@@ -324,7 +330,6 @@ class Spider(BaseSpider):
                 unique.append(c)
         result["list"] = unique[:20]
         return result
-
     def get_tab(self, filter, extend):
         for d in (filter, extend):
             if isinstance(d, dict):
@@ -334,7 +339,6 @@ class Spider(BaseSpider):
                 if isinstance(inner, dict) and inner.get("sub"):
                     return inner.get("sub")
         return ""
-
     def categoryContent(self, tid, pg, filter, extend):
         result = {"list": [], "page": 1, "pagecount": 1, "limit": 20, "total": 0}
         page = int(pg) if pg else 1
@@ -419,7 +423,6 @@ class Spider(BaseSpider):
             result["total"] = pgd.get("total") or 0
             result["limit"] = pgd.get("size") or 20
         return result
-
     def detailContent(self, ids):
         result = {"list": []}
         vid = ids[0] if isinstance(ids, list) else ids
@@ -480,7 +483,6 @@ class Spider(BaseSpider):
                 vod["vod_play_url"] = "第01集$/video/%s/" % vid
         result["list"] = [vod]
         return result
-
     def topicFolderList(self, tid, page):
         result = {"list": [], "page": page, "pagecount": 1, "limit": 20, "total": 0}
         try:
@@ -500,7 +502,6 @@ class Spider(BaseSpider):
         result["list"] = unique
         result["limit"] = len(unique) if unique else 20
         return result
-
     def topicFolderDetail(self, tid):
         result = {"list": []}
         try:
@@ -533,7 +534,6 @@ class Spider(BaseSpider):
         }
         result["list"] = [vod]
         return result
-
     def topicDetail(self, vid):
         result = {"list": []}
         html = self.getHtml(self.fix_url(vid))
@@ -548,7 +548,6 @@ class Spider(BaseSpider):
                 unique.append(c)
         result["list"] = unique
         return result
-
     def postDetail(self, vid):
         result = {"list": []}
         html = self.getHtml(self.fix_url(vid))
@@ -588,7 +587,6 @@ class Spider(BaseSpider):
                 vod["vod_play_url"] = "第01集$" + vid
         result["list"] = [vod]
         return result
-
     def searchContent(self, key, quick, pg):
         result = {"list": [], "page": 1, "pagecount": 1, "limit": 20, "total": 0}
         page = int(pg) if pg else 1
@@ -604,7 +602,6 @@ class Spider(BaseSpider):
             result["total"] = int(total.group(1))
         result["page"] = page
         return result
-
     def playerContent(self, flag, id, vipFlags):
         result = {"parse": 0, "playUrl": "", "url": "", "header": ""}
         if isinstance(id, str) and id.startswith("folder_topic_"):
@@ -653,24 +650,18 @@ class Spider(BaseSpider):
         result["url"] = self.proxy_play(m3u8) if m3u8 else ""
         result["header"] = _hdr
         return result
-
     # ===== 代理方法（direct_play=False 时启用，作为回退方案） =====
-
     def proxy_m3u8_url(self, url):
         return self._proxy_base("m3u8", url)
-
     def proxy_ts_url(self, url):
         return self._proxy_base("ts", url)
-
     def proxy_key_url(self, url):
         return self._proxy_base("key", url)
-
     def _proxy_base(self, typ, url):
         b = self.getProxyUrl()
         if "?" not in b:
             b += "?do=py"
         return b + "&type=" + typ + "&url=" + quote(url)
-
     def proxy_play(self, url):
         url = self.fix_url(url)
         if url.startswith("/proxy?") or url.startswith("/local/") or url.startswith("http://127.0.0.1"):
@@ -680,11 +671,9 @@ class Spider(BaseSpider):
         if not self.direct_play and "m3u8" in url.lower():
             return self.proxy_m3u8_url(url)
         return url
-
     def _host_base(self, url):
         m = _RE_HOST.match(url)
         return m.group(0) if m else ""
-
     def _abs_url(self, u, host_base, path_dir):
         if _RE_HTTP.match(u):
             return u
@@ -693,7 +682,6 @@ class Spider(BaseSpider):
         if u.startswith("/"):
             return host_base + u
         return path_dir + u
-
     def _proxy_m3u8(self, url):
         try:
             r = self.session.get(url, timeout=12, verify=False)
@@ -720,7 +708,6 @@ class Spider(BaseSpider):
             return [200, "application/vnd.apple.mpegurl", "\n".join(out).encode("utf-8")]
         except Exception:
             return [502, "text/plain", "err"]
-
     def _proxy_ts(self, url):
         try:
             r = self.session.get(url, timeout=30, verify=False)
@@ -729,7 +716,6 @@ class Spider(BaseSpider):
             return [200, "video/mp2t", r.content]
         except Exception:
             return [502, "text/plain", "err"]
-
     def _proxy_key(self, url):
         if url in self._key_cache:
             return self._key_cache[url]
@@ -742,7 +728,6 @@ class Spider(BaseSpider):
             return result
         except Exception:
             return [502, "text/plain", "err"]
-
     def _proxy_pic(self, url):
         try:
             r = self.session.get(url, timeout=10, verify=False)
@@ -772,7 +757,6 @@ class Spider(BaseSpider):
             return [200, "image/jpeg", ct]
         except Exception:
             return [404, "text/plain", "err"]
-
     def localProxy(self, param):
         if not param:
             return [404, "text/plain", "nf"]
