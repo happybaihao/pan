@@ -19,7 +19,7 @@ class Spider(Spider):
         try: ssl._create_default_https_context = ssl._create_unverified_context
         except Exception: pass
         self.host = "https://ceiling.sysrycady.com/"
-        # =========新增pg内置代理解析==========
+        # =========【仅新增：PG内置代理支持，其余代码完全原样】=========
         if extend:
             try:
                 cfg = json.loads(extend)
@@ -27,23 +27,19 @@ class Spider(Spider):
                 if proxy:
                     proxies_dict = {}
                     if isinstance(proxy, str):
-                        if not proxy.startswith("http"):
-                            p = f"http://{proxy}"
-                        else:
-                            p = proxy
+                        p = proxy if proxy.startswith("http") else f"http://{proxy}"
                         proxies_dict["http"] = p
                         proxies_dict["https"] = p
                     elif isinstance(proxy, dict):
                         for k, v in proxy.items():
                             if k in ("http", "https") and v:
-                                if not v.startswith("http"):
-                                    v = f"http://{v}"
-                                proxies_dict[k] = v
+                                pv = v if v.startswith("http") else f"http://{v}"
+                                proxies_dict[k] = pv
                     if proxies_dict:
                         self.session.proxies = proxies_dict
             except Exception:
                 pass
-        # =====================================
+        # ==========================================================
         self._resolve_domain()
         self.image_map = {}; self.image_id_map = {}
         try:
@@ -291,4 +287,177 @@ class Spider(Spider):
             elif sort == "2": base=self.host + "explore-actor/2/"
             elif sort in ("new","hot","recommend"): base=self.host + "rank-actor/" + sort + "/"
             else: base=self.host + "rank-actor/"
-            return base if pg == 1 else base + "page/" +
+            return base if pg == 1 else base + "page/" + str(pg) + "/"
+        if cid == "drama":
+            vals=[str(e.get(k,0) or 0) for k in ("theme","setting","background","audience","time","recommend")]
+            base=self.host + "explore-drama/" + "-".join(vals) + "/"
+            return base if pg == 1 else base + "page/" + str(pg) + "/"
+        if cid == "drama_week":
+            base=self.host + "rank-drama/week/"; return base if pg == 1 else base + "page/" + str(pg) + "/"
+        if cid == "drama_month":
+            base=self.host + "rank-drama/month/"; return base if pg == 1 else base + "page/" + str(pg) + "/"
+        if cid == "aisd":
+            base=self.host + "drama/AISD/"; return base if pg == 1 else base + "page/" + str(pg) + "/"
+        if cid == "explore":
+            e=ext if isinstance(ext,dict) else {}; vals=[str(e.get(k,0) or 0) for k in ("theme","setting","background","audience","time","recommend")]
+            u=self.host+"explore-drama/"+"-".join(vals)+"/"; return u if pg==1 else u+"page/"+str(pg)+"/"
+        if cid == "male": return self.host+"explore-actor/2/"+("page/"+str(pg)+"/" if pg>1 else "")
+        if cid == "female": return self.host+"explore-actor/1/"+("page/"+str(pg)+"/" if pg>1 else "")
+        if cid in ("actor_recommend","actor_new","actor_hot"):
+            kind={"actor_recommend":"recommend","actor_new":"new","actor_hot":"hot"}[cid]; return self.host+"rank-actor/"+kind+"/"+("page/"+str(pg)+"/" if pg>1 else "")
+        if cid == "drama_":
+            kind="week" if cid=="drama_week" else "month"; return self.host+"rank-drama/"+kind+"/"+("page/"+str(pg)+"/" if pg>1 else "")
+        if cid == "aisd": return self.host+"drama/AISD/"+("page/"+str(pg)+"/" if pg>1 else "")
+        if cid.startswith("actor$"): return self.host+"actor/"+cid.split("$",1)[1]+"/"
+        return self.host
+    def homeContent(self, filter):
+        self._load_filters()
+        return {"class":self.classes,"filters":self.filters,"list":[]}
+    def homeVideoContent(self): return self.categoryContent("drama",1,{}, {"source":"week"})
+    def categoryContent(self, cid, pg, filter, ext):
+        try:
+            pg=int(pg) if str(pg).isdigit() else 1
+            if str(cid).startswith("actor_detail_") or str(cid).startswith("actor-detail$") or str(cid).startswith("actor$") or "/actor-detail/" in str(cid) or "/actor/" in str(cid):
+                aid=re.search(r"actor_detail_(\d+)", str(cid)).group(1) if str(cid).startswith("actor_detail_") else (str(cid).split("$")[1] if "$" in str(cid) else (re.search(r"actor-detail/(\d+)", str(cid)) or re.search(r"actor/(\d+)", str(cid)) or re.search(r"(\d+)", str(cid))).group(1))
+                url=self.host+"actor-detail/"+aid+"/"+("?page="+str(pg) if pg>1 else "")
+                html=self._req(url)
+                if not html: return {"list":[],"page":pg,"pagecount":1,"limit":20,"total":0}
+                data=self._payload(html)
+                arr=[]; seen=set()
+                works=self._walk(data,["video_id","title"]) or self._walk(data,["video_id","video_title"])
+                for x in works:
+                    v=self._vod(x,False)
+                    if v and v["vod_id"] not in seen: seen.add(v["vod_id"]); arr.append(v)
+                total, limit, pagecount = self._meta(html)
+                print(f"[51短剧] 演员二级 {cid} 第{pg}页: {len(arr)} 条, 共{total}条")
+                return {"list":arr,"page":pg,"pagecount":pagecount,"limit":limit,"total":total or len(arr)}
+            actor=cid == "actor"
+            html=self._req(self._url(cid,pg,ext)); vods=self._page(html,actor)
+            total, limit, pagecount = self._meta(html)
+            if cid == "aisd" and vods:
+                limit = limit or 30
+                pagecount = max(pagecount, pg + 1) if len(vods) >= limit else pg
+                total = max(total, pagecount * limit)
+            print(f"[51短剧] 分类 {cid} 第{pg}页: {len(vods)} 条")
+            return {"list":vods,"page":pg,"pagecount":pagecount,"limit":limit,"total":total or len(vods)}
+        except Exception as e:
+            print(f"[51短剧] 分类失败: {e}"); return {"list":[],"page":1,"pagecount":1,"limit":20,"total":0}
+    def detailContent(self, ids):
+        try:
+            vid=str(ids[0])
+            if vid.startswith("actor_detail_") or vid.startswith("actor-detail$") or vid.startswith("actor$") or "/actor-detail/" in vid or "/actor/" in vid:
+                aid=re.search(r"actor_detail_(\d+)", vid).group(1) if vid.startswith("actor_detail_") else (vid.split("$")[1] if "$" in vid else (re.search(r"actor-detail/(\d+)", vid) or re.search(r"actor/(\d+)", vid) or re.search(r"(\d+)", vid)).group(1))
+                url=self.host+"actor-detail/"+aid+"/"
+                html=self._req(url)
+                if not html: return {"list":[]}
+                data=self._payload(html)
+                arr=[]; seen=set()
+                works=self._walk(data,["video_id","title"]) or self._walk(data,["video_id","video_title"])
+                for x in works:
+                    v=self._vod(x,False)
+                    if v and v["vod_id"] not in seen: seen.add(v["vod_id"]); arr.append(v)
+                print(f"[51短剧] 演员 {aid} 作品: {len(arr)} 条")
+                return {"list":[{"vod_id":x["vod_id"],"vod_name":x["vod_name"],"vod_pic":x.get("vod_pic",""),"vod_remarks":"参演剧集","vod_tag":"video","vod_play_id":x.get("vod_play_id","")} for x in arr]}
+            html=self._req(vid if vid.startswith("http") else self.host+"drama/"+vid+"/"); data=self._payload(html)
+            items=self._walk(data,["episode_title","video_url"]); pics=self._walk(data,["video_id","title"]); roots=self._walk(data,["video_title","cover_img"]); pics= pics or roots
+            detail_rows=[]
+            if vid.startswith("http") and "drama-play" in vid: detail_rows=self._episode_rows(vid)
+            if detail_rows:
+                pics = pics or detail_rows
+            info=pics[0] if pics else {}
+            title=str(info.get("title") or info.get("video_title") or info.get("drama_name") or vid)
+            pic=self.image_map.get(title) or self._pic(info.get("cover") or info.get("cover_img") or info.get("cover_image") or info.get("image") or info.get("poster") or info.get("thumb")) if info else self.image_map.get(title, "")
+            desc=str(info.get("description") or info.get("video_desc") or info.get("content") or "")
+            tags=info.get("tags") or info.get("tag") or []
+            vod_class=",".join([str(t) for t in tags]) if isinstance(tags,list) else str(tags or "")
+            plays=str(info.get("play_count_text") or "") or self._num(info.get("play_count")); chase=self._num(info.get("chase_count")); remarks=(("播放"+plays) if plays else "") + ((" · 追剧"+chase) if chase else "")
+            urls=[]; seen=set()
+            if detail_rows:
+                m=re.search(r"id=(\d+)", vid); sid=m.group(1) if m else ""
+                for x in detail_rows:
+                    eid=x.get("id") or x.get("episode_id") or x.get("video_id")
+                    u=self.host+"drama-play?id="+str(sid)+("&episode_id="+str(eid) if eid else "")
+                    n=str(x.get("title") or x.get("episode_title") or x.get("video_title") or ("第"+str(x.get("sort"))+"集" if x.get("sort") else "播放"))
+                    if u and u not in seen: seen.add(u); urls.append((n,u))
+            else:
+                for x in items:
+                    u=self._media(x.get("video_url"))
+                    if u and u not in seen: seen.add(u); urls.append((str(x.get("episode_title") or "正片"),u))
+            return {"list":[{"vod_id":vid,"vod_name":title,"vod_pic":pic,"vod_remarks":remarks,"vod_class":vod_class,"vod_content":desc,"vod_play_from":"51短剧" if urls else "","vod_play_url":"#".join(n+"$"+u for n,u in urls)}]}
+        except Exception as e: print(f"[51短剧] 详情失败: {e}"); return {"list":[]}
+    def searchContent(self, key, quick, pg="1"):
+        try:
+            pg=int(pg) if str(pg).isdigit() else 1
+            q=urllib.parse.quote(str(key))
+            u=self.host+"search-drama/"+q+"/"+("page/"+str(pg)+"/" if pg>1 else "")
+            html=self._req(u); vods=self._page(html,False); total,limit,pagecount=self._meta(html)
+            print(f"[51短剧] 搜索 {key} 第{pg}页: {len(vods)} 条")
+            return {"list":vods,"page":pg,"pagecount":pagecount,"limit":limit,"total":total or len(vods)}
+        except Exception as e: print(f"[51短剧] 搜索失败: {e}"); return {"list":[],"page":pg,"pagecount":1,"limit":20,"total":0}
+    def playerContent(self, flag, id, vipFlags):
+        try:
+            url=str(id).replace("\\u002F","/").replace("\\/","/")
+            dm_url=self._danmaku_url(url) if "drama-play" in url else ""
+            if "drama-play" in url and not self.isVideoFormat(url):
+                html=self._req(url); data=self._payload(html)
+                em=re.search(r"episode_id=(\d+)", url); target=em.group(1) if em else ""
+                best=""
+                def go(x):
+                    nonlocal best
+                    if best: return
+                    if isinstance(x, dict):
+                        if str(x.get("id") or x.get("episode_id") or "") == target:
+                            u=x.get("video_url") or x.get("play_url") or ""
+                            if u: best=self._media(u); return
+                        for v in x.values(): go(v)
+                    elif isinstance(x, list):
+                        for v in x: go(v)
+                if target: go(data)
+                if not best:
+                    for x in self._walk(data,["episode_title","video_url"]):
+                        u=self._media(x.get("video_url"))
+                        if u: best=u; break
+                if not best:
+                    for x in self._walk(data,["video_title","video_url"]):
+                        u=self._media(x.get("video_url"))
+                        if u: best=u; break
+                if best: url=best
+                if not self.isVideoFormat(url):
+                    m=re.search(r"https?:[^\"'<>\s]+\.(?:m3u8|mp4)[^\"'<>\s]*", html)
+                    if m: url=m.group(0).replace("\\u002F","/").replace("\\/","/")
+            ret={"parse":0,"url":url,"header":json.dumps(self.headers,ensure_ascii=False)}
+            if dm_url: ret["danmaku"]=[{"name":"51短剧弹幕","url":dm_url}]
+            return ret
+        except Exception as e: print(f"[51短剧] 播放解析失败: {e}"); return {"parse":0,"url":str(id),"header":json.dumps(self.headers,ensure_ascii=False)}
+    def isVideoFormat(self, url): return bool(re.search(r'\.(m3u8|mp4|m4v|ts)(\?|$)',str(url),re.I))
+    def e64(self, text):
+        try: return base64.b64encode(str(text).encode("utf-8")).decode("utf-8")
+        except Exception: return ""
+    def d64(self, text):
+        try: return base64.b64decode(str(text).encode("utf-8")).decode("utf-8")
+        except Exception: return ""
+    def localProxy(self, param):
+        if param.get("type") == "danmu":
+            try:
+                vid=str(param.get("vid") or param.get("video_id") or "")
+                eid=str(param.get("eid") or param.get("episode_id") or "")
+                if not vid or not eid: return [404,"text/plain","",""]
+                return [200,"application/xml; charset=utf-8",self._danmaku_xml(vid,eid),{"Cache-Control":"no-store"}]
+            except Exception as e: print(f"[51短剧] 弹幕代理失败: {e}"); return [404,"text/plain","",""]
+        if param.get("type") != "img": return [404,"text/plain","",""]
+        try:
+            url=self.d64(param.get("url", ""))
+            if not url: return [404,"text/plain","",""]
+            r=self.session.get(url,headers=self.headers,timeout=15,verify=False)
+            content=r.content
+            try: content=unpad(AES.new(self.media_key,AES.MODE_CBC,self.media_iv).decrypt(content), AES.block_size)
+            except Exception: pass
+            ctype="image/jpeg"
+            if content.startswith(b"\x89PNG"): ctype="image/png"
+            elif content[:4] == b"RIFF" and content[8:12] == b"WEBP": ctype="image/webp"
+            elif content.startswith(b"GIF"): ctype="image/gif"
+            return [r.status_code,ctype,content,{}]
+        except Exception as e: print(f"[51短剧] 图片代理失败: {e}"); return [404,"text/plain","",""]
+    def destroy(self):
+        try: self.session.close()
+        except Exception: pass
