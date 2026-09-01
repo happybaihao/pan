@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 黄果短剧 融合版
+# 黄果短剧 融合版【支持pg内置网络代理】
 # 融合优势：
 #   - 动态/多域名容灾 + 官方主站优先
 #   - 分类 JSON API（最稳） + HTML 回退
@@ -10,7 +10,6 @@
 #   - BeautifulSoup + 正则双解析
 # 依赖：requests, beautifulsoup4, pycryptodome (或 Crypto)
 # 适配 TVBox / 类 TVBox 壳
-
 import sys
 import re
 import json
@@ -19,25 +18,21 @@ import random
 import threading
 import html as htmllib
 import urllib.parse
-
 sys.path.append('..')
 try:
     from base.spider import Spider
 except ImportError:
     class Spider:
         pass
-
 try:
     import requests as rq
     rq.packages.urllib3.disable_warnings()
 except Exception:
     pass
-
 try:
     from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
-
 try:
     from Crypto.Cipher import AES
 except ImportError:
@@ -45,7 +40,6 @@ except ImportError:
         from Cryptodome.Cipher import AES
     except ImportError:
         AES = None
-
 # ---------- 常量 ----------
 HOSTS = [
     "https://huangguoai.com",
@@ -66,20 +60,15 @@ _PLACEHOLDER_GIF = base64.b64decode(
     'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
 _PROXY_PORT = [0]
 _TAG_RE = re.compile(r'<[^>]+>')
-
-
 def _clean(s):
     if not s:
         return ""
     s = htmllib.unescape(str(s))
     s = _TAG_RE.sub(' ', s)
     return re.sub(r'\s+', ' ', s).strip()
-
-
 # ---------- 本地图片代理服务器 ----------
 try:
     from http.server import BaseHTTPRequestHandler, HTTPServer
-
     def _fetch_img_raw(u, referer):
         headers = {"User-Agent": UA, "Referer": referer,
                    "Accept": "image/*"}
@@ -91,7 +80,6 @@ try:
         except Exception:
             pass
         return b''
-
     def _decrypt_img(data):
         if not data or AES is None:
             return data
@@ -113,7 +101,6 @@ try:
             return dec  # 仍返回尝试结果
         except Exception:
             return data
-
     def _detect_mime(data):
         if data[:3] == b'\xff\xd8\xff':
             return 'image/jpeg'
@@ -124,7 +111,6 @@ try:
         if data[:4] == b'RIFF' and data[8:12] == b'WEBP':
             return 'image/webp'
         return 'image/jpeg'
-
     class _ImgHandler(BaseHTTPRequestHandler):
         def do_GET(self):
             try:
@@ -154,10 +140,8 @@ try:
                 self.wfile.write(data)
             except Exception:
                 pass
-
         def log_message(self, *args):
             pass
-
     def _start_proxy_server():
         if _PROXY_PORT[0]:
             return _PROXY_PORT[0]
@@ -177,13 +161,9 @@ except Exception:
         return data
     def _detect_mime(data):
         return 'image/jpeg'
-
-
 class Spider(Spider):
-
     def getName(self):
         return "黄果短剧"
-
     def init(self, extend=""):
         # 先给默认值，防止部分壳不调用 init 或调用失败导致 AttributeError
         self.host = HOSTS[0].rstrip('/')
@@ -200,31 +180,55 @@ class Spider(Spider):
                 "Accept-Language": "zh-CN,zh;q=0.9",
                 "Referer": self.host + "/",
             })
+            # =========【新增：读取extend代理配置，兼容黄豆短剧格式】=========
+            if extend:
+                try:
+                    cfg = json.loads(extend)
+                    proxy = cfg.get('proxy')
+                    if proxy:
+                        proxies_dict = {}
+                        if isinstance(proxy, str):
+                            # 字符串代理："127.0.0.1:10172"
+                            if not proxy.startswith("http"):
+                                http_proxy = f"http://{proxy}"
+                            else:
+                                http_proxy = proxy
+                            proxies_dict["http"] = http_proxy
+                            proxies_dict["https"] = http_proxy
+                        elif isinstance(proxy, dict):
+                            # 字典代理 {"http":"xxx","https":"xxx"}
+                            for k, v in proxy.items():
+                                if k in ("http", "https") and v:
+                                    if not v.startswith("http"):
+                                        v = f"http://{v}"
+                                    proxies_dict[k] = v
+                        if proxies_dict:
+                            self.s.proxies = proxies_dict
+                except Exception:
+                    pass
+            # =========================================================
         except Exception:
             self.s = None
         try:
             _start_proxy_server()
         except Exception:
             pass
-
     def _pick_host(self):
         """优先主站，其次备用镜像。超时短，失败直接回退。"""
         for h in HOSTS:
             try:
-                r = rq.get(h, headers={"User-Agent": UA}, timeout=5, verify=False)
+                r = rq.get(h, headers={"User-Agent": UA}, timeout=5, verify=False, proxies=self.s.proxies if hasattr(self.s,"proxies") else None)
                 if r.status_code == 200 and ('黄果' in r.text or 'huangguo' in r.text.lower() or len(r.text) > 1500):
                     return h.rstrip('/')
             except Exception:
                 continue
         return HOSTS[0].rstrip('/')
-
     def _safe_host(self):
         """任何时候都能拿到一个可用 host"""
         h = getattr(self, 'host', None)
         if h and isinstance(h, str) and h.startswith('http'):
             return h.rstrip('/')
         return HOSTS[0].rstrip('/')
-
     def _wrap_pic(self, url):
         """封面走本地代理（带 Referer + AES 解密）"""
         if not url or not str(url).startswith('http'):
@@ -240,7 +244,6 @@ class Spider(Spider):
             return f"proxy://type=pic&url={b}"
         except Exception:
             return url
-
     def _get(self, path, ref="/"):
         host = self._safe_host()
         url = host + path if path.startswith('/') else path
@@ -256,13 +259,10 @@ class Spider(Spider):
         except Exception:
             pass
         return ""
-
     def isVideoFormat(self, url):
         return any(x in (url or '') for x in ['.m3u8', '.mp4', '.flv', '.mkv', '.avi'])
-
     def manualVideoCheck(self):
         return False
-
     # ---------- 首页 ----------
     def homeContent(self, filter=False):
         result = {
@@ -305,7 +305,6 @@ class Spider(Spider):
         except Exception:
             pass
         return result
-
     def homeVideoContent(self):
         try:
             html = self._get("/recommend/1/")
@@ -314,7 +313,6 @@ class Spider(Spider):
             return {"list": self._parse_list(html)}
         except Exception:
             return {"list": []}
-
     # ---------- 分类 ----------
     def categoryContent(self, tid, pg=1, filter=False, extend=""):
         try:
@@ -326,9 +324,7 @@ class Spider(Spider):
         cid = str(tid or "").strip().strip("/")
         ext = extend if isinstance(extend, dict) else {}
         rc = ext.get("类型", cid)
-
         videos, pages, total = [], 9999, 0
-
         try:
             # 专题文件夹
             if cid.startswith("dir_topic_"):
@@ -336,7 +332,6 @@ class Spider(Spider):
                 html = self._get(f"/topics/{slug}/?page={pg}")
                 videos = self._parse_list(html, mode="drama")
                 return self._result(videos, pg, 9999)
-
             # AI 四分类优先 JSON API
             if cid in ("ai-duanju", "ai-manju", "ai-huanlian", "ai-mogai"):
                 videos, pages, total = self._category_api(cid, pg)
@@ -351,7 +346,6 @@ class Spider(Spider):
                 if len(videos) > PAGE_SIZE:
                     videos = videos[:PAGE_SIZE]
                 return self._result(videos, pg, pages or 9999, total)
-
             # 其它固定路径
             if cid == "recommend":
                 html = self._get(f"/recommend/{pg}/")
@@ -381,12 +375,9 @@ class Spider(Spider):
                 path = f"/{cid}/" if pg <= 1 else f"/{cid}/{pg}/"
                 html = self._get(path)
                 videos = self._parse_list(html)
-
         except Exception:
             videos = []
-
         return self._result(videos, pg, pages, total)
-
     def _category_api(self, slug, pg):
         url = (f"/api/videos/category/{urllib.parse.quote(slug)}"
                f"?sort=hot&page={pg}&size={PAGE_SIZE}")
@@ -415,7 +406,6 @@ class Spider(Spider):
         except Exception:
             pass
         return videos, pages, total
-
     def _api_item(self, it):
         vid = it.get("id")
         if vid is None:
@@ -439,7 +429,6 @@ class Spider(Spider):
             "vod_pic": self._wrap_pic(pic),
             "vod_remarks": remark or "在线观看",
         }
-
     def _result(self, videos, pg, pagecount=9999, total=0):
         n = len(videos)
         if total < 1:
@@ -451,11 +440,9 @@ class Spider(Spider):
             "limit": PAGE_SIZE,
             "total": total,
         }
-
     # ---------- 搜索 ----------
     def searchContent(self, key, quick=False, pg="1"):
         return self.searchContentPage(key, quick, pg)
-
     def searchContentPage(self, key, quick, page):
         kw = urllib.parse.quote(str(key or "").strip())
         if not kw:
@@ -474,7 +461,6 @@ class Spider(Spider):
             "total": 0,
             "list": videos,
         }
-
     # ---------- 详情 ----------
     def detailContent(self, ids):
         try:
@@ -484,11 +470,9 @@ class Spider(Spider):
             return {"list": []}
         if not did:
             return {"list": []}
-
         # 吃瓜文章
         if "/archives/" in did or did.startswith("http") and "archives" in did:
             return self._detail_chigua(did)
-
         # 统一成纯数字 id
         m = re.search(r'(?:detail/|/)?(\d+)/?$', did)
         vid = m.group(1) if m else (did if did.isdigit() else None)
@@ -497,10 +481,8 @@ class Spider(Spider):
             html = self._get(did if did.startswith("/") else "/" + did)
         else:
             html = self._get(f"/detail/{vid}/")
-
         if not html:
             return {"list": []}
-
         title = ""
         m = re.search(r'<h1[^>]*>([^<]+)</h1>', html)
         if m:
@@ -515,7 +497,6 @@ class Spider(Spider):
                 title = _clean(m.group(1).split('|')[0])
         if not title:
             return {"list": []}
-
         pic = ""
         m = re.search(r'<img[^>]*data-src="([^"]+)"[^>]*>', html)
         if m:
@@ -524,7 +505,6 @@ class Spider(Spider):
             m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
             if m:
                 pic = htmllib.unescape(m.group(1)).strip()
-
         desc = ""
         m = re.search(r'<p class="[^"]*hg-web-detail__desc[^"]*"[^>]*>(.*?)</p>', html, re.S)
         if m:
@@ -533,7 +513,6 @@ class Spider(Spider):
             m = re.search(r'<meta name="description" content="([^"]+)"', html)
             if m:
                 desc = _clean(m.group(1))
-
         meta = ""
         m = re.search(r'class="[^"]*hg-web-detail__meta[^"]*"[^>]*>(.*?)</div>', html, re.S)
         if m:
@@ -542,7 +521,6 @@ class Spider(Spider):
         for m in re.finditer(r'class="hg-tag"[^>]*href="(/tag/[^"]+)"[^>]*>([^<]+)<', html):
             tags.append(_clean(m.group(2)))
         remark = meta or "在线观看"
-
         # 剧集列表（兼容带 <img> 的立即播放按钮、单集、多集）
         eps = []
         seen = set()
@@ -557,7 +535,6 @@ class Spider(Spider):
                 epn = m.group(2)
                 label = f"{int(epn):02d}" if epn else "01"
                 eps.append((label, path))
-
             # 2) 带文字的链接（有的页面有）
             for m in re.finditer(
                     r'href="(/video/' + re.escape(vid) + r'(?:/ep-\d+)?/)"[^>]*>(.*?)</a>',
@@ -577,7 +554,6 @@ class Spider(Spider):
                     em = re.search(r'/ep-(\d+)/', path)
                     label = f"{int(em.group(1)):02d}" if em else "01"
                 eps.append((label, path))
-
             # 3) 详情页没有集数时，去播放页再抓一次
             if not eps:
                 vhtml = self._get(f"/video/{vid}/")
@@ -603,14 +579,11 @@ class Spider(Spider):
                         seen.add(path)
                         label = _clean(m.group(3)) or f"第{m.group(2)}集"
                         eps.append((label, path))
-
         eps = sorted(eps, key=lambda x: self._ep_sort(x[1]))
         if not eps and vid:
             eps = [("01", f"/video/{vid}/")]
-
         play_from = ["正片"]
         play_url = ["#".join(f"{l}${p}" for l, p in eps)]
-
         vod = {
             "vod_id": vid or did,
             "vod_name": title,
@@ -626,7 +599,6 @@ class Spider(Spider):
             "vod_director": "",
         }
         return {"list": [vod]}
-
     def _detail_chigua(self, url):
         if not url.startswith("http"):
             url = self.host.rstrip('/') + (url if url.startswith('/') else '/' + url)
@@ -634,26 +606,22 @@ class Spider(Spider):
             html = self._get(url.replace(self.host, "")) if url.startswith(self.host) else ""
             if not html:
                 r = rq.get(url, headers={"User-Agent": UA, "Referer": self.host + "/"},
-                           timeout=TIMEOUT, verify=False)
+                           timeout=TIMEOUT, verify=False, proxies=self.s.proxies if hasattr(self.s,"proxies") else None)
                 html = r.text if r.status_code == 200 else ""
         except Exception:
             return {"list": []}
         if not html:
             return {"list": []}
-
         title = ""
         m = re.search(r'<title>(.*?)</title>', html)
         if m:
             title = _clean(m.group(1).split('|')[0])
-
         players = re.findall(
             r'<div class="post-video-player"[^>]*data-player-key="([^"]*)"[^>]*data-src="([^"]*)"', html)
         if not players:
             players = re.findall(r'data-src="(https?://[^"]+\.m3u8[^"]*)"', html)
             players = [(f"线路{i+1}", u) for i, u in enumerate(players)]
-
         play = "#".join([f"{k}${v.replace('&amp;', '&')}" for k, v in players]) if players else ""
-
         video = {
             "vod_id": url,
             "vod_name": title or "吃瓜",
@@ -666,24 +634,20 @@ class Spider(Spider):
             "vod_year": "", "vod_area": "", "vod_actor": "", "vod_director": "",
         }
         return {"list": [video]}
-
     @staticmethod
     def _ep_sort(path):
         m = re.search(r'/ep-(\d+)/', path or "")
         return int(m.group(1)) if m else 0
-
     # ---------- 播放 ----------
     def playerContent(self, flag, id, vipFlags=None, vipIds=None):
         """对齐精简版 + 兼容纯数字 id / 单集 AI魔改。"""
         key = str(id or "").strip()
         if not key:
             return {"url": ""}
-
         # 已经是直链
         if key.startswith("http"):
             url = key.replace("&amp;", "&").replace("\\u0026", "&")
             return {"parse": 0, "url": url, "header": {"User-Agent": UA}}
-
         # 纯数字 → 当成视频 id，走 /video/{id}/
         if key.isdigit():
             key = f"/video/{key}/"
@@ -692,7 +656,6 @@ class Spider(Spider):
         # 有人传 video/123 或 video/123/ep-1 没有前导 /
         if key.startswith("video/"):
             key = "/" + key
-
         html = self._get(key, ref="/")
         # 主站失败时换镜像
         if not html or "videoInitialData" not in html:
@@ -700,16 +663,14 @@ class Spider(Spider):
                 try:
                     u = h.rstrip('/') + key
                     r = rq.get(u, headers={"User-Agent": UA, "Referer": h.rstrip('/') + "/"},
-                               timeout=TIMEOUT, verify=False, allow_redirects=True)
+                               timeout=TIMEOUT, verify=False, allow_redirects=True, proxies=self.s.proxies if hasattr(self.s,"proxies") else None)
                     if r.status_code == 200 and r.text and "videoInitialData" in r.text:
                         html = r.text
                         break
                 except Exception:
                     continue
-
         if not html:
             return {"url": ""}
-
         # 提取 videoInitialData
         m = re.search(
             r'<script id="videoInitialData" type="application/json">(.*?)</script>',
@@ -720,12 +681,10 @@ class Spider(Spider):
                 return {"parse": 0, "url": m2.group(1).replace("&amp;", "&"),
                         "header": {"User-Agent": UA}}
             return {"url": ""}
-
         try:
             data = json.loads(m.group(1))
         except Exception:
             return {"url": ""}
-
         url = data.get("videoSrc") or ""
         if not url:
             eps = data.get("epPlaySrcs") or {}
@@ -744,12 +703,10 @@ class Spider(Spider):
                     if v:
                         url = v
                         break
-
         url = str(url or "").replace("\\u0026", "&").replace("&amp;", "&").strip()
         if url.startswith("http"):
             return {"parse": 0, "url": url, "header": {"User-Agent": UA}}
         return {"url": ""}
-
     # ---------- 本地代理（TVBox 调用） ----------
     def localProxy(self, param):
         try:
@@ -763,7 +720,7 @@ class Spider(Spider):
                 return None
             host = self._safe_host()
             headers = {"User-Agent": UA, "Referer": host + "/", "Accept": "image/*"}
-            rr = rq.get(url, headers=headers, timeout=15, verify=False, allow_redirects=True)
+            rr = rq.get(url, headers=headers, timeout=15, verify=False, allow_redirects=True, proxies=self.s.proxies if hasattr(self.s,"proxies") else None)
             if rr.status_code == 200 and rr.content and len(rr.content) > 50:
                 data = _decrypt_img(rr.content)
                 ctype = _detect_mime(data)
@@ -771,7 +728,6 @@ class Spider(Spider):
         except Exception:
             pass
         return None
-
     def _proxy_pic(self, params):
         try:
             raw = params.get("url") or ""
@@ -784,13 +740,12 @@ class Spider(Spider):
                 return None
             host = self._safe_host()
             headers = {"User-Agent": UA, "Referer": host + "/"}
-            data = rq.get(raw, headers=headers, timeout=15, verify=False).content
+            data = rq.get(raw, headers=headers, timeout=15, verify=False, proxies=self.s.proxies if hasattr(self.s,"proxies") else None).content
             data = _decrypt_img(data)
             mime = _detect_mime(data)
             return [200, mime, data]
         except Exception:
             return None
-
     @staticmethod
     def _resolve_img_param(param):
         if not param:
@@ -815,7 +770,6 @@ class Spider(Spider):
             except Exception:
                 pass
         return p if p.startswith("http") else ""
-
     # ---------- 列表解析 ----------
     def _parse_list(self, html, mode="drama"):
         if not html or len(html) < 150:
@@ -826,11 +780,9 @@ class Spider(Spider):
             except Exception:
                 pass
         return self._parse_regex(html)
-
     def _parse_bs4(self, html, mode):
         videos, seen = [], set()
         doc = BeautifulSoup(html, "lxml") if "lxml" in str(BeautifulSoup) else BeautifulSoup(html, "html.parser")
-
         if mode == "drama" or mode == "search":
             # 通用卡片
             for card in doc.select("div.hg-drama-card"):
@@ -871,7 +823,6 @@ class Spider(Spider):
                         "vod_pic": self._wrap_pic(pic),
                         "vod_remarks": remark,
                     })
-
             # search 补充
             if mode == "search" and not videos:
                 for a in doc.find_all("a", href=re.compile(r"/detail/\d+")):
@@ -900,7 +851,6 @@ class Spider(Spider):
                             "vod_pic": self._wrap_pic(pic),
                             "vod_remarks": remark or "在线观看",
                         })
-
         elif mode == "rank":
             for item in doc.select("div.hg-rank-item"):
                 a = item.find("a", href=True, class_=re.compile("cover")) or item.find("a", href=True)
@@ -927,7 +877,6 @@ class Spider(Spider):
                         "vod_pic": self._wrap_pic(pic),
                         "vod_remarks": remark,
                     })
-
         elif mode == "topic":
             for card in doc.select("a.hg-topic-card"):
                 href = card.get("href", "")
@@ -946,7 +895,6 @@ class Spider(Spider):
                         "vod_remarks": remark,
                         "vod_tag": "folder",
                     })
-
         elif mode == "post":
             for card in doc.select("a.hg-post-card"):
                 href = card.get("href", "")
@@ -965,9 +913,7 @@ class Spider(Spider):
                     "vod_pic": self._wrap_pic(pic),
                     "vod_remarks": " | ".join(parts),
                 })
-
         return videos
-
     def _parse_regex(self, html):
         """无 BS4 时的正则兜底（与第一版兼容）"""
         result, seen = [], set()
