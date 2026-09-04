@@ -54,11 +54,126 @@ class Spider(BaseSpider):
         try:
             if not url.startswith('http'):
                 url = self.base_url + url
-            rsp = self.fetch(url, headers=self._headers(referer))
+            headers = self._headers(referer)
+            # 有会话则走会话(自动保持cookie), 否则走基类fetch
+            if self._sess is not None:
+                # 会话头已含UA等, 补referer; Cookie由会话jar自动管理
+                h = dict(headers)
+                h.pop('Cookie', None)
+                rsp = self._sess.get(url, headers=h, timeout=20, verify=False)
+                text = rsp.text
+                # 检测验证码页 → 自动OCR过验 → 重试一次
+                if '系统安全验证' in text or 'captcha.php?type=code' in text:
+                    if self._auto_verify():
+                        rsp = self._sess.get(url, headers=h, timeout=20, verify=False)
+                        text = rsp.text
+                return text
+            rsp = self.fetch(url, headers=headers)
             return rsp.text if rsp else ''
         except Exception as e:
             self._log('请求异常', url, e)
             return ''
+
+    # OCR服务地址(三级回落: 公网→内网→本机)
+    OCR_HOSTS = ["https://py.fzcrym.link:1314", "http://192.168.0.158:7800",
+                 "http://127.0.0.1:7800"]
+
+    def _remote_ocr(self, img_bytes):
+        """调远程OCR服务识别验证码, 返回codes列表(空=失败)"""
+        for host in self.OCR_HOSTS:
+            try:
+                r = requests.post(host + '/fyocr', data=img_bytes, timeout=15,
+                                  verify=False)
+                if r.status_code == 200:
+                    j = r.json()
+                    if j.get('code') == 1 and j.get('codes'):
+                        return j['codes']
+            except Exception:
+                continue
+        return []
+
+    def _auto_verify(self):
+        """自动OCR通过苹果CMS图形验证码, 成功返回True"""
+        try:
+            import io as _io, time as _t
+            if self._sess is None:
+                return False
+            # 混淆映射(数字→视觉相似字母), 提高命中
+            mapping = {'0': 'oO', '1': 'lLiI', '2': 'zZ', '5': 'sS',
+                       '8': 'bB', '6': 'gG', '3': 'eE', '9': 'gGqQ',
+                       '4': 'aA', '7': 'tT'}
+            for attempt in range(8):
+                try:
+                    r = self._sess.get(self.base_url + '/captcha.php?type=code&r=0.%d' % (attempt + 1),
+                                       timeout=15, verify=False)
+                except Exception:
+                    continue
+                if r.status_code != 200:
+                    continue
+                codes = self._remote_ocr(r.content)
+                # 本地tesseract兜底(若端上有)
+                if not codes:
+                    try:
+                        import subprocess
+                        from PIL import Image
+                        img = Image.open(_io.BytesIO(r.content)).convert('L')
+                        w, h = img.size
+                        img = img.resize((w * 10, h * 10), Image.LANCZOS)
+                        img = img.point(lambda x: 0 if x < 150 else 255)
+                        buf = '/tmp/_fy_cap_%d.png' % attempt
+                        img.save(buf)
+                        for psm in ('7', '8', '13'):
+                            res = subprocess.run(['tesseract', buf, 'stdout', '--psm', psm],
+                                                 capture_output=True, text=True, timeout=20)
+                            c = (res.stdout or '').strip()
+                            if c and c not in codes:
+                                codes.append(c)
+                    except Exception:
+                        pass
+                if not codes:
+                    continue
+                # Referer匹配触发页
+                ref = self.base_url
+                try:
+                    vb = dict(self._sess.cookies).get('verify_back_url', '')
+                    if vb:
+                        ref = self.base_url + vb
+                except Exception:
+                    pass
+                ok = False
+                for code in codes:
+                    if len(code) < 4 or len(code) > 6:
+                        continue
+                    variants = {code, code.lower(), code.upper()}
+                    # 加混淆变体
+                    for ch, reps in mapping.items():
+                        if ch in code:
+                            for rp in reps:
+                                variants.add(code.replace(ch, rp))
+                    for variant in variants:
+                        if len(variant) != len(code):
+                            continue
+                        try:
+                            r2 = self._sess.post(self.base_url + '/captcha.php?type=verify',
+                                                 data={'check': variant},
+                                                 headers={'Referer': ref,
+                                                          'X-Requested-With': 'XMLHttpRequest'},
+                                                 timeout=15, verify=False)
+                        except Exception:
+                            continue
+                        if '"code":1' in r2.text or '验证成功' in r2.text:
+                            self._log('验证码自动通过:', variant)
+                            ok = True
+                            break
+                    if ok:
+                        break
+                if ok:
+                    return True
+                _t.sleep(1)  # 冷却, 避免限流
+            return False
+        except Exception as e:
+            self._log('自动过验证失败:', e)
+            return False
 
     def _fix_pic(self, u):
         if not u:
@@ -154,6 +269,17 @@ class Spider(BaseSpider):
             self._log("使用默认Cookie: verify_success=1")
 
         self.debug = extend.get('debug', False)
+        # 复用会话(跨请求保持PHPSESSID/验证cookie)
+        try:
+            self._sess = requests.Session()
+            h = self._headers(referer=None)
+            h.pop('Cookie', None)  # 默认cookie不入session, 由cookie jar管理
+            self._sess.headers.update(h)
+            # 仅显式传入的真实cookie加入(如extend携带)
+            if self.cookie and self.cookie != 'verify_success=1':
+                self._sess.headers['Cookie'] = self.cookie
+        except Exception:
+            self._sess = None
         self._log("当前站点:", self.base_url)
 
     def getName(self):
