@@ -64,6 +64,7 @@ def _aes_cbc_decrypt(key: bytes, iv: bytes, data: bytes) -> bytes:
 SITE = "https://hongguoduanju.com"
 EPISODE_PREFIX = "hg-episode-v1:"
 VIDEO_URL = "https://api5-normal-sinfonlineb.fqnovel.com/novel/player/multi_video_model/v1/"
+API_HOST = "https://api5-normal-sinfonlineb.fqnovel.com"
 UA = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 APP_UA = "com.phoenix.read/71332 (Linux; U; Android 16; zh_CN; 25053RT47C; Build/BP2A.250605.031.A3; Cronet/TTNetVersion:04657795 2026-01-23 QuicVersion:c67e9834 2025-09-08)"
 MEDIA_UA = "com.phoenix.read/71332"
@@ -2877,7 +2878,7 @@ def _video_model(video_id: str, config: Mapping[str, Any]) -> dict[str, Any]:
             "use_server_dns": False,
             "video_platform": 1024,
         },
-        "mixed_video_id_map": {"1004": [video_id]},
+        "mixed_video_id_map": {"1": [video_id]},
     }
     request_headers = {
         "User-Agent": APP_UA,
@@ -3112,6 +3113,100 @@ def _cat_item(x):
 def _filter_group(key, name, values):
     return {"key": key, "name": name, "value": [{"n": n, "v": v} for n, v in values]}
 
+
+def _api_post(path, body, config):
+    """带签名的红果/番茄 App 后端 POST (与 _video_model 同套签名)。"""
+    devices = _device_config(config)
+    params = {
+        "iid": devices["install_id"], "device_id": devices["device_id"], "ac": "wifi",
+        "channel": "update_64", "aid": "8662", "app_name": "novelread",
+        "version_code": "71332", "version_name": "7.1.3.32", "device_platform": "android",
+        "os": "android", "ssmix": "a", "device_type": "25053RT47C", "device_brand": "Redmi",
+        "language": "zh", "os_api": "36", "os_version": "16", "manifest_version_code": "71332",
+        "resolution": "1280*2772", "dpi": "520", "update_version_code": "71332",
+        "host_abi": "arm64-v8a", "dragon_device_type": "phone", "pv_player": "71332",
+        "compliance_status": "0", "need_personal_recommend": "1", "player_so_load": "1",
+        "is_android_pad_screen": "0",
+    }
+    request_headers = {
+        "User-Agent": APP_UA,
+        "Accept": "application/json; charset=utf-8,application/x-protobuf",
+        "Content-Type": "application/json; charset=UTF-8",
+        "x-xs-from-web": "0",
+        "x-ss-req-ticket": str(int(time.time() * 1000)),
+        "x-tt-request-tag": "t=0;n=0",
+        "sdk-version": "2",
+        "passport-sdk-version": "50561",
+        "x-vc-bdturing-sdk-version": "3.7.2.cn",
+    }
+    url = API_HOST + path
+    signed_headers, signed_url = _core_sixgod(url, params, devices, body, request_headers)
+    data = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    response = requests.post(signed_url, headers=signed_headers, data=data, timeout=30)
+    return _json_response(response)
+
+
+def _app_category_list(genre, page, config):
+    """App 分类列表 (genre: short_play/comic_series/ai_series)。返回 vod 卡片列表。"""
+    try:
+        page = max(1, int(page))
+    except (TypeError, ValueError):
+        page = 1
+    body = {
+        "filter_ids": "", "req_scene": genre, "offset": (page - 1) * 18,
+        "need_selector_panel": False, "limit": 18,
+        "select_items": {"category_dim_epoch": [], "online_time": [], "gender": [],
+                         "category_dim_role": [], "genre": [genre], "sort": ["hot_score"],
+                         "category_dim_theme": []},
+        "session_id": "", "req_type": "only_content", "client_req_type": 3,
+    }
+    j = _api_post("/reading/distribution/category/landpage/v", body, config)
+    items = ((j.get("data") or {}).get("video_data")) or []
+    out = []
+    for it in items:
+        cnt = it.get("episode_cnt") or 0
+        out.append({
+            "vod_id": str(it.get("series_id")),
+            "vod_name": it.get("title") or "未命名",
+            "vod_pic": it.get("cover") or "",
+            "vod_remarks": "全%s集" % cnt if cnt else "",
+        })
+    return out
+
+
+def _app_episode_detail(sid, config):
+    """App 剧集详情 (multi_video_detail)。返回 (meta, eps)。eps = ["标题$vid", ...] 已按集数排序。"""
+    body = {
+        "biz_param": {"detail_page_version": 0, "disable_digg_stat": False,
+                      "disable_video_relate_book": False, "need_all_video_definition": False,
+                      "need_mp4_align": False, "screen_width_px": "900", "source": 7,
+                      "use_os_player": False, "use_server_dns": False},
+        "series_id": str(sid),
+    }
+    j = _api_post("/novel/player/multi_video_detail/v1/", body, config)
+    vd = ((j.get("data") or {}).get(str(sid)) or {}).get("video_data") or {}
+    if not vd:
+        return None, []
+    meta = {
+        "title": vd.get("series_title") or "",
+        "cover": vd.get("series_cover") or "",
+        "intro": vd.get("series_intro") or "",
+        "remarks": ("全%s集" % vd.get("episode_cnt")) if vd.get("episode_cnt") else "",
+    }
+    actors = [str(c.get("nickname")) for c in (vd.get("celebrities") or [])
+              if isinstance(c, dict) and c.get("nickname")]
+    eps = []
+    for e in (vd.get("video_list") or []):
+        vid = e.get("vid")
+        if vid is None:
+            continue
+        idx = e.get("vid_index") or 0
+        title = "第%d集" % (idx if idx else len(eps) + 1)
+        eps.append((idx, f"{title}${EPISODE_PREFIX}{vid}"))
+    eps.sort(key=lambda x: x[0] if x[0] else 0)
+    meta["actors"] = ",".join(actors)
+    return meta, [s for _, s in eps]
+
 class Spider(Spider):
     def __init__(self):
         self.device_id = str(random.randint(10**17, 10**18 - 1))
@@ -3126,6 +3221,7 @@ class Spider(Spider):
             {"type_id": "latest", "type_name": "最新"},
             {"type_id": "all", "type_name": "短剧"},
             {"type_id": "comic", "type_name": "漫剧"},
+            {"type_id": "ai", "type_name": "AI短剧"},
             {"type_id": "hot", "type_name": "最热"},
             {"type_id": "male", "type_name": "男频"},
             {"type_id": "female", "type_name": "女频"},
@@ -3187,6 +3283,12 @@ class Spider(Spider):
     def categoryContent(self, tid, pg, filter, extend):
         try: page = max(1, int(pg))
         except (TypeError, ValueError): page = 1
+        # 漫剧 / AI短剧: 走 App 分类接口 (官网 tab=2 列表是残留数据, 已下架)
+        if tid in ("comic", "ai"):
+            genre = "comic_series" if tid == "comic" else "ai_series"
+            config = {"device_id": self.device_id, "install_id": self.install_id}
+            items = _app_category_list(genre, page, config)
+            return {"page": page, "pagecount": 9999, "limit": len(items), "total": 999999, "list": items}
         q = {"tab": "2" if tid == "comic" else "1", "sort_type": "1"}
         if tid == "latest": q["sort_type"] = "2"
         elif tid == "hot": q["sort_type"] = "1"
@@ -3217,6 +3319,18 @@ class Spider(Spider):
     def detailContent(self, ids):
         sid = str(ids[0] if isinstance(ids, (list, tuple)) else ids)
         sid = sid.replace("hg-series-v1:", "")
+        config = {"device_id": self.device_id, "install_id": self.install_id}
+        # 优先走 App 剧集接口 (短剧/漫剧/AI短剧通用, 拿真实可播 vid)
+        meta, eps = _app_episode_detail(sid, config)
+        if eps:
+            return {"list": [{
+                "vod_id": sid, "vod_name": meta.get("title") or sid,
+                "vod_pic": meta.get("cover") or "", "vod_year": "", "vod_area": "",
+                "vod_director": "", "vod_actor": meta.get("actors") or "",
+                "vod_content": meta.get("intro") or "", "vod_remarks": meta.get("remarks") or "",
+                "vod_play_from": "红果", "vod_play_url": "#".join(eps)
+            }]}
+        # 兜底: 官网详情
         p = ((_data(SITE + "/detail?series_id=" + quote(sid, safe="")).get("loaderData") or {}).get("detail_page") or {})
         s = p.get("seriesDetail") or {}
         vids = s.get("vid_list") or []
