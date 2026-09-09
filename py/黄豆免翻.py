@@ -50,7 +50,16 @@ class _AESCBC:
 
 class Spider(BaseSpider):
     def __init__(self):
-        self.host = "https://jvxgeiyy.cc" 
+        # 多域名列表：默认包含原域名及已确认可用的备用域名
+        self.hosts = [
+            "https://xqjurgek.top",
+            "https://dptewvxi.top",
+            "https://tlcussli.cc",
+            "https://nbyuikk.top",
+            "https://hdmgdj.com"
+        ]
+        self.host_index = 0
+        self.host = self.hosts[0]
         self.api = self.host + "/api"
         self.name = "黄豆短剧"
         self.platform_key = "7961beb44246e3012ce228d6b5ced05a"
@@ -69,12 +78,23 @@ class Spider(BaseSpider):
         if extend:
             try:
                 cfg = json.loads(extend)
-                self.host = (cfg.get("site") or cfg.get("url") or self.host).rstrip("/")
-                self.api = self.host + "/api"
+                # 支持外部传入域名（覆盖默认列表）
+                site_val = cfg.get("site") or cfg.get("base_url")
+                if site_val:
+                    if isinstance(site_val, list):
+                        self.hosts = [s.rstrip('/') for s in site_val if s]
+                    elif isinstance(site_val, str):
+                        if ',' in site_val:
+                            self.hosts = [s.strip().rstrip('/') for s in site_val.split(',') if s.strip()]
+                        else:
+                            self.hosts = [site_val.rstrip('/')]
+                    self.host_index = 0
+                    self.host = self.hosts[0]
+                    self.api = self.host + "/api"
+                    self.headers["Origin"] = self.host
+                    self.headers["Referer"] = self.host + "/home"
+                    self.session.headers.update(self.headers)
                 self.token = cfg.get("token", self.token)
-                self.headers["Origin"] = self.host
-                self.headers["Referer"] = self.host + "/home"
-                self.session.headers.update(self.headers)
             except Exception:
                 None
 
@@ -144,22 +164,39 @@ class Spider(BaseSpider):
         return {"parse": 0, "playUrl": "", "url": url, "jx": 0, "header": {"User-Agent": self.headers["User-Agent"], "Referer": self.host + "/home", "Origin": self.host}}
 
     def _api(self, path, data=None, silent=False):
-        path = "/" + path.lstrip("/")
-        rid = str(uuid.uuid4())
-        key = self._key(rid)
-        iv = os.urandom(16)
-        raw = json.dumps({"token": self.token or "", "deviceId": self.device_id, "data": data or {}}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-        body = iv + _AESCBC.encrypt(gzip.compress(raw), key, iv)
-        ts = int(time.time())
-        sign = hashlib.sha256(("Dart|%s|%s|%s|%s" % (self.session_id, rid, ts, path)).encode("utf-8")).hexdigest() + "-" + str(ts)
-        h = dict(self.headers)
-        h.update({"version": self.version, "deviceType": self.device_type, "time": str(ts), "sign": sign, "requestId": rid, "sessionId": self.session_id, "deviceBrand": "", "deviceModel": "", "systemName": "", "systemVersion": ""})
-        try:
-            r = self.session.post(self.api + path, data=body, headers=h, timeout=20, verify=False)
-            r.raise_for_status()
-            return self._decode(r.content, rid)
-        except Exception:
-            return {}
+        # 多域名轮换：从当前索引开始尝试所有域名
+        for i in range(len(self.hosts)):
+            idx = (self.host_index + i) % len(self.hosts)
+            host = self.hosts[idx]
+            # 更新当前主机及相关头信息
+            self.host = host
+            self.api = host + "/api"
+            self.headers["Origin"] = host
+            self.headers["Referer"] = host + "/home"
+            self.session.headers.update(self.headers)  # 同步到session
+
+            path = "/" + path.lstrip("/")
+            rid = str(uuid.uuid4())
+            key = self._key(rid)
+            iv = os.urandom(16)
+            raw = json.dumps({"token": self.token or "", "deviceId": self.device_id, "data": data or {}}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            body = iv + _AESCBC.encrypt(gzip.compress(raw), key, iv)
+            ts = int(time.time())
+            sign = hashlib.sha256(("Dart|%s|%s|%s|%s" % (self.session_id, rid, ts, path)).encode("utf-8")).hexdigest() + "-" + str(ts)
+            h = dict(self.headers)
+            h.update({"version": self.version, "deviceType": self.device_type, "time": str(ts), "sign": sign, "requestId": rid, "sessionId": self.session_id, "deviceBrand": "", "deviceModel": "", "systemName": "", "systemVersion": ""})
+            try:
+                r = self.session.post(self.api + path, data=body, headers=h, timeout=20, verify=False)
+                r.raise_for_status()
+                result = self._decode(r.content, rid)
+                # 成功：更新索引并返回
+                self.host_index = idx
+                return result
+            except Exception:
+                # 失败则继续尝试下一个域名
+                continue
+        # 所有域名均失败，返回空字典（保持原行为）
+        return {}
 
     def _key(self, rid):
         return hmac.new(self.platform_key.encode("utf-8"), bytes.fromhex(str(rid).replace("-", "")), hashlib.sha256).digest()
