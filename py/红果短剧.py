@@ -19,7 +19,9 @@ Site: https://hongguoduanju.com
 import json
 import ssl
 import sys
+import threading
 import time
+import http.client
 import urllib.parse
 import urllib.request
 
@@ -46,11 +48,16 @@ class Spider(_BaseSpider):
             "Accept-Language": "zh-CN,zh;q=0.9",
         }
         self.timeout = 12
+        # 榜单页对搜索引擎爬虫 UA 返回 SSR 全量数据 (普通 UA 只给空壳做前端水合)
+        self._BOT_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
         self._ctx = ssl.create_default_context()
         self._ctx.check_hostname = False
         self._ctx.verify_mode = ssl.CERT_NONE
-        # 16 主分类 (topic facet 查询串, 网站真实体系)
+        # 16 主分类 + 1 专区分类 (topic facet 查询串, 网站真实体系)
         self.categories = [
+            {"type_name": "漫剧", "type_id": "comic"},
+            {"type_name": "AI剧", "type_id": "ai"},
+            {"type_name": "真人短剧", "type_id": "human"},
             {"type_name": "现言", "type_id": "topic=cate_1021"},
             {"type_name": "女性成长", "type_id": "topic=cate_1048"},
             {"type_name": "脑洞", "type_id": "topic=cate_262"},
@@ -72,6 +79,8 @@ class Spider(_BaseSpider):
         self._build_filters()
         self._home_cache = None
         self._home_cache_ttl = 600
+        # keep-alive 连接池 (按线程隔离, 兼容并行补详情)
+        self._conn_tls = threading.local()
 
     # ==================== 壳协议接口 ====================
 
@@ -111,6 +120,8 @@ class Spider(_BaseSpider):
         self.filters = {}
         for cat in self.categories:
             tid = cat["type_id"]
+            if tid in ("comic", "ai", "human"):
+                continue  # 专区榜单无 facets, 不提供筛选器 (避免无效筛选UI)
             self.filters[tid] = [
                 {"key": "gender", "name": "频道", "value": [
                     {"n": "全部", "v": ""},
@@ -212,57 +223,62 @@ class Spider(_BaseSpider):
         last_err = None
         for _ in range(retry + 1):
             try:
-                req = urllib.request.Request(url, headers=self.headers)
-                resp = urllib.request.urlopen(req, timeout=self.timeout, context=self._ctx)
+                # keep-alive 连接复用: 免去每次请求的 TCP+TLS 握手 (每次省 0.3~0.4s)
+                conn = None
+                if hasattr(self, "_conn_tls"):
+                    conn = getattr(self._conn_tls, "conn", None)
+                reused = False
+                if conn is None:
+                    conn = http.client.HTTPSConnection(
+                        "hongguoduanju.com", timeout=self.timeout, context=self._ctx)
+                    self._conn_tls.conn = conn
+                else:
+                    reused = True
+                parsed = urllib.parse.urlsplit(url)
+                path_q = parsed.path or "/"
+                if parsed.query:
+                    path_q += "?" + parsed.query
+                conn.request("GET", path_q, headers=self.headers)
+                resp = conn.getresponse()
                 raw = resp.read()
                 charset = resp.headers.get("charset") or "utf-8"
-                return raw.decode(charset, errors="replace")
+                out = raw.decode(charset, errors="replace")
+                if reused:
+                    self._stat_hits = getattr(self, "_stat_hits", 0) + 1
+                else:
+                    self._stat_miss = getattr(self, "_stat_miss", 0) + 1
+                return out
             except Exception as e:
                 last_err = e
+                # 连接可能已被服务端关闭: 丢弃并重建
+                try:
+                    if conn is not None:
+                        conn.close()
+                except Exception:
+                    pass
+                if hasattr(self, "_conn_tls"):
+                    self._conn_tls.conn = None
         return None
 
-    def _fetch_json(self, url, retry=1):
+    def _fetch_api(self, url, loader, retry=1):
+        """新 API 模式: 在 URL 上追加 __loader 和 __ssrDirect=true, 服务端直接返回 JSON"""
+        sep = "&" if "?" in url else "?"
+        url = "%s%s__loader=%s&__ssrDirect=true" % (url, sep, loader)
         html = self._fetch(url, retry)
         if not html:
             return None
-        return self._extract_router_data(html)
+        try:
+            return json.loads(html)
+        except (json.JSONDecodeError, ValueError):
+            return None
 
-    def _extract_router_data(self, html):
+    def _fetch_json(self, url, retry=1):
+        """旧接口兼容: 直接请求并解析 JSON (用于搜索建议 API)"""
+        html = self._fetch(url, retry)
         if not html:
             return None
-        pos = html.find("_ROUTER_DATA")
-        if pos < 0:
-            return None
-        start = html.find("{", pos)
-        if start < 0:
-            return None
-        depth = 0
-        in_str = False
-        esc = False
-        end = -1
-        for i in range(start, len(html)):
-            c = html[i]
-            if in_str:
-                if esc:
-                    esc = False
-                elif c == "\\":
-                    esc = True
-                elif c == '"':
-                    in_str = False
-            else:
-                if c == '"':
-                    in_str = True
-                elif c == "{":
-                    depth += 1
-                elif c == "}":
-                    depth -= 1
-                    if depth == 0:
-                        end = i + 1
-                        break
-        if end < 0:
-            return None
         try:
-            return json.loads(html[start:end])
+            return json.loads(html)
         except (json.JSONDecodeError, ValueError):
             return None
 
@@ -284,19 +300,39 @@ class Spider(_BaseSpider):
             "vod_tag": "",
         }
 
+    def _fetch_rank_list(self, rank_key, page):
+        """榜单数据: 新 API 下 rank 页面 loader 返回 204 (CSR 重定向后不可用),
+        改用首页专区兜底 (tab_type 匹配)。"""
+        return []
+
+    def _parse_rank_item(self, x):
+        """榜单条目 -> 壳视频卡片 (保留兼容, 新 API 下不直接使用)"""
+        def _s(v):
+            if isinstance(v, (list, tuple)):
+                return " ".join(str(t) for t in v if t)
+            return str(v) if v else ""
+        vid = str(x.get("seriesId") or x.get("series_id") or "")
+        return {
+            "vod_id": vid,
+            "vod_name": _s(x.get("title") or x.get("series_name") or x.get("series_title")),
+            "vod_pic": _s(x.get("cover") or x.get("series_cover")),
+            "vod_remarks": " ".join(t for t in [_s(x.get("statusTags")), _s(x.get("scoreText"))] if t),
+            "vod_content": _s(x.get("description") or x.get("series_intro")),
+            "vod_tag": "",
+        }
+
     def _get_home_data(self):
         now = time.time()
         if self._home_cache and now - self._home_cache[0] < self._home_cache_ttl:
             return self._home_cache[1]
-        data = self._fetch_json(self.host)
+        data = self._fetch_api(self.host, "page")
         if data:
             self._home_cache = (now, data)
         return data
 
     def _home_sections(self):
         data = self._get_home_data() or {}
-        page = data.get("loaderData", {}).get("page", {}) or {}
-        return page.get("homeSections", []) or []
+        return data.get("homeSections", []) or []
 
     def _home_recommend(self):
         """首页混合推荐: 按 vod_id 去重, 防止同一海报重复刷屏"""
@@ -344,6 +380,25 @@ class Spider(_BaseSpider):
             page = int(pg) if pg else 1
         except (TypeError, ValueError):
             page = 1
+        # 专区分类 (comic=漫剧 / ai=AI剧 / human=真人短剧):
+        # 官网 rank 页面 (/hot-real-drama 等) 已全部下线 (404 Not Found),
+        # category API 的 tab_type 参数被忽略 (返回默认列表, 非专区数据),
+        # 唯一可用数据源: 首页 __loader=page&__ssrDirect=true 返回的 homeSections
+        # 每个专区仅 9 条, 无翻页能力。
+        if str(tid) in ("comic", "ai", "human"):
+            rank_key = str(tid)
+            result = {"list": [], "page": 1, "pagecount": 1, "limit": 9, "total": 0}
+            if page <= 1:
+                try:
+                    for sec in self._home_sections():
+                        if str(sec.get("tab_type", "")) == rank_key:
+                            videos = sec.get("video_list", []) or []
+                            result["list"] = [self._parse_video(v) for v in videos if isinstance(v, dict)]
+                            result["total"] = len(result["list"])
+                            break
+                except Exception:
+                    pass
+            return result
         # tid 直接是查询串 (如 "topic=cate_439" / "gender=1"), 不覆盖同 key 筛选器
         url = "%s/category?%s" % (self.host, str(tid))
         if isinstance(extend, dict):
@@ -355,12 +410,11 @@ class Spider(_BaseSpider):
         if page >= 2:
             url += "&page=%d" % page
         result = {"list": [], "page": page, "pagecount": 1, "limit": 24, "total": 0}
-        data = self._fetch_json(url)
+        data = self._fetch_api(url, "category_page")
         if not data:
             return result
-        cat_page = data.get("loaderData", {}).get("category_page", {}) or {}
-        recommend_list = cat_page.get("recommendList", []) or []
-        pagination = cat_page.get("pagination", {}) or {}
+        recommend_list = data.get("recommendList", []) or []
+        pagination = data.get("pagination", {}) or {}
         result["list"] = [self._parse_video(v) for v in recommend_list if isinstance(v, dict)]
         result["page"] = pagination.get("pageNum", page)
         result["pagecount"] = pagination.get("totalPages", 1)
@@ -375,9 +429,9 @@ class Spider(_BaseSpider):
             series_id = str(ids_list[0]) if ids_list else ""
             if not series_id:
                 return result
-            data = self._fetch_json("%s/detail?series_id=%s" % (self.host, series_id))
-            detail_page = (data or {}).get("loaderData", {}).get("detail_page", {}) or {}
-            sd = detail_page.get("seriesDetail", {}) or {}
+            data = self._fetch_api(
+                "%s/detail?series_id=%s" % (self.host, series_id), "detail_page")
+            sd = (data or {}).get("seriesDetail", {}) or {}
             if not sd:
                 return result
             vid_list = sd.get("vid_list", []) or []
@@ -410,7 +464,7 @@ class Spider(_BaseSpider):
                 "vod_play_from": "红果短剧",
                 "vod_play_url": "#".join(play_urls),
             }
-            related = [self._parse_video(v) for v in (detail_page.get("videoList", []) or [])[:10]]
+            related = [self._parse_video(v) for v in ((data or {}).get("videoList", []) or [])[:10]]
             return {"list": [detail] + related}
         except Exception:
             return result
@@ -426,12 +480,10 @@ class Spider(_BaseSpider):
         try:
             url = "%s/incent_resource/suggestion?app_id=8662&web_id=1234567890123456789&query=%s&count=20" % (
                 self.host, urllib.parse.quote(key))
-            req = urllib.request.Request(url, headers=self.headers)
-            resp = urllib.request.urlopen(req, timeout=self.timeout, context=self._ctx)
-            data = json.loads(resp.read().decode("utf-8", errors="replace"))
-            items = []
-            seen = set()
-            enrich = 0
+            data = json.loads(self._fetch(url) or "{}")
+            # 先分流: 直接条目 vs 纯数字ID候选(需补详情)
+            entries = []
+            pend = []
             for sug in data.get("suggest_list", []) or []:
                 vd = sug.get("video_data") or {}
                 sid = str(vd.get("series_id") or "")
@@ -441,24 +493,66 @@ class Spider(_BaseSpider):
                 remark = vd.get("episode_right_text") or ""
                 kw = str(sug.get("keyword") or "")
                 # 无 video_data 但 keyword 是纯数字(剧集ID): 拉详情补海报/简介
-                if (not vd and name and kw.isdigit() and len(kw) >= 10
-                        and enrich < 6):
-                    enrich += 1
+                if not vd and name and kw.isdigit() and len(kw) >= 10:
+                    if not quick and len(pend) < 6:
+                        pend.append({"kw": kw, "name": name, "cover": cover,
+                                     "intro": intro, "remark": remark, "sd": None})
+                    # quick 模式或候选已满: 丢弃 (与旧逻辑一致, 只是更快)
+                    continue
+                if not sid:
+                    continue
+                entries.append({"sid": sid, "name": name, "cover": cover,
+                                "intro": intro, "remark": remark})
+            # 并行补详情 (旧串行 6 次最坏 ~5s, 4 线程 ~1s; 带缓存: 重复搜索免请求)
+            if pend:
+                cache = getattr(self, "_detail_cache", None)
+                if cache is None:
+                    cache = self._detail_cache = {}
+                now = time.time()
+                for e in pend:  # 先吃缓存
+                    hit = cache.get(e["kw"])
+                    if hit and now - hit[0] < 1800:
+                        e["sd"] = hit[1]
+                todo = [e for e in pend if e["sd"] is None]
+                if todo:
                     try:
-                        d = self._fetch_json("%s/detail?series_id=%s" % (self.host, kw))
-                        sd = (((d or {}).get("loaderData", {}) or {})
-                              .get("detail_page", {}) or {}).get("seriesDetail") or {}
-                    except Exception:
-                        sd = {}
-                    if sd:
-                        sid = kw
-                        name = sd.get("series_name") or sd.get("series_title") or name
-                        cover = sd.get("series_cover") or cover
-                        intro = sd.get("series_intro") or intro
-                        remark = sd.get("episode_right_text") or remark
-                # 只保留真实剧集ID; 热搜词/聚合词(如"36"、"1_a22b…")一律丢弃,
-                # 避免出现点进去播不了的无关条目
-                if not sid or sid in seen:
+                        from concurrent.futures import ThreadPoolExecutor
+                    except ImportError:
+                        ThreadPoolExecutor = None
+                    if ThreadPoolExecutor is not None:
+                        def _fetch_sd(e):
+                            try:
+                                d = self._fetch_api(
+                                    "%s/detail?series_id=%s" % (self.host, e["kw"]), "detail_page")
+                                return (d or {}).get("seriesDetail") or {}
+                            except Exception:
+                                return {}
+                        with ThreadPoolExecutor(max_workers=4) as ex:
+                            for e, sd in zip(todo, ex.map(_fetch_sd, todo)):
+                                e["sd"] = sd
+                                if sd:
+                                    cache[e["kw"]] = (time.time(), sd)
+                        if len(cache) > 200:
+                            cache.clear()
+                    else:
+                        for e in todo:  # 无线程库时退回串行
+                            d = None
+                            try:
+                                d = self._fetch_api("%s/detail?series_id=%s" % (self.host, e["kw"]), "detail_page")
+                            except Exception:
+                                pass
+                            e["sd"] = (d or {}).get("seriesDetail") or {}
+                            if e["sd"]:
+                                cache[e["kw"]] = (time.time(), e["sd"])
+            # 合并结果 (保持原始顺序, 统一去重; 只保留真实剧集ID,
+            # 热搜词/聚合词一律丢弃, 避免点进去播不了的无关条目)
+            items = []
+            seen = set()
+            for e in entries:
+                sid = e["sid"]
+                name, cover = e["name"], e["cover"]
+                intro, remark = e["intro"], e["remark"]
+                if sid in seen:
                     continue
                 seen.add(sid)
                 items.append({
@@ -469,17 +563,33 @@ class Spider(_BaseSpider):
                     "vod_content": intro,
                     "vod_tag": "",
                 })
+            for e in pend:
+                sd = e.get("sd") or {}
+                if not sd:
+                    continue
+                sid = e["kw"]
+                if sid in seen:
+                    continue
+                seen.add(sid)
+                items.append({
+                    "vod_id": sid,
+                    "vod_name": sd.get("series_name") or sd.get("series_title") or e["name"],
+                    "vod_pic": sd.get("series_cover") or e["cover"],
+                    "vod_remarks": sd.get("episode_right_text") or e["remark"],
+                    "vod_content": sd.get("series_intro") or e["intro"],
+                    "vod_tag": "",
+                })
             result["list"] = items
             result["total"] = len(items)
             return result
         except Exception:
             pass
-        # 兜底: SSR 搜索页
+        # 兜底: 新 API 搜索页
         try:
             url = "%s/search?keyword=%s" % (self.host, urllib.parse.quote(key))
-            data = self._fetch_json(url)
-            search_page = (data or {}).get("loaderData", {}).get("search_page", {}) or {}
-            videos = [self._parse_video(v) for v in search_page.get("searchList", []) or []]
+            data = self._fetch_api(url, "search_page")
+            search_list = (data or {}).get("searchList", []) or []
+            videos = [self._parse_video(v) for v in search_list if isinstance(v, dict)]
             if videos:
                 result["list"] = videos
                 result["total"] = len(videos)
@@ -603,10 +713,9 @@ class Spider(_BaseSpider):
                 vid, sid = raw, ""
             if not sid:
                 return result
-            data = self._fetch_json("%s/player/%s/%s" % (self.host, sid, vid))
-            loader = (data or {}).get("loaderData", {}) or {}
-            page = loader.get("player_(series_id)/(vid)/page") or {}
-            vpi = page.get("video_player_info") or {}
+            data = self._fetch_api(
+                "%s/player/%s/%s" % (self.host, sid, vid), "player_(series_id)/(vid)/page")
+            vpi = (data or {}).get("video_player_info") or {}
             play_url = vpi.get("main_url") or ""
             if play_url:
                 result["url"] = play_url
