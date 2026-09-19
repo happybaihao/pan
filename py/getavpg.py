@@ -77,13 +77,13 @@ def generate_color_card(text, is_ctrl=False):
 class Spider(SpiderBase):
     def __init__(self):
         super(Spider, self).__init__()
-        self.baseHost = "shturl.cc/NH3fzu"
+        self.baseHost = "https://shturl.cc/NH3fzu"
         self.staticHost = "https://static.worldstatic.com"
         self.tgGroup = "https://t.me/tvshare23"
         self.brandActor = "🦋 TG群: @tvshare23"
         self.brandDirector = "🦋 蝴蝶影视"
         self._ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-        self.imgHeaderTail = "@Referer=shturl.cc/NH3fzu/&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        self.imgHeaderTail = "@Referer=https://shturl.cc/NH3fzu/&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         self.options = {}
         self.ctx = ssl.create_default_context()
         self.ctx.check_hostname = False
@@ -140,8 +140,8 @@ class Spider(SpiderBase):
         url = api_path if api_path.startswith("http") else (self.baseHost + api_path)
         headers = {
             "User-Agent": self._ua,
-            "Referer": "shturl.cc/NH3fzu/zh",
-            "Origin": "shturl.cc/NH3fzu",
+            "Referer": "https://shturl.cc/NH3fzu/zh",
+            "Origin": "https://shturl.cc/NH3fzu",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
             "Accept-Encoding": "gzip, deflate",
