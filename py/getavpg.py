@@ -7,13 +7,14 @@ import json
 import base64
 import hashlib
 import html as html_lib
-import urllib.request
-import urllib.parse
 from urllib.parse import urlparse, quote, unquote
-import http.cookiejar
-import gzip
-import zlib
-import ssl
+
+try:
+    import requests as rq
+    rq.packages.urllib3.disable_warnings()
+except Exception:
+    pass
+
 try:
     from base.spider import Spider as SpiderBase
 except ImportError:
@@ -21,10 +22,12 @@ except ImportError:
         def getCache(self, key): return None
         def setCache(self, key, value): return "fail"
         def delCache(self, key): return "fail"
+
 def clean_html_text(raw_html):
     txt = re.sub(r'<[^>]+>', '', raw_html or '')
     txt = html_lib.unescape(txt)
     return re.sub(r'[\r\n\t\s]+', ' ', txt).strip()
+
 def format_seconds(secs):
     try:
         s = int(secs)
@@ -36,6 +39,7 @@ def format_seconds(secs):
         return "%02d:%02d" % (m, sec)
     except Exception:
         return ""
+
 def generate_color_card(text, is_ctrl=False):
     palette = [
         ("#4f46e5", "#7c3aed"),
@@ -53,10 +57,10 @@ def generate_color_card(text, is_ctrl=False):
     else:
         h_val = int(hashlib.md5(name_str.encode("utf-8")).hexdigest()[:4], 16)
         c1, c2 = palette[h_val % len(palette)]
-    
+
     display_title = name_str[:12]
     font_size = "40" if len(display_title) <= 6 else ("32" if len(display_title) <= 9 else "26")
-    
+
     svg = (
         '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">'
         '<defs>'
@@ -74,27 +78,25 @@ def generate_color_card(text, is_ctrl=False):
     )
     b64_svg = base64.b64encode(svg.encode("utf-8")).decode("utf-8")
     return f"data:image/svg+xml;base64,{b64_svg}"
+
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+TIMEOUT = 10
+
 class Spider(SpiderBase):
     def __init__(self):
         super(Spider, self).__init__()
-        self.baseHost = "shturl.cc/ZxiJ9G"
+        self.baseHost = "shturl.cc/SQEUan"
         self.staticHost = "https://static.worldstatic.com"
         self.tgGroup = "https://t.me/tvshare23"
         self.brandActor = "🦋 TG群: @tvshare23"
         self.brandDirector = "🦋 蝴蝶影视"
-        self._ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-        self.imgHeaderTail = "@Referer=shturl.cc/ZxiJ9G/&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        self._ua = UA
+        self.imgHeaderTail = "@Referer=shturl.cc/SQEUan/&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         self.options = {}
-        self.ctx = ssl.create_default_context()
-        self.ctx.check_hostname = False
-        self.ctx.verify_mode = ssl.CERT_NONE
-        self.cj = http.cookiejar.CookieJar()
-        self.proxies_dict = None  #【新增】代理配置存储
-        self.opener = urllib.request.build_opener(
-            urllib.request.HTTPCookieProcessor(self.cj),
-            urllib.request.HTTPSHandler(context=self.ctx)
-        )
+        self.s = None
+
     def init(self, extend=""):
+        self.options = {}
         if isinstance(extend, dict):
             self.options = extend
         elif extend:
@@ -103,71 +105,71 @@ class Spider(SpiderBase):
             except Exception:
                 self.options = {}
 
-        #【新增：解析PG extend中的proxy代理配置】
-        cfg = self.options
-        proxy = cfg.get("proxy")
-        self.proxies_dict = None
-        if proxy:
-            proxies_dict = {}
-            if isinstance(proxy, str):
-                p = proxy if proxy.startswith("http") else f"http://{proxy}"
-                proxies_dict["http"] = p
-                proxies_dict["https"] = p
-            elif isinstance(proxy, dict):
-                for k, v in proxy.items():
-                    if k in ("http", "https") and v:
-                        pv = v if v.startswith("http") else f"http://{v}"
-                        proxies_dict[k] = pv
-            if proxies_dict:
-                self.proxies_dict = proxies_dict
-
-        # 重新构建opener，有代理就加入ProxyHandler
-        handler_list = [
-            urllib.request.HTTPCookieProcessor(self.cj),
-            urllib.request.HTTPSHandler(context=self.ctx)
-        ]
-        if self.proxies_dict:
-            handler_list.insert(0, urllib.request.ProxyHandler(self.proxies_dict))
-        self.opener = urllib.request.build_opener(*handler_list)
-
+        # requests session初始化，代理解析完全照搬黄果短剧
+        try:
+            self.s = rq.Session()
+            self.s.verify = False
+            self.s.headers.update({
+                "User‑Agent": UA,
+                "Accept": "application/json, text/plain, */*",
+                "Accept‑Language": "zh‑CN,zh;q=0.9,en;q=0.8"
+            })
+            cfg = self.options
+            proxy = cfg.get("proxy")
+            if proxy:
+                proxies_dict = {}
+                if isinstance(proxy, str):
+                    if not proxy.startswith("http"):
+                        http_proxy = f"http://{proxy}"
+                    else:
+                        http_proxy = proxy
+                    proxies_dict["http"] = http_proxy
+                    proxies_dict["https"] = http_proxy
+                elif isinstance(proxy, dict):
+                    for k, v in proxy.items():
+                        if k in ("http", "https") and v:
+                            if not v.startswith("http"):
+                                v = f"http://{v}"
+                            proxies_dict[k] = v
+                if proxies_dict:
+                    self.s.proxies = proxies_dict
+        except Exception:
+            self.s = None
         return True
+
     def getName(self):
         return "GetAV (蝴蝶影视专线)"
+
     def isVideoFormat(self, url):
         low = (url or "").lower()
         return any(k in low for k in (".m3u8", ".mp4", ".flv", ".mkv", ".avi", ".ts", ".mpd", "index.png", "index.txt"))
+
     def manualVideoCheck(self):
         return False
-    def _fetch_api(self, api_path, timeout=10):
+
+    def _fetch_api(self, api_path, timeout=TIMEOUT):
         url = api_path if api_path.startswith("http") else (self.baseHost + api_path)
         headers = {
-            "User-Agent": self._ua,
-            "Referer": "shturl.cc/9LSomcwcI",
-            "Origin": "shturl.cc/ZxiJ9G",
+            "User‑Agent": UA,
+            "Referer": self.baseHost + "/zh",
+            "Origin": self.baseHost,
             "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-            "Accept-Encoding": "gzip, deflate",
-            "Connection": "keep-alive"
+            "Accept‑Language": "zh‑CN,zh;q=0.9,en;q=0.8",
         }
         for attempt in range(2):
             try:
-                req = urllib.request.Request(url, headers=headers)
-                with self.opener.open(req, timeout=timeout) as resp:
-                    raw = resp.read()
-                    enc = getattr(resp, "headers", {}).get("Content-Encoding", "")
-                    if raw.startswith(b"\x1f\x8b") or enc == "gzip":
-                        raw = gzip.decompress(raw)
-                    elif enc == "deflate":
-                        try:
-                            raw = zlib.decompress(raw)
-                        except Exception:
-                            raw = zlib.decompress(raw, -zlib.MAX_WBITS)
-                    return json.loads(raw.decode("utf-8", errors="ignore"))
+                if self.s is not None:
+                    resp = self.s.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+                else:
+                    resp = rq.get(url, headers=headers, timeout=timeout, verify=False, allow_redirects=True)
+                resp.raise_for_status()
+                return resp.json()
             except Exception:
                 if attempt == 0:
                     continue
                 return {}
         return {}
+
     def _format_poster(self, raw_url):
         if not raw_url:
             return ""
@@ -177,11 +179,12 @@ class Spider(SpiderBase):
         elif pic.startswith("/"):
             pic = self.staticHost + pic
         return pic + self.imgHeaderTail
+
     def homeContent(self, filter):
         classes = [
             {"type_name": "🔥 最近更新", "type_id": "api@@latest"},
             {"type_name": "📈 热门影片", "type_id": "api@@hot"},
-            {"type_name": "✨ 新片上市", "type_id": "api@@new-releases"},
+            {"type_name": "✨ 新片上市", "type_id": "api@@new‑releases"},
             {"type_name": "🔞 无码影片", "type_id": "api@@uncensored"},
             {"type_name": "🈵 有码影片", "type_id": "api@@censored"},
             {"type_name": "🔤 字幕专区", "type_id": "api@@subtitle"},
@@ -233,7 +236,7 @@ class Spider(SpiderBase):
         filters = {
             "api@@latest": video_filters,
             "api@@hot": video_filters,
-            "api@@new-releases": video_filters,
+            "api@@new‑releases": video_filters,
             "api@@uncensored": video_filters,
             "api@@censored": video_filters,
             "api@@subtitle": video_filters,
@@ -263,6 +266,7 @@ class Spider(SpiderBase):
             ]
         }
         return {"class": classes, "filters": filters}
+
     def homeVideoContent(self):
         res = self._fetch_api("/api/movies?category=latest&sortBy=latest&limit=20&page=1&locale=zh")
         movies = (res.get("data") or {}).get("movies") or []
@@ -280,15 +284,12 @@ class Spider(SpiderBase):
                 "style": {"type": "rect", "ratio": 1.42}
             })
         return {"list": v_list}
+
     def categoryContent(self, tid, pg, filter, extend):
         page = int(pg) if str(pg).isdigit() else 1
         extend = extend or {}
-        # ====================================================
-        # 1. 一级目录瀑布流分支
-        # ====================================================
         if str(tid).startswith("folder@@"):
             f_type = tid.replace("folder@@", "")
-            # A. 演员大全
             if f_type == "stars":
                 gender = extend.get("gender", "2")
                 sort_type = extend.get("sort", "popular")
@@ -313,7 +314,6 @@ class Spider(SpiderBase):
                     count = s.get("movieCount") or s.get("movie_count") or ""
                     display_name = f"{base_name} ({count}部)" if count else base_name
                     remarks = f"蝴蝶影视 | {count}部" if count else "蝴蝶影视"
-                    
                     raw_avatar = s.get("localAvatar") or s.get("avatar") or s.get("localImg") or s.get("img")
                     avatar = self._format_poster(raw_avatar) if raw_avatar else generate_color_card(base_name)
                     v_list.append({
@@ -332,10 +332,9 @@ class Spider(SpiderBase):
                     "total": 5487,
                     "list": v_list
                 }
-            # B. 类型大全
             elif f_type == "genres":
                 sort_type = extend.get("sort", "popular")
-                api_url = f"/api/genres?limit=100&sort={sort_type}&locale=zh-CN"
+                api_url = f"/api/genres?limit=100&sort={sort_type}&locale=zh‑CN"
                 res = self._fetch_api(api_url)
                 items = (res.get("data") or {}).get("genres") or []
                 v_list = []
@@ -353,10 +352,9 @@ class Spider(SpiderBase):
                         "style": {"type": "rect", "ratio": 1.78}
                     })
                 return {"page": 1, "pagecount": 1, "limit": len(v_list), "total": len(v_list), "list": v_list}
-            # C. 片商大全
             elif f_type == "studios":
                 sort_type = extend.get("sort", "popular")
-                api_url = f"/api/studios?limit=100&sort={sort_type}&locale=zh-CN"
+                api_url = f"/api/studios?limit=100&sort={sort_type}&locale=zh‑CN"
                 res = self._fetch_api(api_url)
                 studios = (res.get("data") or {}).get("studios") or []
                 v_list = []
@@ -374,10 +372,9 @@ class Spider(SpiderBase):
                         "style": {"type": "rect", "ratio": 1.78}
                     })
                 return {"page": 1, "pagecount": 1, "limit": len(v_list), "total": len(v_list), "list": v_list}
-            # D. 番号系列
             elif f_type == "codes":
                 sort_type = extend.get("sort", "popular")
-                api_url = f"/api/codes?limit=100&sort={sort_type}&locale=zh-CN"
+                api_url = f"/api/codes?limit=100&sort={sort_type}&locale=zh‑CN"
                 res = self._fetch_api(api_url)
                 codes = (res.get("data") or {}).get("codes") or []
                 v_list = []
@@ -394,15 +391,10 @@ class Spider(SpiderBase):
                         "style": {"type": "rect", "ratio": 1.78}
                     })
                 return {"page": 1, "pagecount": 1, "limit": len(v_list), "total": len(v_list), "list": v_list}
-        # ====================================================
-        # 2. 二级目录内容展示与筛选控制台注入
-        # ====================================================
         if str(tid).startswith("subfolder@@"):
             parts = str(tid).split("@@")
-            # 格式: subfolder@@type@@target_id@@sortBy=xxx@@subtitles=xxx@@resolution=xxx@@name=xxx
             sub_type = parts[1]
             target_id = parts[2]
-            
             p_dict = {
                 "sortBy": "popular" if sub_type == "star" else "latest",
                 "subtitles": "",
@@ -417,7 +409,6 @@ class Spider(SpiderBase):
             curr_sub = p_dict["subtitles"]
             curr_res = p_dict["resolution"]
             sub_name = p_dict["name"]
-            # 构造目标 API 请求
             api_params = [
                 f"page={page}",
                 "limit=40",
@@ -441,9 +432,7 @@ class Spider(SpiderBase):
             data_obj = res.get("data") or {}
             movies = data_obj.get("movies") or []
             v_list = []
-            # 仅在第一页顶部注入 3 个动态功能控制台卡片
             if page == 1:
-                # 1. 排序切换卡片
                 sort_next_map = {
                     "popular": ("latest", "最热", "最新"),
                     "latest": ("duration", "最新", "时长"),
@@ -459,7 +448,6 @@ class Spider(SpiderBase):
                     "vod_tag": "folder",
                     "style": {"type": "rect", "ratio": 1.42}
                 })
-                # 2. 字幕切换卡片
                 next_sub = "" if curr_sub == "true" else "true"
                 cur_sub_n = "中文字幕" if curr_sub == "true" else "全部版本"
                 next_sub_n = "全部版本" if curr_sub == "true" else "中文字幕"
@@ -472,7 +460,6 @@ class Spider(SpiderBase):
                     "vod_tag": "folder",
                     "style": {"type": "rect", "ratio": 1.42}
                 })
-                # 3. 4K 画质切换卡片
                 next_res = "" if curr_res == "4k" else "4k"
                 cur_res_n = "4K超清" if curr_res == "4k" else "全部画质"
                 next_res_n = "全部画质" if curr_res == "4k" else "4K超清"
@@ -505,9 +492,6 @@ class Spider(SpiderBase):
                 "total": 9999,
                 "list": v_list
             }
-        # ====================================================
-        # 3. 普通视频列表 (主界面视频分类)
-        # ====================================================
         params = [
             f"page={page}",
             "limit=40",
@@ -546,9 +530,9 @@ class Spider(SpiderBase):
             "total": 9999,
             "list": v_list
         }
+
     def detailContent(self, ids):
         raw_id = ids[0] if isinstance(ids, (list, tuple)) else str(ids)
-        # 捕获二级控制卡片点击与二级入口递归
         if str(raw_id).startswith("subfolder@@"):
             return self.categoryContent(raw_id, 1, None, None)
         code = str(raw_id).strip().lower()
@@ -615,10 +599,11 @@ class Spider(SpiderBase):
             "vod_play_url": play_url_str
         }
         return {"list": [vod_detail]}
+
     def playerContent(self, flag, id, vipFlags):
         play_url = str(id).strip()
         headers = {
-            "User-Agent": self._ua,
+            "User‑Agent": self._ua,
             "Referer": self.baseHost + "/zh",
             "Origin": self.baseHost
         }
@@ -628,6 +613,7 @@ class Spider(SpiderBase):
             "url": play_url,
             "header": headers
         }
+
     def searchContent(self, key, quick, pg="1"):
         page = int(pg) if str(pg).isdigit() else 1
         kw = quote(key.strip())
@@ -656,11 +642,15 @@ class Spider(SpiderBase):
             "total": 9999,
             "list": v_list
         }
+
     def action(self, action):
         return {"msg": "ok"}
+
     def liveContent(self):
         return ""
+
     def localProxy(self, params):
-        return [404, "text/plain; charset=utf-8", "Proxy not configured"]
+        return [404, "text/plain; charset=utf‑8", "Proxy not configured"]
+
     def destroy(self):
         self.options = {}
