@@ -77,21 +77,23 @@ def generate_color_card(text, is_ctrl=False):
 class Spider(SpiderBase):
     def __init__(self):
         super(Spider, self).__init__()
-        self.baseHost = "https://shturl.cc/NH3fzu"
+        self.baseHost = "shturl.cc/ZxiJ9G"
         self.staticHost = "https://static.worldstatic.com"
         self.tgGroup = "https://t.me/tvshare23"
         self.brandActor = "🦋 TG群: @tvshare23"
         self.brandDirector = "🦋 蝴蝶影视"
         self._ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-        self.imgHeaderTail = "@Referer=https://shturl.cc/NH3fzu/&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        self.imgHeaderTail = "@Referer=shturl.cc/ZxiJ9G/&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         self.options = {}
         self.ctx = ssl.create_default_context()
         self.ctx.check_hostname = False
         self.ctx.verify_mode = ssl.CERT_NONE
         self.cj = http.cookiejar.CookieJar()
-        self.proxies_dict = None
-        self.opener = None
-
+        self.proxies_dict = None  #【新增】代理配置存储
+        self.opener = urllib.request.build_opener(
+            urllib.request.HTTPCookieProcessor(self.cj),
+            urllib.request.HTTPSHandler(context=self.ctx)
+        )
     def init(self, extend=""):
         if isinstance(extend, dict):
             self.options = extend
@@ -101,7 +103,7 @@ class Spider(SpiderBase):
             except Exception:
                 self.options = {}
 
-        # =========【仅新增：PG内置代理支持，其余代码完全原样】=========
+        #【新增：解析PG extend中的proxy代理配置】
         cfg = self.options
         proxy = cfg.get("proxy")
         self.proxies_dict = None
@@ -118,8 +120,8 @@ class Spider(SpiderBase):
                         proxies_dict[k] = pv
             if proxies_dict:
                 self.proxies_dict = proxies_dict
-        # ==========================================================
 
+        # 重新构建opener，有代理就加入ProxyHandler
         handler_list = [
             urllib.request.HTTPCookieProcessor(self.cj),
             urllib.request.HTTPSHandler(context=self.ctx)
@@ -127,8 +129,8 @@ class Spider(SpiderBase):
         if self.proxies_dict:
             handler_list.insert(0, urllib.request.ProxyHandler(self.proxies_dict))
         self.opener = urllib.request.build_opener(*handler_list)
-        return True
 
+        return True
     def getName(self):
         return "GetAV (蝴蝶影视专线)"
     def isVideoFormat(self, url):
@@ -140,8 +142,8 @@ class Spider(SpiderBase):
         url = api_path if api_path.startswith("http") else (self.baseHost + api_path)
         headers = {
             "User-Agent": self._ua,
-            "Referer": "https://shturl.cc/NH3fzu/zh",
-            "Origin": "https://shturl.cc/NH3fzu",
+            "Referer": "shturl.cc/9LSomcwcI",
+            "Origin": "shturl.cc/ZxiJ9G",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
             "Accept-Encoding": "gzip, deflate",
@@ -397,7 +399,7 @@ class Spider(SpiderBase):
         # ====================================================
         if str(tid).startswith("subfolder@@"):
             parts = str(tid).split("@@")
-            # 格式: subfolder@@type@@target_id@@sortBy=xxx@@subtitles=xxx@@resolution=@@name=xxx
+            # 格式: subfolder@@type@@target_id@@sortBy=xxx@@subtitles=xxx@@resolution=xxx@@name=xxx
             sub_type = parts[1]
             target_id = parts[2]
             
