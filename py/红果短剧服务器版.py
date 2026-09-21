@@ -3865,13 +3865,11 @@ class Spider(_BaseSpider):
         if q is None:
             q = {"tab": "1", "sort_type": "1"}
         return _category_loader(pg, q)
-
     def categoryContent(self, tid, pg, filter, extend):
         try:
             page = max(1, int(pg))
         except (TypeError, ValueError):
             page = 1
-
         # 漫剧 / AI漫剧：官网搜索不支持真翻页，多关键词轮换
         if tid in ("comic", "manju", "漫剧"):
             try:
@@ -3889,10 +3887,8 @@ class Spider(_BaseSpider):
             except Exception:
                 pass
             return _search_by_keywords(_MANJU_KEYWORDS, page)
-
         if tid in ("ai_comic", "ai_manju", "AI漫剧", "ai漫剧"):
             return _search_by_keywords(_AI_MANJU_KEYWORDS, page)
-
         q = {"tab": "1", "sort_type": "1"}
         if tid == "latest":
             q["sort_type"] = "2"
@@ -3921,8 +3917,6 @@ class Spider(_BaseSpider):
             "total": int(page_data.get("total") or len(rows)),
             "list": [_cat_item(x) for x in rows],
         }
-
-
     def searchContent(self, key, quick=False, pg="1"):
         try:
             page = max(1, int(pg))
@@ -4088,8 +4082,13 @@ class Spider(_BaseSpider):
                     seen_q.add(q)
                     quals.append(q)
 
-            # 缓存命中直接返回
-            for q in quals:
+            # 缓存命中直接返回。用户指定线路清晰度(user_q)时，只认该清晰度缓存，
+            # 不能回退命中其它清晰度缓存（否则请求480会拿到360内容）。
+            if user_q:
+                primary = [user_q]
+            else:
+                primary = quals
+            for q in primary:
                 cached = _hg_cache_get(vid, q)
                 if cached:
                     return [200, "video/mp4", cached]
