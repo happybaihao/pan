@@ -1074,8 +1074,10 @@ class Spider(SpiderBase):
         self.brandDirector = "ysp-live"
 
     def init(self, extend=""):
-        # 爬虫模式：不需要起本地 HTTP server（ThreadingHTTPServer 19876）
-        # playerContent 直接调 bk_playurls() 拿 CDN m3u8 URL 返回给 TVBox 内置播放器
+        try:
+            _ensure_local_server()
+        except Exception as e:
+            _log('本地服务启动失败: %s' % e)
         try:
             _ensure_logo_source(wait=0)   # 后台探测台标图源, 不阻塞
         except Exception:
@@ -1134,8 +1136,14 @@ class Spider(SpiderBase):
         info = CHANNEL_MAP.get(slug)
         if not info:
             return {"list": []}
-        # 爬虫模式：不需要 _ensure_local_server / _ensure_channel
-        full_desc = "【📺 央视频直播】\n频道: %s\nHLS 直播, 爬虫直连 CDN。" % info['name']
+        try:
+            _ensure_local_server()
+            ch = CHANNEL_STATE.get(slug)
+            if ch:
+                _ensure_channel(ch)
+        except Exception:
+            pass
+        full_desc = "【📺 央视频直播】\n频道: %s\nHLS 直播, 本地分片转发。" % info['name']
         escaped_desc = (full_desc.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
         vod = {"vod_id": slug, "vod_name": info['name'], "vod_pic": _logo_url(slug, info['name']),
                "vod_actor": self.brandActor, "vod_director": self.brandDirector,
@@ -1146,74 +1154,44 @@ class Spider(SpiderBase):
         return {"list": [vod]}
 
     def playerContent(self, flag, id, vipFlags):
-        """爬虫模式：直接调 API 拿 CDN m3u8 URL 返回给 TVBox 内置播放器。
-
-        不再起本地 HTTP server / 后台刷新线程 / 分片代理。
-        TVBox 自己用内置播放器拉 CDN m3u8 + 分片（带 UA + Referer header）。
-
-        链路: playerContent → bk_playurls() → 验证 m3u8 → 返回 CDN URL
-              fallback: jce_timeshift_url() → 返回 JCE m3u8 URL
-        """
         del flag, vipFlags
         slug = str(id).strip()
         if slug.startswith('http://') or slug.startswith('https://'):
             return {"parse": 0, "playUrl": "", "url": slug,
                     "header": {"User-Agent": UA, "Referer": "https://live.cctv.cn/"}}
-
-        info = CHANNEL_MAP.get(slug)
-        if not info:
+        if slug not in CHANNEL_STATE:
             return {"parse": 0, "playUrl": "", "url": "", "header": {}}
 
-        play_header = {"User-Agent": UA, "Referer": "https://live.cctv.cn/"}
-
-        # --- 1. 优先 bkliveinfo (所有频道首选) ---
         try:
-            cdn_urls = bk_playurls(info['sid'], info['pid'], info['defn'])
-            _log('[爬虫] %s bk_playurls 返回 %d 个 CDN URL' % (slug, len(cdn_urls)))
-            for u in cdn_urls:
-                try:
-                    req = urllib.request.Request(u, headers={
-                        'User-Agent': UA,
-                        'Referer': 'https://live.cctv.cn/',
-                        'Accept': 'application/vnd.apple.mpegurl,application/json,*/*',
-                    })
-                    with urllib.request.urlopen(req, timeout=8) as r:
-                        text = r.read(200).decode('utf-8', 'replace')
-                    if text.lstrip().startswith('#EXTM3U'):
-                        _log('[爬虫] %s ✅ bkliveinfo 成功: %s...' % (slug, u[:60]))
-                        return {"parse": 0, "playUrl": "", "url": u, "header": play_header}
-                    else:
-                        _log('[爬虫] %s CDN 返回非 m3u8: %s' % (slug, text[:80]))
-                except urllib.error.HTTPError as e:
-                    _log('[爬虫] %s CDN HTTP %d: %s' % (slug, e.code, u[:60]))
-                    continue
-                except Exception as e:
-                    _log('[爬虫] %s CDN 异常 %s: %s' % (slug, type(e).__name__, u[:60]))
-                    continue
-            _log('[爬虫] %s ❌ bkliveinfo 所有 CDN URL 均失败' % slug)
-        except Exception as e:
-            _log('[爬虫] %s bk_playurls 异常: %s' % (slug, e))
+            port = _ensure_local_server()
+        except Exception:
+            info = CHANNEL_MAP[slug]
+            url = ''
+            try:
+                now = int(time.time())
+                url = jce_timeshift_url(info['pid'], info['sid'], now - WINDOW, now, info['defn'])
+            except Exception:
+                pass
+            return {"parse": 0, "playUrl": "", "url": url,
+                    "header": {"User-Agent": UA, "Referer": "https://live.cctv.cn/"}}
 
-        # --- 2. FORCE_BK 频道跳过 JCE（JCE 在这些频道上 HTTP 500） ---
-        if slug in FORCE_BK:
-            _log('[爬虫] %s 是 FORCE_BK 频道, 跳过 JCE' % slug)
-            return {"parse": 0, "playUrl": "", "url": "", "header": {}}
+        ch = CHANNEL_STATE[slug]
+        _ensure_channel(ch)
+        for _ in range(40):
+            with ch.lock:
+                if ch.order:
+                    break
+            time.sleep(0.5)
 
-        # --- 3. fallback: JCE ---
-        try:
-            now = int(time.time())
-            jce_url = jce_timeshift_url(info['pid'], info['sid'],
-                                        now - 120, now, info['defn'])
-            if jce_url and ('liverecord' not in jce_url):
-                _log('[爬虫] %s ✅ JCE 成功' % slug)
-                return {"parse": 0, "playUrl": "", "url": jce_url, "header": play_header}
-            else:
-                _log('[爬虫] %s JCE 返回空/死域名' % slug)
-        except Exception as e:
-            _log('[爬虫] %s JCE 异常: %s' % (slug, e))
-
-        _log('[爬虫] %s ❌ 全部失败' % slug)
-        return {"parse": 0, "playUrl": "", "url": "", "header": {}}
+        return {
+            "parse": 0,
+            "playUrl": "",
+            "url": "http://127.0.0.1:%d/%s.m3u8" % (port, slug),
+            "header": {
+                "User-Agent": UA,
+                "Referer": "https://live.cctv.cn/",
+            },
+        }
 
     def searchContent(self, key, quick, pg="1"):
         del quick, pg
