@@ -2465,8 +2465,12 @@ class Spider(SpiderBase):
     def manualVideoCheck(self):
         return False
 
+    def action(self, action):
+        # 部分壳（TVBox/fongmi/OK影视）初始化时会调用 action，返回 dict 即可
+        return {}
+
     # ---------------- 入口 ----------------
-    def homeContent(self, filter):
+    def homeContent(self, filter=None):
         classes = [{"type_id": "all", "type_name": "全部频道"}]
         for key, name in (("cctv", "央视频道"), ("satellite", "卫视频道"),
                           ("cgtn", "CGTN"), ("4k", "4K超清"),
@@ -2516,16 +2520,6 @@ class Spider(SpiderBase):
             "vod_content": desc,
             "vod_play_from": play_from,
             "vod_play_url": play_url,
-        }]}
-        desc = desc.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        return {"list": [{
-            "vod_id": slug, "vod_name": info["name"],
-            "vod_pic": self._logo(base, info["name"]),
-            "vod_actor": self.brandActor, "vod_director": self.brandDirector,
-            "vod_remarks": "央视频 | 直播",
-            "vod_content": desc,
-            "vod_play_from": "$$$".join(parts_from),
-            "vod_play_url": "$$$".join(parts_url),
         }]}
 
     def searchContent(self, key, quick, pg="1"):
@@ -2590,8 +2584,16 @@ class Spider(SpiderBase):
     # ---------------- 本地代理（取代本地 HTTP 服务） ----------------
     def localProxy(self, param):
         try:
+            # 部分壳传 JSON 字符串而非 dict，先归一化
+            if isinstance(param, str):
+                try:
+                    param = json.loads(param)
+                except ValueError:
+                    param = {}
+            if not isinstance(param, dict):
+                param = {}
             query = {}
-            for key, value in (param or {}).items():
+            for key, value in param.items():
                 query[str(key)] = _one(value)
             kind = query.get("type", "")
             if kind == "diag":
