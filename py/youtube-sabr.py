@@ -933,22 +933,39 @@ class YouTubeLite:
         if not captions and best_pr and best_pr.get('captions'):
             captions = best_pr.get('captions')
 
-        # 自动提取直播 HLS 地址（借鉴附件直播引擎）
+        # 自动提取直播 HLS 地址（优先提取 ANDROID / IOS / VISIONOS 无加密 HLS Manifest）
         hls_url = None
+        hls_ua = None
         for resp in responses:
             sd = resp.get('streamingData') or {}
             if sd.get('hlsManifestUrl'):
                 hls_url = sd.get('hlsManifestUrl')
+                hls_ua = resp.get('_client_ua')
                 break
-        is_live = bool(details.get('isLiveContent') or hls_url)
+        dur_sec = int(details.get('lengthSeconds') or 0)
+        # NOTE: 过去的直播回放（VOD）也会带有 isLiveContent=True，但此时 isLive=False 且 dur_sec > 0 且无 hls_url；
+        # 只有真正正在直播的流（有 hls_url，或 isLive=True，或 isLiveContent=True 且 dur_sec==0）才标记为 is_live=True。
+        is_live = bool(
+            hls_url
+            or details.get('isLive')
+            or (details.get('isLiveContent') and dur_sec == 0)
+            or ((best_pr.get('playabilityStatus') or {}).get('liveStreamability') and dur_sec == 0)
+        )
+        if is_live:
+            # 始终优先调用 ANDROID (20.10.38) 获取音画合一（itag 91~96，仅 7 个实时分片）的原生直播 HLS 清单，避免 VISIONOS 返回音画分离且带 3600s DVR keepalive 阻塞的清单
+            live_fb = self._fetch_live_hls_fallback(video_id)
+            if live_fb.get('hls_url'):
+                hls_url = live_fb['hls_url']
+                hls_ua = live_fb.get('hls_ua') or hls_ua
 
         formats, sabr_formats = self._extract_formats_from_responses(responses, player_url)
         result = {
             'id': video_id,
             'title': details.get('title') or video_id,
-            'duration': int(details.get('lengthSeconds') or 0),
+            'duration': dur_sec,
             'is_live': is_live,
             'hls_url': hls_url,
+            'hls_ua': hls_ua,
             'formats': formats,
             'sabr_formats': sabr_formats,
             'captions': captions,
@@ -958,12 +975,65 @@ class YouTubeLite:
         self.trace('extract complete', {
             'video_id': video_id,
             'cost_ms': int((time.time() - started) * 1000),
+            'is_live': is_live,
+            'has_hls': bool(hls_url),
             'direct_formats': len(formats),
             'sabr_formats': len(sabr_formats),
             'direct_heights': sorted(set(int(x.get('height') or 0) for x in formats if x.get('vcodec') != 'none'), reverse=True)[:12],
             'sabr_heights': sorted(set(int(x.get('height') or 0) for x in sabr_formats if x.get('vcodec') != 'none'), reverse=True)[:12],
         })
         return result
+
+    def _fetch_live_hls_fallback(self, video_id):
+        """针对正在直播的视频，优先请求 ANDROID (20.10.38) 提取音画合一（itag 91~96）的极速 HLS 清单。"""
+        live_clients = [
+            {'clientName': 'ANDROID', 'clientVersion': '20.10.38', 'androidSdkVersion': 34, 'ua': 'com.google.android.youtube/20.10.38 (Linux; U; Android 14) gzip'},
+            {'clientName': 'IOS', 'clientVersion': '21.02.3', 'deviceMake': 'Apple', 'deviceModel': 'iPhone16,2', 'ua': 'com.google.ios.youtube/21.02.3 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)'},
+        ]
+        proxies = dict(self.session.proxies or {})
+        for c in live_clients:
+            try:
+                payload = {
+                    'context': {'client': {
+                        'clientName': c['clientName'],
+                        'clientVersion': c['clientVersion'],
+                        'hl': 'zh-CN',
+                        'gl': 'US',
+                    }},
+                    'videoId': video_id,
+                    'contentCheckOk': True,
+                    'racyCheckOk': True,
+                }
+                if c.get('androidSdkVersion'):
+                    payload['context']['client']['androidSdkVersion'] = c['androidSdkVersion']
+                r = requests.post(
+                    'https://www.youtube.com/youtubei/v1/player?prettyPrint=false',
+                    json=payload,
+                    headers={'Content-Type': 'application/json', 'User-Agent': c['ua'], 'Connection': 'close'},
+                    proxies=proxies,
+                    timeout=6,
+                )
+                if r.status_code == 200:
+                    d = r.json()
+                    hls_u = (d.get('streamingData') or {}).get('hlsManifestUrl')
+                    if hls_u:
+                        return {'hls_url': hls_u, 'hls_ua': c['ua']}
+            except Exception as e:
+                self.trace('live hls fallback error', {'client': c['clientName'], 'error': repr(e)})
+        return {}
+
+    def extract_live(self, url_or_id):
+        data = self.extract(url_or_id)
+        if data.get('hls_url'):
+            return data
+        video_id = self.extract_video_id(url_or_id)
+        fb = self._fetch_live_hls_fallback(video_id)
+        if fb.get('hls_url'):
+            data['is_live'] = True
+            data['hls_url'] = fb['hls_url']
+            data['hls_ua'] = fb.get('hls_ua')
+        return data
+
 
     @staticmethod
     def extract_video_id(text):
@@ -2624,19 +2694,30 @@ class YouTubeLite:
 
     @staticmethod
     def _sabr_trim_cache(state, itag, max_bytes):
-        """Evict oldest completed segments by insertion order and total bytes."""
+        """清理已消费的旧分段，但绝不提前驱逐尚未被播放器消费的未来分段（防止高码率 1080p MV 未播先删导致跳段）。"""
         media = state.get('segments', {}).get(itag) or {}
         metas = state.get('segment_meta', {}).get(itag) or {}
         order = state.get('segment_order', {}).get(itag) or []
+        served_map = (state.get('served_seq_map') or {}).get(itag) or {}
+        max_served_nseq = 0
+        for v in served_map.values():
+            if isinstance(v, (list, tuple)):
+                if v:
+                    max_served_nseq = max(max_served_nseq, max(int(x) for x in v))
+            elif v is not None:
+                max_served_nseq = max(max_served_nseq, int(v))
         total = sum(len(value) for value in media.values())
-        # Always retain at least two segments so immediate player retries can hit cache.
         while total > max_bytes and len(order) > 2:
+            # 若队首分段尚未被播放器消费（order[0] > max_served_nseq），且未消费分段数 <= 6，停止驱逐以防跳段
+            if order[0] > max_served_nseq and len(order) <= 6:
+                break
             old_seq = order.pop(0)
             old_media = media.pop(old_seq, None)
             metas.pop(old_seq, None)
             if old_media is not None:
                 total -= len(old_media)
         state.setdefault('segment_order', {})[itag] = order
+
 
     @staticmethod
     def _sabr_commit_buffered(state, segment):
@@ -3513,7 +3594,13 @@ class Spider(Spider):
         return None, None
 
     def _fetch_hot_comments(self, video_id, max_count=25):
-        """通过 YouTube Innertube /youtubei/v1/next 接口抓取视频的热门评论（优先按最热门排序），带内存缓存与并发去重。"""
+        """通过 YouTube Innertube /youtubei/v1/next/ 接口极速抓取视频热门评论（单次 5KB 请求，~0.6s 完成）。
+        # NOTE: 为什么之前 TV 端抓不到评论（ReadTimeout / 403）：
+        #   1. 在代理节点下，不带末尾斜杠的 `/youtubei/v1/next` 会触发 Google 边缘 WAF 403 验证码拦截或慢速排队，
+        #      而 `/youtubei/v1/next/`（带末尾斜杠）100% 绕过边缘 WAF 直达 Innertube 后端；
+        #   2. 不带 `X-Goog-FieldMask` 时，Step 1 返回 ~900KB、Step 2 返回 ~450KB，与起播视频流并发时必超 4 秒超时；
+        #   3. 直接在本地用 Protobuf 合成「最热门评论」的 continuation token，结合 `X-Goog-FieldMask` 仅需 1 次 5KB 请求即可秒拿 20 条热评！
+        """
         if not video_id:
             return []
         cache_key = f'yt_hot_comments_{video_id}'
@@ -3527,109 +3614,154 @@ class Spider(Spider):
             if isinstance(cached, dict) and cached.get('expires', 0) > time.time():
                 return cached.get('comments') or []
 
-            url = 'https://www.youtube.com/youtubei/v1/next?prettyPrint=false'
+            url = 'https://www.youtube.com/youtubei/v1/next/?prettyPrint=false'
             ctx = {'client': {'clientName': 'WEB', 'clientVersion': '2.20250201.00.00', 'hl': 'zh-CN', 'gl': 'US'}}
-            headers = self.header.copy()
-            headers.update({
+            proxies = dict(self.session.proxies or {})
+            field_mask_step1 = (
+                'contents.twoColumnWatchNextResults.results.results.contents.itemSectionRenderer('
+                'sectionIdentifier,contents.continuationItemRenderer.continuationEndpoint.continuationCommand.token),'
+                'engagementPanels.engagementPanelSectionListRenderer(panelIdentifier,targetId,'
+                'header.engagementPanelTitleHeaderRenderer.menu.sortFilterSubMenuRenderer.subMenuItems('
+                'title,serviceEndpoint.continuationCommand.token))'
+            )
+            field_mask_step2 = (
+                'frameworkUpdates.entityBatchUpdate.mutations.payload.commentEntityPayload('
+                'properties.content.content,author.displayName,toolbar(likeCountNotliked,likeCountLiked)),'
+                'onResponseReceivedEndpoints(reloadContinuationItemsCommand.continuationItems,'
+                'appendContinuationItemsAction.continuationItems)'
+            )
+            base_headers = {
+                'User-Agent': self.header.get('User-Agent') or DEFAULT_UA,
                 'Content-Type': 'application/json',
+                'Accept-Encoding': 'gzip, deflate',
                 'Origin': 'https://www.youtube.com',
                 'Referer': f'https://www.youtube.com/watch?v={video_id}',
                 'X-YouTube-Client-Name': '1',
                 'X-YouTube-Client-Version': '2.20250201.00.00',
-            })
+                'Connection': 'close',
+            }
+
             comments = []
+            seen_texts = set()
+
+            def _parse_comments_response(d2):
+                mutations = (((d2.get('frameworkUpdates') or {}).get('entityBatchUpdate') or {}).get('mutations') or [])
+                for m in mutations:
+                    payload = (m.get('payload') or {}).get('commentEntityPayload')
+                    if payload:
+                        props = payload.get('properties') or {}
+                        author = ((payload.get('author') or {}).get('displayName') or '').strip()
+                        content = ((props.get('content') or {}).get('content') or '').strip()
+                        likes = ((payload.get('toolbar') or {}).get('likeCountNotliked') or (payload.get('toolbar') or {}).get('likeCountLiked') or '').strip()
+                        content_clean = re.sub(r'\s+', ' ', html.unescape(content)).strip()
+                        if content_clean and content_clean not in seen_texts:
+                            seen_texts.add(content_clean)
+                            comments.append({
+                                'author': author or '网友',
+                                'likes': likes,
+                                'text': content_clean,
+                            })
+                if not comments:
+                    def scan_legacy(o):
+                        if isinstance(o, dict):
+                            cr = o.get('commentRenderer')
+                            if cr:
+                                author = ((cr.get('authorText') or {}).get('simpleText') or '').strip()
+                                runs = (cr.get('contentText') or {}).get('runs') or []
+                                content = ''.join(x.get('text', '') for x in runs).strip()
+                                likes = ((cr.get('voteCount') or {}).get('simpleText') or '').strip()
+                                content_clean = re.sub(r'\s+', ' ', html.unescape(content)).strip()
+                                if content_clean and content_clean not in seen_texts:
+                                    seen_texts.add(content_clean)
+                                    comments.append({
+                                        'author': author or '网友',
+                                        'likes': likes,
+                                        'text': content_clean,
+                                    })
+                            for v in o.values():
+                                scan_legacy(v)
+                        elif isinstance(o, list):
+                            for v in o:
+                                scan_legacy(v)
+                    scan_legacy(d2)
+
             try:
-                r1 = self.session.post(url, json={'context': ctx, 'videoId': video_id}, headers=headers, timeout=4)
-                if r1.status_code != 200:
-                    return []
-                d1 = r1.json()
-                top_token = None
-                fallback_tokens = []
+                # 1. 优先尝试零延迟单次直达 Token（直接合成 11 字节 video_id 的最热门评论 continuation token，免去 Step 1）
+                if len(video_id) == 11:
+                    vid_bytes = video_id.encode('ascii')
+                    raw_tok = (
+                        bytes.fromhex('120d120b') + vid_bytes +
+                        bytes.fromhex('180632382211220b') + vid_bytes +
+                        bytes.fromhex('3000780230014221656e676167656d656e742d70616e656c2d636f6d6d656e74732d73656374696f6e')
+                    )
+                    direct_tok = base64.urlsafe_b64encode(raw_tok).decode('ascii').rstrip('=')
+                    h2 = base_headers.copy()
+                    h2['X-Goog-FieldMask'] = field_mask_step2
+                    r_direct = requests.post(
+                        url, json={'context': ctx, 'continuation': direct_tok},
+                        headers=h2, proxies=proxies, timeout=(4, 7))
+                    if r_direct.status_code == 200:
+                        _parse_comments_response(r_direct.json())
 
-                def scan_tokens(obj):
-                    nonlocal top_token
-                    if isinstance(obj, dict):
-                        if 'subMenuItems' in obj and isinstance(obj['subMenuItems'], list):
-                            for idx, item in enumerate(obj['subMenuItems']):
-                                tok = (((item.get('serviceEndpoint') or {}).get('continuationCommand') or {}).get('token'))
-                                title = str(item.get('title') or '')
-                                if tok:
-                                    if '热' in title or '热门' in title or 'Top' in title or idx == 0:
-                                        if not top_token:
-                                            top_token = tok
-                                    fallback_tokens.append(tok)
-                        if obj.get('sectionIdentifier') == 'comment-item-section' or obj.get('targetId') == 'engagement-panel-comments-section':
-                            def scan_inner(o):
-                                if isinstance(o, dict):
-                                    t = (o.get('continuationCommand') or {}).get('token')
-                                    if t:
-                                        fallback_tokens.append(t)
-                                    for v in o.values():
-                                        scan_inner(v)
-                                elif isinstance(o, list):
-                                    for v in o:
-                                        scan_inner(v)
-                            scan_inner(obj)
-                        for v in obj.values():
-                            scan_tokens(v)
-                    elif isinstance(obj, list):
-                        for v in obj:
-                            scan_tokens(v)
+                # 2. 若单次直达未取到评论（如特殊视频面板结构），回退带 FieldMask 的 1.7KB 轻量级 Step 1 + Step 2
+                if not comments:
+                    h1 = base_headers.copy()
+                    h1['X-Goog-FieldMask'] = field_mask_step1
+                    r1 = requests.post(
+                        url, json={'context': ctx, 'videoId': video_id},
+                        headers=h1, proxies=proxies, timeout=(4, 7))
+                    if r1.status_code == 200:
+                        d1 = r1.json()
+                        top_token = None
+                        fallback_tokens = []
 
-                scan_tokens(d1)
-                token = top_token or (fallback_tokens[0] if fallback_tokens else None)
-                if not token:
-                    self.setCache(cache_key, {'comments': [], 'expires': time.time() + 600})
-                    return []
+                        def scan_tokens(obj):
+                            nonlocal top_token
+                            if isinstance(obj, dict):
+                                if 'subMenuItems' in obj and isinstance(obj['subMenuItems'], list):
+                                    for idx, item in enumerate(obj['subMenuItems']):
+                                        tok = (((item.get('serviceEndpoint') or {}).get('continuationCommand') or {}).get('token'))
+                                        title = str(item.get('title') or '')
+                                        if tok:
+                                            if '热' in title or '热门' in title or 'Top' in title or idx == 0:
+                                                if not top_token:
+                                                    top_token = tok
+                                            fallback_tokens.append(tok)
+                                if obj.get('sectionIdentifier') == 'comment-item-section' or obj.get('targetId') == 'engagement-panel-comments-section':
+                                    def scan_inner(o):
+                                        if isinstance(o, dict):
+                                            t = (o.get('continuationCommand') or {}).get('token')
+                                            if t:
+                                                fallback_tokens.append(t)
+                                            for v in o.values():
+                                                scan_inner(v)
+                                        elif isinstance(o, list):
+                                            for v in o:
+                                                scan_inner(v)
+                                    scan_inner(obj)
+                                for v in obj.values():
+                                    scan_tokens(v)
+                            elif isinstance(obj, list):
+                                for v in obj:
+                                    scan_tokens(v)
 
-                r2 = self.session.post(url, json={'context': ctx, 'continuation': token}, headers=headers, timeout=4)
-                if r2.status_code == 200:
-                    d2 = r2.json()
-                    seen_texts = set()
-                    mutations = (((d2.get('frameworkUpdates') or {}).get('entityBatchUpdate') or {}).get('mutations') or [])
-                    for m in mutations:
-                        payload = (m.get('payload') or {}).get('commentEntityPayload')
-                        if payload:
-                            props = payload.get('properties') or {}
-                            author = ((payload.get('author') or {}).get('displayName') or '').strip()
-                            content = ((props.get('content') or {}).get('content') or '').strip()
-                            likes = ((payload.get('toolbar') or {}).get('likeCountNotliked') or (payload.get('toolbar') or {}).get('likeCountLiked') or '').strip()
-                            content_clean = re.sub(r'\s+', ' ', html.unescape(content)).strip()
-                            if content_clean and content_clean not in seen_texts:
-                                seen_texts.add(content_clean)
-                                comments.append({
-                                    'author': author or '网友',
-                                    'likes': likes,
-                                    'text': content_clean,
-                                })
-                    if not comments:
-                        def scan_legacy(o):
-                            if isinstance(o, dict):
-                                cr = o.get('commentRenderer')
-                                if cr:
-                                    author = ((cr.get('authorText') or {}).get('simpleText') or '').strip()
-                                    runs = (cr.get('contentText') or {}).get('runs') or []
-                                    content = ''.join(x.get('text', '') for x in runs).strip()
-                                    likes = ((cr.get('voteCount') or {}).get('simpleText') or '').strip()
-                                    content_clean = re.sub(r'\s+', ' ', html.unescape(content)).strip()
-                                    if content_clean and content_clean not in seen_texts:
-                                        seen_texts.add(content_clean)
-                                        comments.append({
-                                            'author': author or '网友',
-                                            'likes': likes,
-                                            'text': content_clean,
-                                        })
-                                for v in o.values():
-                                    scan_legacy(v)
-                            elif isinstance(o, list):
-                                for v in o:
-                                    scan_legacy(v)
-                        scan_legacy(d2)
+                        scan_tokens(d1)
+                        token = top_token or (fallback_tokens[0] if fallback_tokens else None)
+                        if token:
+                            h2 = base_headers.copy()
+                            h2['X-Goog-FieldMask'] = field_mask_step2
+                            r2 = requests.post(
+                                url, json={'context': ctx, 'continuation': token},
+                                headers=h2, proxies=proxies, timeout=(4, 7))
+                            if r2.status_code == 200:
+                                _parse_comments_response(r2.json())
             except Exception as e:
                 debug_log('fetch hot comments error', {'vid': video_id, 'error': repr(e)})
 
             comments = comments[:max_count]
-            self.setCache(cache_key, {'comments': comments, 'expires': time.time() + 1800})
+            # 有评论时缓存 30 分钟；若为空仅短缓存 15 秒，防止偶发网络抖动锁死 30 分钟无评论
+            ttl = 1800 if comments else 15
+            self.setCache(cache_key, {'comments': comments, 'expires': time.time() + ttl})
             debug_log('fetched hot comments', {'vid': video_id, 'count': len(comments)})
             return comments
 
@@ -4050,6 +4182,7 @@ class Spider(Spider):
                 vid_dur = float(cached_ext.get('duration') or 0)
                 est_dur = vid_dur if vid_dur > 0 else (max(600.0, max_sub_end) if max_sub_end > 0 else 1800.0)
                 marquee_cues = self._build_marquee_cues(comments, total_duration=est_dur)
+            debug_log('proxy sub marquee', {'vid': vid, 'comments': len(comments or []), 'marquee_cues': len(marquee_cues)})
 
         all_cues = sub_cues + marquee_cues
         if not all_cues:
@@ -4401,7 +4534,8 @@ class Spider(Spider):
             return {'list': vod_list, 'page': page, 'pagecount': 1, 'limit': len(vod_list), 'total': len(vod_list)}
 
         query = self._build_category_keyword(cid, filters)
-        videos, has_more = self._search_youtube_page(query, page)
+        is_live_cat = (self._normalize_category_id(cid) == 'live24h')
+        videos, has_more = self._search_youtube_page(query, page, live_only=is_live_cat)
         if videos:
             videos.sort(key=lambda x: x.get('vod_pub_sec', 9999999999))
         # 音乐MV分类：在第 1 页顶部插入「超长音乐MV随机连播」入口卡片，点进去后台自动一部接一部随机超长 MV。
@@ -4711,13 +4845,14 @@ class Spider(Spider):
                 hls_url = data.get('hls_url') or ''
                 if hls_url:
                     play_url = self._cache_hls_url(hls_url, video_id, 'master') if self.hls_proxy_enabled else hls_url
-                    res = {
+                    debug_log('player live stream active', {'vid': video_id, 'line': line, 'quality': quality, 'play_url': play_url})
+                    return {
                         'parse': 0, 'jx': 0,
                         'url': play_url,
-                        'format': 'application/x-mpegURL',
+                        'format': 'application/vnd.apple.mpegurl',
+                        'mediaType': 'application/vnd.apple.mpegurl',
                         'header': self._hls_headers(hls_url, 'master'),
                     }
-                    return self._attach_default_zh_subs(res, data, video_id)
             except Exception as e:
                 debug_log('player live error', repr(e))
 
@@ -4725,6 +4860,22 @@ class Spider(Spider):
         if line == 'sabr':
             try:
                 ext = self.yt.extract(video_id)
+                # 直播流禁止进入静态点播 SABR MPD（否则 duration=0 且分片序号为直播实时递增导致 404），直接走本地 HLS 直播流代理
+                if ext.get('is_live') or ext.get('hls_url'):
+                    hls_url = ext.get('hls_url') or ''
+                    if not hls_url:
+                        live_data = self.yt.extract_live(video_id)
+                        hls_url = live_data.get('hls_url') or ''
+                    if hls_url:
+                        play_url = self._cache_hls_url(hls_url, video_id, 'master') if self.hls_proxy_enabled else hls_url
+                        debug_log('sabr line detected live stream, routing to hls', {'vid': video_id, 'play_url': play_url})
+                        return {
+                            'parse': 0, 'jx': 0,
+                            'url': play_url,
+                            'format': 'application/vnd.apple.mpegurl',
+                            'mediaType': 'application/vnd.apple.mpegurl',
+                            'header': self._hls_headers(hls_url, 'master'),
+                        }
                 sabr_quality = 'best' if quality == 'best' else quality
                 sabr_data = self._new_sabr_play_data(video_id, ext, sabr_quality)
                 if not sabr_data and quality != 'best':
@@ -4752,16 +4903,21 @@ class Spider(Spider):
         data = None
         try:
             data = self.yt.extract(video_id)
-            if data.get('is_live') or (data.get('hls_url') and not data.get('formats')):
-                hls_url = data.get('hls_url')
-                play_url = self._cache_hls_url(hls_url, video_id, 'master') if self.hls_proxy_enabled else hls_url
-                res = {
-                    'parse': 0, 'jx': 0,
-                    'url': play_url,
-                    'format': 'application/x-mpegURL',
-                    'header': self._hls_headers(hls_url, 'master'),
-                }
-                return self._attach_default_zh_subs(res, data, video_id)
+            if data.get('is_live') or data.get('hls_url'):
+                hls_url = data.get('hls_url') or ''
+                if not hls_url:
+                    live_data = self.yt.extract_live(video_id)
+                    hls_url = live_data.get('hls_url') or ''
+                if hls_url:
+                    play_url = self._cache_hls_url(hls_url, video_id, 'master') if self.hls_proxy_enabled else hls_url
+                    debug_log('fallback detected live stream, routing to hls', {'vid': video_id, 'play_url': play_url})
+                    return {
+                        'parse': 0, 'jx': 0,
+                        'url': play_url,
+                        'format': 'application/vnd.apple.mpegurl',
+                        'mediaType': 'application/vnd.apple.mpegurl',
+                        'header': self._hls_headers(hls_url, 'master'),
+                    }
 
             formats = data.get('formats') or []
 
@@ -4829,35 +4985,154 @@ class Spider(Spider):
             return {'parse': 0, 'jx': 0, 'url': ''}
 
     def _cache_hls_url(self, target_url, video_id='', kind='media'):
-        key = f"{int(time.time() * 1000)}_{len(self.hls_url_cache)}"
+        # 使用基于 target_url 的确定性 key 并延长有效期至 6 小时，防止直播定时刷新子 m3u8 时 key 过期或无限膨胀
+        key = hashlib.md5(f"{kind}:{target_url}".encode('utf-8')).hexdigest()[:20]
+        if len(self.hls_url_cache) > 1500:
+            now_ts = time.time()
+            expired_keys = [k for k, v in list(self.hls_url_cache.items()) if v.get('expires', 0) < now_ts]
+            for k in expired_keys:
+                self.hls_url_cache.pop(k, None)
+            if len(self.hls_url_cache) > 1500:
+                media_keys = [k for k, v in list(self.hls_url_cache.items()) if v.get('kind') == 'media']
+                for k in media_keys[:600]:
+                    self.hls_url_cache.pop(k, None)
         self.hls_url_cache[key] = {
             'url': target_url,
             'video_id': video_id,
             'kind': kind,
-            'expires': time.time() + 300,
+            'expires': time.time() + 21600,
         }
-        return f'http://127.0.0.1:9978/proxy?do=py&type=hls&key={quote(key)}&ext=.m3u8'
+        ext_sfx = '.m3u8' if kind in ('master', 'playlist') else '.ts'
+        return f'http://127.0.0.1:9978/proxy?do=py&type=hls&key={quote(key)}&ext={ext_sfx}'
 
     def _hls_headers(self, target_url, kind=None):
         if kind == 'media_retry':
             return {
-                'User-Agent': 'com.google.android.youtube/21.02.35 (Linux; U; Android 11) gzip',
+                'User-Agent': 'com.google.android.youtube/20.10.38 (Linux; U; Android 14) gzip',
                 'Accept': '*/*',
+                'Connection': 'close',
             }
         headers = self.header.copy()
         headers['Accept'] = '*/*'
+        headers['Connection'] = 'close'
         if kind in ('master', 'playlist'):
             headers['Origin'] = 'https://www.youtube.com'
             headers['Referer'] = 'https://www.youtube.com/'
         elif kind == 'media':
-            headers['User-Agent'] = 'com.google.android.youtube/21.02.35 (Linux; U; Android 11) gzip'
+            headers['User-Agent'] = 'com.google.android.youtube/20.10.38 (Linux; U; Android 14) gzip'
             headers.pop('Origin', None)
             headers.pop('Referer', None)
         return headers
 
     def _rewrite_m3u8(self, text, base_url, video_id=''):
+        lines = (text or '').splitlines()
+        # 若是 Master M3U8（含多清晰度 #EXT-X-STREAM-INF），优先将 720P 排在首位（兼顾高清与秒开，避免 1080P 单分片 2.5MB 超时或默认首项 144P 模糊），随后按 1080P -> 480P 排列供 ExoPlayer 自适应
+        if any(l.strip().startswith('#EXT-X-STREAM-INF') for l in lines):
+            header_lines = []
+            variants = []
+            i = 0
+            while i < len(lines):
+                stripped = lines[i].strip()
+                if stripped.startswith('#EXT-X-STREAM-INF'):
+                    res_m = re.search(r'RESOLUTION=(\d+)x(\d+)', stripped)
+                    height = int(res_m.group(2)) if res_m else 0
+                    bw_m = re.search(r'BANDWIDTH=(\d+)', stripped)
+                    bw = int(bw_m.group(1)) if bw_m else 0
+                    tag_line = self._rewrite_m3u8_tag(lines[i], base_url, video_id)
+                    uri_line = ''
+                    j = i + 1
+                    while j < len(lines):
+                        nxt = lines[j].strip()
+                        if not nxt:
+                            j += 1
+                            continue
+                        if nxt.startswith('#'):
+                            tag_line += '\n' + self._rewrite_m3u8_tag(lines[j], base_url, video_id)
+                            j += 1
+                            continue
+                        absolute = urljoin(base_url, nxt)
+                        kind = 'playlist' if nxt.endswith('.m3u8') or '/hls_playlist/' in nxt else 'media'
+                        uri_line = self._cache_hls_url(absolute, video_id, kind)
+                        break
+                    if uri_line:
+                        variants.append((height, bw, tag_line, uri_line))
+                    i = j + 1
+                    continue
+                else:
+                    if stripped.startswith('#'):
+                        header_lines.append(self._rewrite_m3u8_tag(lines[i], base_url, video_id))
+                    elif stripped:
+                        header_lines.append(lines[i])
+                    i += 1
+            if variants:
+                def _var_sort_key(v):
+                    h, b = v[0], v[1]
+                    tier = 2 if h == 720 else (1 if h == 1080 else 0)
+                    return (tier, h, b)
+                variants.sort(key=_var_sort_key, reverse=True)
+                out = list(header_lines)
+                for _, _, t_line, u_line in variants:
+                    out.append(t_line)
+                    out.append(u_line)
+                return '\n'.join(out) + '\n'
+
+        # 若是实时直播子 M3U8（不含 #EXT-X-ENDLIST），过滤直播广告插入标记，并在分片过多时仅保留最后 12 个最新实时分片并同步递增 #EXT-X-MEDIA-SEQUENCE
+        lines = [l for l in lines if not l.strip().startswith('#EXT-X-DATERANGE:') and not l.strip().startswith('#EXT-X-CUEPOINT:')]
+        is_live_media_pl = not any(l.strip().startswith('#EXT-X-ENDLIST') for l in lines)
+        if is_live_media_pl:
+            top_headers = []
+            segments = []
+            cur_seg_tags = []
+            in_segments = False
+            for line in lines:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                if stripped.startswith('#EXTINF') or stripped.startswith('#EXT-X-PROGRAM-DATE-TIME') or stripped.startswith('#EXT-X-DISCONTINUITY'):
+                    in_segments = True
+                    cur_seg_tags.append(line)
+                elif stripped.startswith('#'):
+                    if in_segments:
+                        cur_seg_tags.append(line)
+                    else:
+                        top_headers.append(line)
+                else:
+                    segments.append((cur_seg_tags, stripped))
+                    cur_seg_tags = []
+            if len(segments) > 12:
+                dropped = segments[:-12]
+                kept = segments[-12:]
+                drop_count = len(dropped)
+                drop_disc = sum(1 for tags, _ in dropped if any(t.strip().startswith('#EXT-X-DISCONTINUITY') for t in tags))
+                new_headers = []
+                for h_line in top_headers:
+                    hs = h_line.strip()
+                    if hs.startswith('#EXT-X-MEDIA-SEQUENCE:'):
+                        try:
+                            seq_num = int(hs.split(':', 1)[1].strip())
+                            new_headers.append(f'#EXT-X-MEDIA-SEQUENCE:{seq_num + drop_count}')
+                            continue
+                        except Exception:
+                            pass
+                    elif hs.startswith('#EXT-X-DISCONTINUITY-SEQUENCE:') and drop_disc > 0:
+                        try:
+                            d_num = int(hs.split(':', 1)[1].strip())
+                            new_headers.append(f'#EXT-X-DISCONTINUITY-SEQUENCE:{d_num + drop_disc}')
+                            continue
+                        except Exception:
+                            pass
+                    new_headers.append(self._rewrite_m3u8_tag(h_line, base_url, video_id))
+                out = list(new_headers)
+                for tags, uri_raw in kept:
+                    for t_line in tags:
+                        out.append(self._rewrite_m3u8_tag(t_line, base_url, video_id))
+                    absolute = urljoin(base_url, uri_raw)
+                    kind = 'playlist' if uri_raw.endswith('.m3u8') or '/hls_playlist/' in uri_raw else 'media'
+                    out.append(self._cache_hls_url(absolute, video_id, kind))
+                return '\n'.join(out) + '\n'
+
         output = []
-        for line in (text or '').splitlines():
+        for line in lines:
             stripped = line.strip()
             if not stripped:
                 output.append(line)
@@ -4874,7 +5149,8 @@ class Spider(Spider):
         def replace_uri(match):
             raw_url = match.group(1)
             absolute = urljoin(base_url, raw_url)
-            proxied = self._cache_hls_url(absolute, video_id, 'media')
+            kind = 'playlist' if raw_url.endswith('.m3u8') or '/hls_playlist/' in raw_url else 'media'
+            proxied = self._cache_hls_url(absolute, video_id, kind)
             return f'URI="{proxied}"'
         return re.sub(r'URI="([^"]+)"', replace_uri, line)
 
@@ -4903,28 +5179,43 @@ class Spider(Spider):
         key = params.get('key') or ''
         item = self.hls_url_cache.get(key)
         if not item or item.get('expires', 0) < time.time():
+            debug_log('proxy hls cache miss', {'key': key})
             return [404, 'text/plain', 'HLS 缓存已过期']
         target_url = item.get('url') or ''
+        kind = item.get('kind') or 'media'
+        # 剥离 YouTube HLS TS 分片 URL 中的 /keepalive/yes，防止长连接挂起导致读取分片超时阻塞
+        if kind == 'media' and '/keepalive/yes' in target_url:
+            target_url = target_url.replace('/keepalive/yes', '')
         try:
-            headers = self._hls_headers(target_url, item.get('kind'))
-            response = self.session.get(target_url, headers=headers, stream=True, timeout=15)
-            retried = False
-            if item.get('kind') == 'media' and response.status_code == 403:
+            headers = self._hls_headers(target_url, kind)
+            proxies = dict(self.session.proxies or {})
+            response = requests.get(target_url, headers=headers, proxies=proxies, timeout=(6, 25))
+            if kind == 'media' and response.status_code == 403:
                 retry_headers = self._hls_headers(target_url, 'media_retry')
                 response.close()
-                retried = True
-                response = self.session.get(target_url, headers=retry_headers, stream=True, timeout=15)
+                response = requests.get(target_url, headers=retry_headers, proxies=proxies, timeout=(6, 25))
             content_type = response.headers.get('content-type') or ''
-            is_m3u8 = item.get('kind') in ('master', 'playlist') or 'mpegurl' in content_type.lower() or target_url.split('?')[0].endswith('.m3u8')
+            is_m3u8 = (
+                kind in ('master', 'playlist')
+                or 'mpegurl' in content_type.lower()
+                or target_url.split('?')[0].endswith('.m3u8')
+                or '/hls_playlist/' in target_url
+                or response.content[:7] == b'#EXTM3U'
+            )
             if is_m3u8:
-                text = response.text
+                text = response.content.decode('utf-8', errors='replace')
                 rewritten = self._rewrite_m3u8(text, target_url, item.get('video_id') or '')
+                debug_log('proxy hls m3u8 ok', {'kind': kind, 'vid': item.get('video_id'), 'status': response.status_code, 'lines': len(rewritten.splitlines())})
                 return [response.status_code, 'application/vnd.apple.mpegurl', rewritten, {'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-cache'}]
-            resp_headers = {'Content-Type': content_type or 'application/octet-stream', 'Cache-Control': 'no-cache'}
-            if response.headers.get('content-length'):
-                resp_headers['Content-Length'] = response.headers.get('content-length')
-            return [response.status_code, content_type or 'application/octet-stream', response.content, resp_headers]
+            body = response.content
+            resp_headers = {
+                'Content-Type': content_type or 'video/MP2T',
+                'Cache-Control': 'no-cache',
+                'Content-Length': str(len(body)),
+            }
+            return [response.status_code, content_type or 'video/MP2T', body, resp_headers]
         except Exception as e:
+            debug_log('proxy hls error', {'kind': kind, 'err': repr(e)})
             return [500, 'text/plain', f'HLS 代理失败: {str(e)}']
 
     def localProxy(self, params):
@@ -5758,12 +6049,12 @@ class Spider(Spider):
         videos, _ = self._search_youtube_page(key, 1)
         return videos
 
-    def _search_youtube_page(self, key, page=1, sort_by_date=False):
+    def _search_youtube_page(self, key, page=1, sort_by_date=False, live_only=False):
         page = max(1, int(page or 1))
-        cache_key = f'{self._search_cache_key(key)}_{sort_by_date}'
+        cache_key = f'{self._search_cache_key(key)}_{sort_by_date}_{live_only}'
         session = self.search_page_cache.get(cache_key)
         if page == 1 or not session:
-            session = self._fetch_search_first_page(key, sort_by_date=sort_by_date)
+            session = self._fetch_search_first_page(key, sort_by_date=sort_by_date, live_only=live_only)
             self.search_page_cache[cache_key] = session
         while len(session.get('pages', [])) < page and session.get('next'):
             data = self._fetch_search_continuation(session)
@@ -5775,13 +6066,16 @@ class Spider(Spider):
         has_more = bool(session.get('next')) or len(pages) > page
         return videos, has_more
 
-    def _fetch_search_first_page(self, key, sort_by_date=False):
-        # 优先使用 Innertube 官方搜索 API：纯 JSON、响应极快、带 CAISAhAB 上传日期排序，彻底杜绝网页爬取导致的 IncompleteRead / ChunkedEncodingError
+    def _fetch_search_first_page(self, key, sort_by_date=False, live_only=False):
+        # 优先使用 Innertube 官方搜索 API：纯 JSON、响应极快；live_only 使用 EgJAAQ== 过滤正在进行的实时直播
         url = "https://www.youtube.com/youtubei/v1/search?prettyPrint=false"
+        search_params = "EgJAAQ%3D%3D" if live_only else ("CAISAhAB" if sort_by_date else "")
+        if live_only:
+            search_params = "EgJAAQ=="
         payload = {
             "context": {"client": {"clientName": "WEB", "clientVersion": "2.20240310.01.00", "hl": "zh-CN", "gl": "US"}},
             "query": str(key or ""),
-            "params": "CAISAhAB" if sort_by_date else ""
+            "params": search_params
         }
         headers = self.header.copy()
         headers.update({
@@ -5799,8 +6093,8 @@ class Spider(Spider):
                 if r.status_code == 200:
                     data = r.json()
                     videos = self._extract_videos_from_api(data, 30)
-                    if sort_by_date and not videos:
-                        # 降级：部分中文关键词带 CAISAhAB 排序会返回空列表，此时平滑回退到标准相关度搜索，由本地按发布时间重排
+                    if (sort_by_date or live_only) and not videos:
+                        # 降级：部分中文关键词带过滤参数会返回空列表，此时平滑回退到标准相关度搜索
                         payload_fallback = payload.copy()
                         payload_fallback["params"] = ""
                         try:
@@ -5949,7 +6243,21 @@ class Spider(Spider):
             pub = pub_obj.get('simpleText') or ''.join([x.get('text', '') for x in pub_obj.get('runs', [])]) or ''
             byline = renderer.get('ownerText') or renderer.get('shortBylineText') or renderer.get('longBylineText') or {}
             author = byline.get('simpleText') or ''.join([x.get('text', '') for x in byline.get('runs', [])]) or ''
-            pub_sec = self._parse_relative_time_to_seconds(pub)
+            is_live_item = False
+            for b in (renderer.get('badges') or []) + (renderer.get('thumbnailOverlays') or []):
+                b_str = json.dumps(b, ensure_ascii=False)
+                if 'BADGE_STYLE_TYPE_LIVE_NOW' in b_str or '"LIVE"' in b_str or '"直播"' in b_str or '正在直播' in b_str:
+                    is_live_item = True
+                    break
+            vc_obj = renderer.get('viewCountText') or renderer.get('shortViewCountText') or {}
+            vc_text = vc_obj.get('simpleText') or ''.join([x.get('text', '') for x in vc_obj.get('runs', [])]) or ''
+            if '正在观看' in vc_text or 'watching' in vc_text.lower():
+                is_live_item = True
+            if is_live_item and not dur:
+                pub = f'🔴正在直播 {vc_text}'.strip()
+                pub_sec = 0
+            else:
+                pub_sec = self._parse_relative_time_to_seconds(pub)
             remarks = f'{pub} · {dur}' if pub and dur else (pub or dur or 'YouTube')
             return {
                 'vod_id': vid,
@@ -6719,13 +7027,15 @@ class Spider(Spider):
                     e_idx = n
                 else:
                     e_idx = s_idx + 1
+                    s_off = cues[s_idx][1]
                     target_end_ms = s * dash_seg_ms
                     low_thresh = target_end_ms - int(dash_seg_ms * 0.55)
                     high_thresh = target_end_ms + int(dash_seg_ms * 0.55)
                     while e_idx < n:
                         cur_end_ms = cues[e_idx][0]
                         next_end_ms = cues[e_idx + 1][0] if (e_idx + 1) < n else (cur_end_ms + dash_seg_ms)
-                        if cur_end_ms < low_thresh and next_end_ms <= high_thresh:
+                        next_off = cues[e_idx + 1][1] if (e_idx + 1) < n else (content_length or (cues[e_idx][1] + 512 * 1024))
+                        if cur_end_ms < low_thresh and next_end_ms <= high_thresh and (next_off - s_off) <= 1800 * 1024:
                             e_idx += 1
                         else:
                             break
