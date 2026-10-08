@@ -136,7 +136,8 @@ NFL,https://www.youtube.com/@NFL/streams
 NASA,https://www.youtube.com/@NASA/streams
 SpaceX,https://www.youtube.com/@SpaceX/streams
 TED Talks,https://www.youtube.com/@TED/streams
-Kurzgesagt – In a Nutshell,https://www.youtube.com/@kurzgesagt/streams'''
+Kurzgesagt – In a Nutshell,https://www.youtube.com/@kurzgesagt/streams
+'''
 
 YOUTUBE_CLASSES = [
     {'type_id': '4K', 'type_name': '4K'},
@@ -4406,13 +4407,14 @@ class Spider(Spider):
     #   liveContent()  -> 返回 M3U（影视TV/猫影视「直播」入口）
     #   localProxy(type=live) -> 解析 YouTube 直播并返回改写后的 m3u8
     #   同时提供点播站形式：首页「🔴 直播」分类 -> 选频道 -> 播放
-    # 列表来源：ext 的 live_txt（http(s)/file:///本地路径/裸文本）> 内置 DEFAULT_LIVE_TXT
+    # 列表来源：ext 的 live_txt（http(s)/本地路径/裸文本）> 内置 DEFAULT_LIVE_TXT
     # ==========================================================
     LIVE_MIME = 'application/vnd.apple.mpegurl'
 
     def isVideoFormat(self, url):
+        # 只对「直播代理地址」生效；点播地址一律返回 False，保持原脚本行为不变
         try:
-            return bool(re.search(r'\.(m3u8|mp4|ts)(\?|$)', str(url or ''), re.I))
+            return 'type=live' in str(url or '')
         except Exception:
             return False
 
@@ -4469,10 +4471,10 @@ class Spider(Spider):
                     if r is not None and r.status_code == 200:
                         text = r.text or ''
                 elif src_cfg.startswith('file://'):
-                    with open(src_cfg[7:], 'r', encoding='utf-8', errors='ignore') as f:
+                    with io.open(src_cfg[7:], 'r', encoding='utf-8', errors='ignore') as f:
                         text = f.read()
                 elif os.path.exists(src_cfg):
-                    with open(src_cfg, 'r', encoding='utf-8', errors='ignore') as f:
+                    with io.open(src_cfg, 'r', encoding='utf-8', errors='ignore') as f:
                         text = f.read()
                 else:
                     text = src_cfg  # ext 里直接内嵌 "名称,url" 多行文本
@@ -4560,9 +4562,9 @@ class Spider(Spider):
     def _live_detail(self, raw_id):
         src = str(raw_id)[6:]
         name, group = src, '直播'
-        for g, n, u in self._live_channels():
+        for g, n_, u in self._live_channels():
             if u == src:
-                name, group = n, g
+                name, group = n_, g
                 break
         return {'list': [{
             'vod_id': raw_id,
@@ -4840,7 +4842,17 @@ class Spider(Spider):
             if self._live_on('live_cat', True):
                 classes = list(result['class'] or [])
                 if not any(str(c.get('type_id')) == 'live' for c in classes):
-                    classes.insert(0, {'type_id': 'live', 'type_name': '🔴 直播'})
+                    live_cls = {'type_id': 'live', 'type_name': '🔴 直播'}
+                    # 默认插到「🎵音乐MV」正前方；ext 可配 live_cat_pos=first（第1位）/ last（末尾）
+                    pos = str(self._live_cfg('live_cat_pos', 'music') or 'music').strip().lower()
+                    music_idx = next((i for i, c in enumerate(classes)
+                                      if str(c.get('type_id')) == 'music'), None)
+                    if pos == 'first':
+                        classes.insert(0, live_cls)
+                    elif pos == 'last' or music_idx is None:
+                        classes.append(live_cls)
+                    else:
+                        classes.insert(music_idx, live_cls)
                     result['class'] = classes
         except Exception:
             pass
@@ -5034,6 +5046,21 @@ class Spider(Spider):
 
         play_from = ['SABR']
         play_url = ['#'.join(eps_sabr)]
+
+        # 备用线路：默认不启用（保持原行为）；ext 配 lines="sabr,dash,stable" 即额外暴露可切换线路
+        _want_lines = str((self.extendDict or {}).get('lines') or '').strip()
+        if _want_lines:
+            _line_tags = {'dash': 'DASH 云直链', 'stable': '免卡直连(progressive)',
+                          'progressive': '免卡直连(progressive)'}
+            for _ln in [x.strip().lower() for x in _want_lines.split(',') if x.strip()]:
+                _tag = _line_tags.get(_ln)
+                if not _ln or _ln == 'sabr' or not _tag:
+                    continue
+                _eps = [f'{safe_title}${video_id}@{_ln}']
+                if autonext_on:
+                    _eps += [f'{name}${rvid}@{_ln}' for name, rvid in related]
+                play_from.append(_tag)
+                play_url.append('#'.join(_eps))
         # 小窗口选线旁的「关键词推荐」按钮：切过去即是按本片标题关键词推荐的一批同类视频
         if self._related_reco_on and related:
             reco_line = '#'.join([f'{name}${rvid}@sabr' for name, rvid in related])
@@ -5251,7 +5278,12 @@ class Spider(Spider):
         line = 'sabr'
         if quality == 'dash':
             line = 'dash'
-        if quality in ('stable', 'progressive', '', 'sabr', 'dash', '1080p', '720p'):
+        # [修复] 免卡专线死代码：原逻辑把 stable/progressive 也归一成 'best'，
+        # 使第 4925 行「免卡专线」分支永远进不去，@stable/@progressive 实际等同 @sabr。
+        # 现放行二者，并显式跳过 SABR 主力线，让「免卡直连(progressive)」真正可切换。
+        if quality in ('stable', 'progressive'):
+            line = 'none'
+        if quality in ('', 'sabr', 'dash', '1080p', '720p'):
             quality = 'best'
         video_id = self.yt.extract_video_id(video_id) if hasattr(self, 'yt') and hasattr(self.yt, 'extract_video_id') else Spider._clean_video_id(video_id)
 
