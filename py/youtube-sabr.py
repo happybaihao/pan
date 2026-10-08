@@ -25,6 +25,119 @@ DEFAULT_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 DEFAULT_0YTB_JSON = {'recommend': 'LIST:Michael Jackson Vevo cinematic story official music video,Vevo official music video story short film,Michael Jackson Thriller Beat It Smooth Criminal official video', 'class': [{'type_id': 'music', 'type_name': '🎵音乐MV'}, {'type_id': 'channel', 'type_name': '🆘频道主'}, {'type_id': 'short_drama', 'type_name': '短剧'}, {'type_id': 'tv_drama', 'type_name': '电视剧'}, {'type_id': 'movie', 'type_name': '电影'}, {'type_id': 'variety', 'type_name': '综艺'}, {'type_id': 'documentary', 'type_name': '纪录片'}, {'type_id': 'live24h', 'type_name': '24小时直播'}, {'type_id': 'anime', 'type_name': '动画片'}, {'type_id': 'sports', 'type_name': '体育赛事'}, {'type_id': 'fashion', 'type_name': '时尚潮流'}, {'type_id': 'hdr', 'type_name': '4K HDR'}, {'type_id': 'science', 'type_name': '科普宇宙'}, {'type_id': 'explain', 'type_name': '影视解说'}], 'filters': {'channel': [{'key': 'tid', 'name': '频道精选', 'value': [{'n': '全部', 'v': 'LIST:LT視界,王志安,柴静 Chai Jing,汀见,硅谷101,BBC News 中文,李肅Hi5第一頻道,崔永元,老高與小茉,自说自话的总裁,老肉雜談,滇西小哥,老饭骨,小高姐,Mr Beast,Mark Rober,不良林,悟空的日常'}, {'n': '柴静', 'v': '柴静 Chai Jing'}, {'n': '王志安', 'v': '王志安'}, {'n': '老高与小茉', 'v': '老高與小茉 @laogao'}, {'n': '自说自话的总裁', 'v': '自说自话的总裁'}, {'n': '李永乐老师', 'v': '李永樂老師 @TchLiyongle'}, {'n': '滇西小哥', 'v': '滇西小哥 @dianxixiaoge'}, {'n': '老饭骨', 'v': '老饭骨'}, {'n': '小高姐', 'v': '小高姐的 Magic Ingredients'}, {'n': 'Mr Beast', 'v': 'Mr Beast @MrBeast'}, {'n': 'Mark Rober', 'v': 'Mark Rober @MarkRober'}, {'n': '不良林', 'v': '不良林'}, {'n': '涌哥侃侃', 'v': '涌哥侃侃 @ygkkk'}]}], 'short_drama': [{'key': 'year', 'name': '年份', 'value': [{'n': '全部', 'v': ''}, {'n': '2025', 'v': '2025'}, {'n': '2024', 'v': '2024'}, {'n': '2023', 'v': '2023'}, {'n': '2022', 'v': '2022'}]}, {'key': 'tid', 'name': '平台/地区', 'value': [{'n': '全部', 'v': '短剧'}, {'n': '抖音短剧', 'v': '抖音 短剧'}, {'n': '快手短剧', 'v': '快手 短剧'}, {'n': '大陆短剧', 'v': '大陆 短剧'}, {'n': '香港短剧', 'v': '香港 短剧'}, {'n': '台湾短剧', 'v': '台湾 短剧'}, {'n': '腾讯短剧', 'v': '腾讯 短剧'}, {'n': '爱奇艺短剧', 'v': '爱奇艺 短剧'}, {'n': '优酷短剧', 'v': '优酷 短剧'}, {'n': '芒果TV短剧', 'v': '芒果TV 短剧'}]}, {'key': 'topic', 'name': '题材/剧场', 'value': [{'n': '全部', 'v': ''}, {'n': '都市', 'v': '@Urbanshort-TV 都市 短剧'}, {'n': '爱情', 'v': '爱情 短剧'}, {'n': '复仇', 'v': '复仇 短剧'}, {'n': '穿越', 'v': '穿越 短剧'}, {'n': '喜剧', 'v': '喜剧 短剧'}, {'n': '奇幻', 'v': '奇幻 短剧'}, {'n': '九酱爱追剧', 'v': '@NineSauceDramaTV'}, {'n': '百万好剧场', 'v': '@1-pw5ox'}, {'n': '咖啡追剧', 'v': '@coffeedrama605'}, {'n': '斗罗短剧', 'v': '@DouluoDrama123 斗罗短剧'}, {'n': '嘟嘟剧场', 'v': '@DUDUJUCHANG'}, {'n': '牛牛短剧', 'v': '@niuniuduanju'}]}], 'tv_drama': [{'key': 'year', 'name': '年份', 'value': [{'n': '全部', 'v': ''}, {'n': '2025', 'v': '2025'}, {'n': '2024', 'v': '2024'}, {'n': '2023', 'v': '2023'}, {'n': '2022', 'v': '2022'}, {'n': '2021', 'v': '2021'}, {'n': '2020', 'v': '2020'}, {'n': '经典', 'v': '经典 电视剧'}]}, {'key': 'tid', 'name': '地区/平台', 'value': [{'n': '全部', 'v': '电视剧 剧集'}, {'n': '华语热播', 'v': '华语热播电视剧官方频道'}, {'n': 'TVB', 'v': '@TVB 粤剧 剧集'}, {'n': '国剧放映社', 'v': '国剧放映社'}, {'n': '腾讯剧集', 'v': '腾讯 剧集'}, {'n': '爱奇艺剧集', 'v': '爱奇艺 剧集'}, {'n': '优酷剧集', 'v': '优酷 剧集'}, {'n': '芒果TV', 'v': '芒果TV 剧集'}, {'n': '美剧(Full)', 'v': '美国 Full Episode 完整剧集'}, {'n': 'Netflix', 'v': 'Netflix Full Episode 完整剧集'}, {'n': 'Disney+', 'v': 'disney Full Episode 完整剧集'}, {'n': 'HBO', 'v': 'hbo Full Episode 完整剧集'}, {'n': '韩剧', 'v': '韩国 剧集'}, {'n': '日剧', 'v': '日本 剧集'}]}], 'movie': [{'key': 'year', 'name': '年份', 'value': [{'n': '全部', 'v': ''}, {'n': '2025', 'v': '2025'}, {'n': '2024', 'v': '2024'}, {'n': '2023', 'v': '2023'}, {'n': '2022', 'v': '2022'}, {'n': '2021', 'v': '2021'}, {'n': '经典', 'v': '经典 电影'}]}, {'key': 'tid', 'name': '地区/类型', 'value': [{'n': '全部', 'v': '电影 movie'}, {'n': '华语电影', 'v': '华语 电影 Full movie'}, {'n': '港台电影', 'v': '港台 经典电影'}, {'n': 'Netflix电影', 'v': 'netflix Full movie 电影'}, {'n': '好莱坞大片', 'v': '美国 Full movie 电影'}, {'n': 'Disney', 'v': 'disney Full movie 电影'}, {'n': '韩国电影', 'v': '韩国 Full movie 电影'}, {'n': '日本电影', 'v': '日本 Full movie 电影'}]}], 'variety': [{'key': 'tid', 'name': '节目类型', 'value': [{'n': '全部', 'v': '综艺节目'}, {'n': '大陆综艺', 'v': '大陆 综艺'}, {'n': '芒果综艺', 'v': '芒果 综艺'}, {'n': '腾讯综艺', 'v': '腾讯 综艺'}, {'n': '爱奇艺综艺', 'v': '爱奇艺 综艺'}, {'n': '港台综艺', 'v': '港台 综艺'}, {'n': '韩国综艺', 'v': '韩国 综艺'}, {'n': '小品相声', 'v': '春晚小品 相声 郭德纲 岳云鹏 开心麻花'}]}], 'documentary': [{'key': 'tid', 'name': '主题', 'value': [{'n': '全部', 'v': '纪录片 documentary'}, {'n': 'BBC纪录片', 'v': 'BBC documentary 纪录片'}, {'n': '国家地理', 'v': '国家地理 纪录片 National Geographic'}, {'n': 'CCTV纪录片', 'v': 'CCTV 纪录片'}, {'n': 'Netflix纪录片', 'v': 'netflix 纪录片'}, {'n': '自然地理', 'v': '地球 大自然 纪录片'}, {'n': '宇宙天文', 'v': '宇宙 天文 纪录片'}, {'n': '历史战争', 'v': '历史 战争 纪录片'}]}], 'music': [{'key': 'tid', 'name': '风格/类型', 'value': [{'n': '全部(VEVO剧情MV)', 'v': 'Michael Jackson Vevo cinematic story official music video short film'}, {'n': 'MJ电影级叙事MV', 'v': 'Michael Jackson Thriller Beat It Smooth Criminal Remember The Time Ghosts Official Video Short Film'}, {'n': 'VEVO剧情故事MV', 'v': 'Vevo cinematic story official music video mini movie'}, {'n': '欧美殿堂VEVO精选', 'v': 'Vevo most viewed official music video HD'}, {'n': '华语剧情MV', 'v': '周杰伦 剧情 电影感 官方完整版 MV'}, {'n': '热门MV', 'v': 'YouTube 点阅率最高 华语流行歌曲'}, {'n': '经典老歌', 'v': '80 90 经典怀旧音乐'}, {'n': '粤语经典', 'v': '粤语 经典音乐'}, {'n': '车载DJ', 'v': '车载慢摇 重低音 DJ 串烧'}]}, {'key': 'singer', 'name': '歌手精选', 'value': [{'n': '全部', 'v': ''}, {'n': '迈克尔·杰克逊', 'v': 'Michael Jackson Official Video Short Film Vevo'}, {'n': 'The Weeknd (VEVO)', 'v': 'The Weeknd Vevo Official Music Video'}, {'n': 'Lady Gaga (VEVO)', 'v': 'Lady Gaga Vevo Official Music Video story'}, {'n': 'Taylor Swift (VEVO)', 'v': 'Taylor Swift Vevo Official Music Video'}, {'n': 'Eminem (VEVO)', 'v': 'Eminem Vevo Official Music Video'}, {'n': '周杰伦', 'v': '周杰伦 官方完整版 MV'}, {'n': '刀郎', 'v': '刀郎 演唱会 音乐'}, {'n': '林俊杰', 'v': '林俊杰 剧情 MV'}, {'n': '邓紫棋', 'v': '邓紫棋 官方 MV'}, {'n': '张学友', 'v': '张学友 经典 MV'}]}], 'live24h': [{'key': 'tid', 'name': '直播分类', 'value': [{'n': '全部', 'v': 'live 新闻 直播'}, {'n': '中文新闻', 'v': '新闻 直播 live'}, {'n': '港台直播', 'v': '港台 直播 live'}, {'n': 'CNN', 'v': 'live CNN'}, {'n': 'BBC', 'v': 'live BBC'}, {'n': '体育直播', 'v': 'sports live 直播'}]}], 'anime': [{'key': 'tid', 'name': '类别/频道', 'value': [{'n': '全部', 'v': '国漫 动画 anime'}, {'n': '国漫3D', 'v': '国漫 3D 动画'}, {'n': '腾讯动漫', 'v': '@TencentVideoAnimation'}, {'n': '哔哩动漫', 'v': '@madebybilibili 哔哩动漫'}, {'n': '阅文动漫', 'v': '@yuewenanimation'}, {'n': '优酷动漫', 'v': '@youkuanimation 优酷动漫'}, {'n': '爱奇艺动漫', 'v': '@iQIYIAnime 爱奇艺动漫'}, {'n': '小猪佩奇', 'v': '@PeppaPigChineseOfficial 小猪佩奇 中文'}, {'n': '宝宝巴士', 'v': '宝宝巴士 儿童早教'}]}], 'sports': [{'key': 'tid', 'name': '赛事类型', 'value': [{'n': '全部', 'v': '体育 赛事 live sports'}, {'n': '足球', 'v': '足球 赛事 集锦 highlights'}, {'n': '篮球NBA', 'v': 'NBA 赛事 highlights 集锦'}, {'n': '极限运动', 'v': 'GoPro 极限运动 翼装飞行 Red Bull'}, {'n': '健身训练', 'v': '健身 运动 训练 workout'}]}], 'fashion': [{'key': 'tid', 'name': '分类', 'value': [{'n': '全部', 'v': 'T台走秀 fashion show'}, {'n': '时装秀', 'v': 'FASHION Runway 时装走秀'}, {'n': '街舞舞蹈', 'v': '街舞 机械舞 舞蹈 dance'}, {'n': '车模写生', 'v': '车模 模特 4K HDR'}]}], 'hdr': [{'key': 'tid', 'name': '画质精选', 'value': [{'n': '全部', 'v': '4K HDR 60fps 风景 演示片'}, {'n': '自然风光', 'v': '4K HDR 大自然 风景 nature'}, {'n': '城市漫步', 'v': '4K HDR city walk 城市街景'}, {'n': '动物世界', 'v': '4K HDR wildlife 动物世界'}, {'n': '放松冥想', 'v': '4K HDR 放松 冥想 睡眠 白噪音'}]}], 'science': [{'key': 'tid', 'name': '主题', 'value': [{'n': '全部', 'v': '科普 科技 宇宙'}, {'n': '黑洞与宇宙', 'v': '宇宙 黑洞 银河系 量子力学'}, {'n': '前沿科技/AI', 'v': '人工智能 AI 科技 technology'}, {'n': '航天探索', 'v': '航天 太空 火箭 Space'}]}], 'explain': [{'key': 'tid', 'name': '频道主', 'value': [{'n': '全部', 'v': '电影解说 故事解说'}, {'n': '宇哥侃故事', 'v': '@yuge 宇哥侃故事'}, {'n': '零度解说', 'v': '@lingdujieshuo 零度解说'}]}]}}
 
+DEFAULT_LIVE_TXT = r'''
+台湾直播,#genre#
+凤凰卫视资讯,https://www.youtube.com/watch?v=Ry--eMIjYLQ
+中天新闻台,https://www.youtube.com/watch?v=vr3XyVCR4T0
+TVBS新闻台,https://www.youtube.com/watch?v=2mCSYvcfhtc
+TVBS网络台,https://www.youtube.com/watch?v=m_dhMSvUCIc
+TVBS优选台,https://www.youtube.com/watch?v=WAUECPu9EOw
+寰宇新闻台,https://www.youtube.com/watch?v=6IquAgfvYmc
+寰宇新闻二,https://www.youtube.com/watch?v=Ej3LQM_lTEw
+寰宇台湾台,https://www.youtube.com/watch?v=w87VGpgd90U
+寰宇财经台,https://www.youtube.com/watch?v=yAUQQ0DhPxI
+东森新闻台,https://www.youtube.com/watch?v=V1p33hqPrUk
+东森直播台,https://www.youtube.com/watch?v=E0zhe2gkXBs
+东森财经台,https://www.youtube.com/watch?v=1I2iq41Akmo
+东森财经台,https://www.youtube.com/watch?v=AEBeWMM1atA
+东森综合台,https://www.youtube.com/watch?v=cimbpAZUjzw
+三立新闻台,https://www.youtube.com/watch?v=pF507BLtbqU
+三立財經台,https://www.youtube.com/watch?v=pF507BLtbqU
+公视新闻台,https://www.youtube.com/watch?v=quwqlazU-c8
+民视新闻台,https://www.youtube.com/watch?v=ylYJSBUgaMA
+华视新闻台,https://www.youtube.com/watch?v=wM0g8EoUZ_E
+中视新闻台,https://www.youtube.com/watch?v=TCnaIE_SAtM
+非凡新闻台,https://www.youtube.com/watch?v=wAUx3pywTt8
+镜电视新闻,https://www.youtube.com/watch?v=5n0y6b0Q25o
+倪珍播新闻,https://www.youtube.com/watch?v=RRybv1kEnCU
+凤凰资讯台,https://www.youtube.com/watch?v=fN9uYWCjQaw
+亚洲新闻台,https://www.youtube.com/watch?v=XWq5kBlakcQ
+半岛新闻台,https://www.youtube.com/watch?v=gCNeDWCI0vo
+新传媒娱乐,https://www.youtube.com/watch?v=ipqTkEH3mhE
+台湾大搜索,https://www.youtube.com/watch?v=Q0jusAya5s4
+经典综艺台,https://www.youtube.com/watch?v=ADDSmXoPDY8
+信大电视台,https://www.youtube.com/watch?v=OqcwT72qe0k
+大陆寻奇台,https://www.youtube.com/watch?v=LqXVZ_hK3Xs
+大爱电视台,https://www.youtube.com/watch?v=MIqUplvSRWA
+大爱电视二,https://www.youtube.com/watch?v=QDxRJP-wfeI
+太阳马戏团,https://www.youtube.com/watch?v=swgouFE-5e4
+台视新闻台,https://www.youtube.com/watch?v=xL0ch83RAK8
+三立新闻,https://www.youtube.com/watch?v=MV9mI0GChwo
+三立 iNEWS,https://www.youtube.com/watch?v=BlKaF8og0jo
+寰宇财经新闻,https://www.youtube.com/watch?v=WTRQiVWK1jY
+大爱电视2,https://www.youtube.com/watch?v=DTNkEm6jaqQ
+中视综艺台,https://www.youtube.com/watch?v=A98LJq71BZg
+TaiwanPlus,https://www.youtube.com/watch?v=Vrs-AeKZIEg
+TVBS选新闻,https://www.youtube.com/watch?v=o_-hSMgpAzs
+TVBS新闻,https://m.youtube.com/@TVBSNEWS01/streams/1
+东森新闻,https://m.youtube.com/@newsebc/streams/1
+民视新闻,https://m.youtube.com/@FTV_News/streams/1
+中天新闻,https://m.youtube.com/@中天電視CtiTv/streams/1
+三立财经,https://m.youtube.com/@setinews/live
+东森财经,https://m.youtube.com/@57ETFN/streams/2
+华视新闻,https://m.youtube.com/@CtsTw/streams/1
+中视新闻,https://m.youtube.com/@twctvnews/streams/1
+
+海外直播,#genre#
+SEA POP,https://www.youtube.com/watch?v=RjZr3ksn_F8
+SEA POP,https://www.youtube.com/watch?v=mHfL7Fl3XW8
+DuaLipa,https://www.youtube.com/watch?v=Gt43Zqf3s0U
+TheKPOP,https://www.youtube.com/watch?v=JVocS7Yftw8
+SunWave,https://www.youtube.com/watch?v=RVk6c_SjOm8
+AlanWalker,https://www.youtube.com/watch?v=9l63T77YL2c
+RelaxingNature,https://www.youtube.com/watch?v=vdeJ3QY6w6g
+DiscoveryRelaxation,https://www.youtube.com/watch?v=6iQCt1X8jZU
+BBC Earth,https://www.youtube.com/watch?v=1LhlXiSc5NY
+BBC Earth Science,https://www.youtube.com/watch?v=KGZtDK8hZ60
+Discovery,https://www.youtube.com/watch?v=OnI-uUxJZuE
+Discovery,https://www.youtube.com/watch?v=ohKj2ma9mfM
+Love Nature,https://www.youtube.com/watch?v=Zns4k_dICzs
+Love Nature,https://www.youtube.com/watch?v=QhahoVG0BfI
+Earth Planet,https://www.youtube.com/watch?v=sYod9dCf5Cw
+Earth Planet,https://www.youtube.com/watch?v=QXeCPubARfo
+Nat Geo Kids,https://www.youtube.com/watch?v=q5xC6wv9Ut0
+Nat Geo Kids,https://www.youtube.com/watch?v=H-h657jXQyA
+Nat Geo Animals,https://www.youtube.com/watch?v=J4IYwyEUwrI
+Nat Geo Animals,https://www.youtube.com/watch?v=MiQe9ob9aDc
+National Geographic,https://www.youtube.com/watch?v=eVty8-fUGJY
+National Geographic,https://www.youtube.com/watch?v=lJOROUvD8sU
+Love Nature Predators,https://www.youtube.com/watch?v=YRIkyaX2in0
+Love Nature Predators,https://www.youtube.com/watch?v=7ByKk5NPsRw
+Ultimate Nature Documentaries,https://www.youtube.com/watch?v=i6DH-eLlLjo
+Ultimate Nature Documentaries,https://www.youtube.com/watch?v=JVXC4DrH6PA
+CCTV4 中文国际,https://www.youtube.com/watch?v=SdzewdkJa-o
+FRANCE 24,https://www.youtube.com/watch?v=l8PMl7tUDIE
+ANN新闻,https://www.youtube.com/watch?v=coYw-eVU0Ks
+TBS新闻,https://www.youtube.com/watch?v=ohI356mwBp8
+NHK WORLD,https://www.youtube.com/watch?v=f0lYkdA-Gtw
+ABC新闻,https://www.youtube.com/watch?v=-mvUkiILTqI
+ABC7纽约,https://www.youtube.com/watch?v=VrhYz4CL70I
+CBS新闻,https://www.youtube.com/watch?v=e_vEct0OMT4
+FOX,https://www.youtube.com/watch?v=YDfiTGGPYCk
+联合国,https://www.youtube.com/watch?v=wfAa1GiNdgM
+FRANCE24,https://www.youtube.com/watch?v=Ap-UM1O9RBU
+欧洲新闻,https://www.youtube.com/watch?v=pykpO5kQJ98
+Discovery,https://www.youtube.com/watch?v=Ucs_Kj6Yaog
+BBC News,https://www.youtube.com/@BBCNews/streams
+CNN,https://www.youtube.com/@CNN/streams
+Sky News,https://www.youtube.com/@SkyNews/streams
+Fox News,https://www.youtube.com/@FoxNews/streams
+Al Jazeera,https://www.youtube.com/@aljazeera/streams
+RT,https://www.youtube.com/@RT/streams
+CCTV,https://www.youtube.com/@CCTV/streams
+France 24,https://www.youtube.com/@France24/streams
+DW News,https://www.youtube.com/@dwnews/streams
+Bloomberg TV,https://www.youtube.com/@Bloomberg/streams
+CNBC,https://www.youtube.com/@CNBC/streams
+Sky Sports,https://www.youtube.com/@SkySports/streams
+NBA,https://www.youtube.com/@NBA/streams
+MLB,https://www.youtube.com/@MLB/streams
+NFL,https://www.youtube.com/@NFL/streams
+NASA,https://www.youtube.com/@NASA/streams
+SpaceX,https://www.youtube.com/@SpaceX/streams
+TED Talks,https://www.youtube.com/@TED/streams
+Kurzgesagt – In a Nutshell,https://www.youtube.com/@kurzgesagt/streams'''
+
 YOUTUBE_CLASSES = [
     {'type_id': '4K', 'type_name': '4K'},
     {'type_id': 'HDR', 'type_name': 'HDR'},
@@ -66,6 +179,20 @@ CATEGORY_ALIASES = {
     'documentary': '纪录片',
 }
 
+
+
+def _live_b64e(text):
+    return base64.urlsafe_b64encode(str(text).encode('utf-8')).decode('ascii').rstrip('=')
+
+def _live_b64d(text):
+    text = str(text or '') + '=' * (-len(str(text or '')) % 4)
+    return base64.urlsafe_b64decode(text.encode('ascii')).decode('utf-8')
+
+def _live_one(v):
+    """localProxy 的参数值可能是 str 或 list，统一取第一个字符串。"""
+    if isinstance(v, (list, tuple)):
+        v = v[0] if v else ''
+    return v or ''
 
 def _filter_group(key, name, pairs):
     return {
@@ -4274,6 +4401,259 @@ class Spider(Spider):
             'Cache-Control': 'public, max-age=300',
         }]
 
+    # ==========================================================
+    # 🔴 直播支持（ofiii 风格）：
+    #   liveContent()  -> 返回 M3U（影视TV/猫影视「直播」入口）
+    #   localProxy(type=live) -> 解析 YouTube 直播并返回改写后的 m3u8
+    #   同时提供点播站形式：首页「🔴 直播」分类 -> 选频道 -> 播放
+    # 列表来源：ext 的 live_txt（http(s)/file:///本地路径/裸文本）> 内置 DEFAULT_LIVE_TXT
+    # ==========================================================
+    LIVE_MIME = 'application/vnd.apple.mpegurl'
+
+    def isVideoFormat(self, url):
+        try:
+            return bool(re.search(r'\.(m3u8|mp4|ts)(\?|$)', str(url or ''), re.I))
+        except Exception:
+            return False
+
+    def manualVideoCheck(self):
+        return False
+
+    def _live_cfg(self, key, default=None):
+        try:
+            val = (self.extendDict or {}).get(key)
+        except Exception:
+            val = None
+        return default if val is None else val
+
+    def _live_on(self, key, default=True):
+        raw = self._live_cfg(key, None)
+        if raw is None:
+            return default
+        return str(raw).strip().lower() not in ('0', 'off', 'false', 'no')
+
+    def _live_proxy_base(self):
+        base = ''
+        try:
+            base = str(self.getProxyUrl() or '').strip()
+        except Exception:
+            base = ''
+        return base if base.startswith('http') else 'http://127.0.0.1:9978/proxy?do=py'
+
+    def _live_play_url(self, src):
+        """频道播放地址 = 本地代理，真正取流推迟到点击时（lazy），列表秒开。"""
+        base = self._live_proxy_base()
+        sep = '&' if '?' in base else '?'
+        return '%s%stype=live&id=%s&ext=.m3u8' % (base, sep, _live_b64e(str(src)))
+
+    def _live_thumb(self, src):
+        vid = ''
+        try:
+            vid = YouTubeLite.extract_video_id(src)
+        except Exception:
+            vid = ''
+        if not vid:
+            return ''
+        return '%s&type=image&vid=%s&quality=mqdefault' % (self._live_proxy_base(), vid)
+
+    def _live_load_txt(self):
+        now = time.time()
+        if getattr(self, '_live_txt_cache', '') and getattr(self, '_live_txt_exp', 0) > now:
+            return self._live_txt_cache
+        text = ''
+        src_cfg = str(self._live_cfg('live_txt', '') or '').strip()
+        if src_cfg:
+            try:
+                if src_cfg.startswith(('http://', 'https://')):
+                    r = self.session.get(src_cfg, timeout=(6, 15))
+                    if r is not None and r.status_code == 200:
+                        text = r.text or ''
+                elif src_cfg.startswith('file://'):
+                    with open(src_cfg[7:], 'r', encoding='utf-8', errors='ignore') as f:
+                        text = f.read()
+                elif os.path.exists(src_cfg):
+                    with open(src_cfg, 'r', encoding='utf-8', errors='ignore') as f:
+                        text = f.read()
+                else:
+                    text = src_cfg  # ext 里直接内嵌 "名称,url" 多行文本
+            except Exception as e:
+                debug_log('live txt load error', repr(e))
+        if not text.strip():
+            text = DEFAULT_LIVE_TXT
+        try:
+            ttl = int(self._live_cfg('live_ttl', 1800) or 1800)
+        except Exception:
+            ttl = 1800
+        self._live_txt_cache = text
+        self._live_txt_exp = now + max(60, ttl)
+        return text
+
+    def _live_channels(self):
+        """解析列表文本 -> [(分组, 名称, 源地址)]，支持 名称,#genre# 分组。"""
+        now = time.time()
+        if getattr(self, '_live_chan_cache', None) and getattr(self, '_live_chan_exp', 0) > now:
+            return self._live_chan_cache
+        rows = []
+        seen = set()
+        group = '未分组'
+        for raw in (self._live_load_txt() or '').splitlines():
+            line = (raw or '').strip()
+            if not line or line.startswith('#'):
+                continue
+            if '#genre#' in line:
+                group = line.split(',')[0].strip() or '未分组'
+                continue
+            if ',' not in line:
+                continue
+            name, url = line.split(',', 1)
+            name, url = name.strip(), url.strip()
+            if not name or not url:
+                continue
+            if 'youtube.com' not in url and 'youtu.be' not in url:
+                continue
+            key = (name, url)
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append((group, name, url))
+        only = str(self._live_cfg('live_group', '') or '').strip()
+        if only:
+            keys = [x.strip() for x in only.split(',') if x.strip()]
+            rows = [r for r in rows if r[0] in keys]
+        self._live_chan_cache = rows
+        self._live_chan_exp = now + 600
+        debug_log('live channels loaded', {'count': len(rows)})
+        return rows
+
+    # ---------- 入口一：直播源（M3U） ----------
+    def liveContent(self, url):
+        try:
+            rows = self._live_channels()
+            epg = str(self._live_cfg('live_epg', '') or '').strip()
+            out = ['#EXTM3U x-tvg-url="%s"' % epg] if epg else ['#EXTM3U']
+            for group, name, src in rows:
+                logo = self._live_thumb(src)
+                tag = '#EXTINF:-1 tvg-name="%s"%s group-title="%s",%s' % (
+                    name, (' tvg-logo="%s"' % logo) if logo else '', group, name)
+                out.append(tag)
+                out.append(self._live_play_url(src))
+            return '\n'.join(out) + '\n'
+        except Exception as e:
+            debug_log('liveContent error', repr(e))
+            return '#EXTM3U\n'
+
+    # ---------- 入口二：点播站形式的「🔴 直播」分类 ----------
+    def _live_vod_list(self, group=None):
+        out = []
+        for g, name, src in self._live_channels():
+            if group and group not in ('', 'all', '全部') and g != group:
+                continue
+            out.append({
+                'vod_id': 'LIVE__' + src,
+                'vod_name': name,
+                'vod_pic': self._live_thumb(src),
+                'vod_remarks': '🔴 ' + g,
+                'vod_tag': 'live',
+            })
+        return out
+
+    def _live_detail(self, raw_id):
+        src = str(raw_id)[6:]
+        name, group = src, '直播'
+        for g, n, u in self._live_channels():
+            if u == src:
+                name, group = n, g
+                break
+        return {'list': [{
+            'vod_id': raw_id,
+            'vod_name': name,
+            'vod_pic': self._live_thumb(src),
+            'type_name': group,
+            'vod_remarks': '🔴 直播中',
+            'vod_content': '%s（YouTube 直播 · 本地代理取流，自动选最高码率）' % name,
+            'vod_play_from': 'YouTube直播',
+            'vod_play_url': '直播$' + raw_id,
+        }]}
+
+    # ---------- 频道页（@handle/streams）-> 当前正在直播的 videoId ----------
+    def _live_resolve(self, src):
+        """返回 (video_id, hls_url)。watch/ID 直接返回；@handle 抓 /live 页面解析。"""
+        src = (src or '').strip()
+        try:
+            vid = YouTubeLite.extract_video_id(src)
+            if vid:
+                return vid, ''
+        except Exception:
+            pass
+        m = (re.search(r'youtube\.com/(@[0-9A-Za-z_.-]+)', src)
+             or re.search(r'youtube\.com/((?:c|user)/[0-9A-Za-z_.-]+|channel/[0-9A-Za-z_-]+)', src))
+        if not m:
+            return '', ''
+        key = m.group(1)
+        now = time.time()
+        cached = self._live_handle_cache.get(key) if hasattr(self, '_live_handle_cache') else None
+        if cached and cached[2] > now:
+            return cached[0], cached[1]
+        try:
+            ttl = int(self._live_cfg('live_handle_ttl', 120) or 120)
+        except Exception:
+            ttl = 120
+        vid, hls = '', ''
+        for page_url in ('https://www.youtube.com/%s/live' % key, 'https://www.youtube.com/%s/streams' % key):
+            try:
+                r = self.session.get(page_url, headers=self.header, timeout=(6, 15))
+                final_url = getattr(r, 'url', '') or ''
+                m2 = re.search(r'(?:v=|/live/)([0-9A-Za-z_-]{11})', final_url)
+                if m2:
+                    vid = m2.group(1)
+                body = r.text or ''
+                if not vid:
+                    m3 = (re.search(r'videoId\\?":\\?"([0-9A-Za-z_-]{11})', body)
+                          or re.search(r'/watch\?v=([0-9A-Za-z_-]{11})', body))
+                    if m3:
+                        vid = m3.group(1)
+                if not hls:
+                    m4 = re.search(r'hlsManifestUrl\\?":\\?"([^"\\]+)', body)
+                    if m4:
+                        hls = m4.group(1).replace('\\/', '/')
+                if vid or hls:
+                    break
+            except Exception as e:
+                debug_log('live handle resolve error', {'key': key, 'err': repr(e)})
+        self._live_handle_cache[key] = (vid, hls, now + max(30, ttl))
+        debug_log('live handle resolved', {'key': key, 'vid': vid, 'has_hls': bool(hls)})
+        return vid, hls
+
+    # ---------- localProxy(type=live) ----------
+    def _proxy_live(self, params):
+        raw = _live_one(params.get('id'))
+        try:
+            src = _live_b64d(raw)
+        except Exception:
+            src = raw
+        if not src:
+            return [400, 'text/plain', 'missing live id']
+        try:
+            vid, hls = self._live_resolve(src)
+            if not hls and vid:
+                yt = getattr(self, 'yt', None)
+                if yt is None:
+                    return [503, 'text/plain', '直播解析组件未初始化']
+                data = yt.extract_live(vid)
+                hls = (data or {}).get('hls_url') or ''
+            if not hls:
+                return [503, 'text/plain', '直播未开始或无法获取流']
+            r = self.session.get(hls, headers=self._hls_headers(hls, 'master'), timeout=(6, 15))
+            if r is None or r.status_code != 200:
+                return [502, 'text/plain', 'live manifest failed: %s' % getattr(r, 'status_code', None)]
+            text = self._rewrite_m3u8(r.text or '', hls, vid)
+            debug_log('proxy live ok', {'src': src, 'vid': vid, 'lines': len(text.splitlines())})
+            return [200, self.LIVE_MIME, text,
+                    {'Content-Type': self.LIVE_MIME, 'Cache-Control': 'no-cache'}]
+        except Exception as e:
+            debug_log('proxy live error', {'src': src, 'err': repr(e)})
+            return [500, 'text/plain', 'live error: %r' % e]
+
     def getName(self):
         return 'YouTube(SABR纯本地)'
 
@@ -4394,6 +4774,16 @@ class Spider(Spider):
             self.header['User-Agent'] = ua
             self.session.headers['User-Agent'] = ua
 
+        # ---- 直播（Live）扩展配置 ----
+        self._live_txt_cache = ''
+        self._live_txt_exp = 0
+        self._live_chan_cache = []
+        self._live_chan_exp = 0
+        self._live_handle_cache = {}
+        debug_log('live module ready', {
+            'live_txt': self.extendDict.get('live_txt') or '内置默认列表',
+        })
+
 
     def _auto_detect_proxy(self):
         """依次探测内置本机代理；均不可用时回退到系统/环境代理。"""
@@ -4446,6 +4836,14 @@ class Spider(Spider):
         # 0ytb.json 100% 绝对优先：确保永远呈现 0ytb.json 的 14 个分类与筛选，且默认排第 1 为音乐MV
         result['class'] = self.custom_classes or (DEFAULT_0YTB_JSON.get('class') or YOUTUBE_CLASSES)
         result['filters'] = self.custom_filters or (DEFAULT_0YTB_JSON.get('filters') or CATEGORY_FILTERS)
+        try:
+            if self._live_on('live_cat', True):
+                classes = list(result['class'] or [])
+                if not any(str(c.get('type_id')) == 'live' for c in classes):
+                    classes.insert(0, {'type_id': 'live', 'type_name': '🔴 直播'})
+                    result['class'] = classes
+        except Exception:
+            pass
         return result
 
     def homeVideoContent(self):
@@ -4455,6 +4853,11 @@ class Spider(Spider):
     def categoryContent(self, cid, page, filter, ext):
         page = int(page) if page else 1
         filters = ext if isinstance(ext, dict) else {}
+
+        # 🔴 直播分类：纯本地列表，不做搜索/去抖，秒出
+        if str(cid) == 'live':
+            items = self._live_vod_list((filters or {}).get('group') if isinstance(filters, dict) else '')
+            return {'list': items, 'page': 1, 'pagecount': 1, 'limit': len(items), 'total': len(items)}
 
         # 分类防刷：TV 上下切分类会连发多次 categoryContent，逐个真去搜会造成频繁刷新/卡顿。
         # 仅在某分类停留 >= cat_debounce_sec（默认 2s）的请求才真正加载；停留期间被新的切换取代者返回空列表，
@@ -4557,6 +4960,10 @@ class Spider(Spider):
 
     def detailContent(self, did):
         raw_id = did[0] if isinstance(did, list) else str(did or '')
+
+        # 🔴 直播频道
+        if str(raw_id).startswith('LIVE__'):
+            return self._live_detail(raw_id)
 
         # 超长音乐MV随机连播：聚合一批时长超长的音乐MV/演唱会，随机打乱后做成一个播放列表。
         # FongMi/TVBox 播完一集会自动跳下一集，配合随机顺序即“放完自动随机下一部超长MV”。
@@ -4822,6 +5229,18 @@ class Spider(Spider):
         if isinstance(pid, list):
             pid = pid[0] if pid else ''
         pid_str = str(pid or '')
+
+        # 🔴 直播：直接返回本地代理 m3u8 地址（含 @handle 频道也能解析，故须在 '@' 拆分前拦截）
+        if 'LIVE__' in pid_str:
+            live_src = pid_str.split('LIVE__', 1)[1].split('$')[0]
+            return {
+                'parse': 0, 'jx': 0,
+                'url': self._live_play_url(live_src),
+                'format': self.LIVE_MIME,
+                'mediaType': self.LIVE_MIME,
+                'header': self.header,
+            }
+
         raw_pid = pid_str.split('$')[-1]
         quality = '1080p'
         if '@' in raw_pid:
@@ -5229,6 +5648,8 @@ class Spider(Spider):
             return self._proxy_single(params)
         if params.get('type') == 'hls':
             return self._proxy_hls(params)
+        if params.get('type') == 'live':
+            return self._proxy_live(params)
         if params.get('type') == 'image':
             return self._proxy_image(params)
         if params.get('type') == 'sub':
