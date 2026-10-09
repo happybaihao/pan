@@ -86,6 +86,33 @@ MAX_SEGS = 400
 PLAYLIST_WINDOW = 8
 HTTP_TIMEOUT = 12
 
+# 壳端(FongMi 5.1.6 / VodPlus 1.2.1)的 Proxy.createResponse 直接拿 status 做
+# NanoHTTPD Status.lookup()，lookup 不认识的码(如 502/599)返回 null，
+# Response.send 抛 "Status can't be null" 导致整个 app 闪退。
+# 这里维护设备端 Status 枚举的合法码表，出站回包统一收敛。
+_SAFE_STATUS = {101, 200, 201, 202, 204, 206, 207,
+                301, 302, 303, 304, 307,
+                400, 401, 403, 404, 405, 406, 408, 409, 410, 411, 412, 413,
+                415, 416, 417, 429, 500, 501, 503, 505}
+
+
+def _proxy_safe(resp):
+    """把 localProxy 回包收敛成壳端一定认识的 [status, mime, body, headers?]。"""
+    if not isinstance(resp, (list, tuple)) or not resp:
+        return [500, "text/plain; charset=utf-8", "央视频: 非法代理返回"]
+    try:
+        status = int(resp[0])
+    except (TypeError, ValueError):
+        status = 500
+    if status not in _SAFE_STATUS:
+        status = 500
+    mime = resp[1] if len(resp) > 1 and resp[1] else "text/plain; charset=utf-8"
+    body = resp[2] if len(resp) > 2 and resp[2] is not None else ""
+    out = [status, mime, body]
+    if len(resp) > 3 and resp[3]:
+        out.append(resp[3])
+    return out
+
 
 # ================================================================ JCE 协议
 
@@ -2583,6 +2610,10 @@ class Spider(SpiderBase):
 
     # ---------------- 本地代理（取代本地 HTTP 服务） ----------------
     def localProxy(self, param):
+        # 统一走 raw 实现，再收敛成壳端认识的状态码，避免 Status null 闪退
+        return _proxy_safe(self._localProxyRaw(param))
+
+    def _localProxyRaw(self, param):
         try:
             # 部分壳传 JSON 字符串而非 dict，先归一化
             if isinstance(param, str):
@@ -2619,7 +2650,7 @@ class Spider(SpiderBase):
                             {"Location": direct, "Cache-Control": "no-store"}]
             return self._playlist(ch)
         except Exception as error:
-            return [502, "text/plain; charset=utf-8",
+            return [500, "text/plain; charset=utf-8",
                     "央视频: %s: %s" % (type(error).__name__, error)]
 
     def _playlist(self, ch):
@@ -2690,15 +2721,24 @@ class Spider(SpiderBase):
         except (TypeError, ValueError):
             return [400, "text/plain; charset=utf-8", "央视频: bad seq"]
         ch.last_access = time.time()
+        key = None
         with ch.lock:
             url = None
-            for key in ch.order:
-                seg = ch.segments.get(key)
+            for k in ch.order:
+                seg = ch.segments.get(k)
                 if seg and seg[0] == seq:
-                    url = seg[3]
+                    key, url = k, seg[3]
                     break
         if not url:
             return [404, "text/plain; charset=utf-8", "央视频: 切片已过期"]
+
+        def _drop_dead_segment():
+            # 4K 等签名段过期会 403，踢出后滚动窗口不再重复命中死链
+            with ch.lock:
+                if key in ch.segments and key in ch.order:
+                    ch.order.remove(key)
+                    ch.segments.pop(key, None)
+
         cached = TS_CACHE.get(url)
         if cached is not None:
             return [200, "video/mp2t", cached, {"Cache-Control": "no-cache, no-store"}]
@@ -2709,10 +2749,13 @@ class Spider(SpiderBase):
             else:
                 status, body, _ = _http("GET", url, headers, None, 20)
         except Exception as error:
-            return [502, "text/plain; charset=utf-8",
+            _drop_dead_segment()
+            return [503, "text/plain; charset=utf-8",
                     "央视频: 切片错误 %s" % type(error).__name__]
         if status < 200 or status >= 300 or not body:
-            return [502, "text/plain; charset=utf-8", "央视频: 切片 HTTP %d" % status]
+            _drop_dead_segment()
+            # 上游 403/404 归一成 404，让播放器跳到下一段而不是重试死链
+            return [404, "text/plain; charset=utf-8", "央视频: 切片 HTTP %d" % status]
         TS_CACHE.put(url, body)
         return [200, "video/mp2t", body, {"Cache-Control": "no-cache, no-store"}]
 
