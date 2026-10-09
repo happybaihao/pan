@@ -4469,13 +4469,25 @@ class Spider(Spider):
                 if src_cfg.startswith(('http://', 'https://')):
                     r = self.session.get(src_cfg, timeout=(6, 15))
                     if r is not None and r.status_code == 200:
-                        text = r.text or ''
+                        # 【核心修复】：不直接用 r.text，改为手动处理 r.content
+                        content = r.content
+                        if content:
+                            # 依次尝试常见编码：UTF-8, GBK, GB18030
+                            for enc in ('utf-8', 'gbk', 'gb18030', 'latin-1'):
+                                try:
+                                    text = content.decode(enc)
+                                    break
+                                except UnicodeDecodeError:
+                                    continue
+                            else:
+                                # 如果都不行，用替换模式强行解码，避免崩溃
+                                text = content.decode('utf-8', errors='replace')
                 elif src_cfg.startswith('file://'):
-                    with io.open(src_cfg[7:], 'r', encoding='utf-8', errors='ignore') as f:
-                        text = f.read()
+                    # 本地文件读取增加备份编码
+                    file_path = src_cfg[7:]
+                    text = self._live_read_file_safe(file_path)
                 elif os.path.exists(src_cfg):
-                    with io.open(src_cfg, 'r', encoding='utf-8', errors='ignore') as f:
-                        text = f.read()
+                    text = self._live_read_file_safe(src_cfg)
                 else:
                     text = src_cfg  # ext 里直接内嵌 "名称,url" 多行文本
             except Exception as e:
@@ -4489,6 +4501,18 @@ class Spider(Spider):
         self._live_txt_cache = text
         self._live_txt_exp = now + max(60, ttl)
         return text
+    
+    def _live_read_file_safe(self, file_path):
+        """安全的本地文件读取，避免编码问题导致乱码"""
+        for enc in ('utf-8', 'gbk', 'gb18030'):
+            try:
+                with io.open(file_path, 'r', encoding=enc, errors='ignore') as f:
+                    return f.read()
+            except Exception:
+                continue
+        # 都不行就用 utf-8 忽略错误读取
+        with io.open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            return f.read()
 
     def _live_channels(self):
         """解析列表文本 -> [(分组, 名称, 源地址)]，支持 名称,#genre# 分组。"""
