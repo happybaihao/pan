@@ -4,6 +4,7 @@ import re
 import json
 import time
 import base64
+import struct
 import hashlib
 from urllib.parse import quote, unquote
 
@@ -67,6 +68,21 @@ OFFLINE_POLL_INTERVAL = 1
 OFFLINE_ADD_API = "https://115.com/web/lixian/?ct=lixian&ac=add_task_urls"
 OFFLINE_LIST_API = "https://115.com/web/lixian/?ct=lixian&ac=task_lists"
 
+OFF_PREFIX_6PAN = "http://6panoff/"
+PAN6_API_BASE = "https://grpcuserapi.2dland.cn"
+PAN6_SITE = "https://drive.2dland.cn"
+PAN6_APP_ID = "2dland/web"
+PAN6_APP_VER = "202603182100"
+PAN6_APP_SEC = "izzX0kNu3sIIq3CK"
+PAN6_UA = ("Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 "
+           "(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36")
+PAN6_POLL_TIMEOUT = 25
+PAN6_POLL_INTERVAL = 1
+PAN6_BROWSE_PREFIX = "pan6:"
+PAN6_FILE_PREFIX = "pan6f:"
+PAN6_DEFAULT_SAVE_PATH = "/最近接收"
+PAN6_INBOX_PATHS = ("/ss", "/最近接收", "/")
+
 JAVDB_API_BASE = "https://jdforrepam.com/api"
 JAVDB_IMG_BASE = "https://c0.jdbstatic.com"
 JAVDB_UA = ("Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 "
@@ -117,8 +133,6 @@ JAVDB_LATEST_FILTER = {
 
 # ============ 片商库配置 ============
 
-# 片商库顶部分类 tab，对应 filter_by 第一个数字
-# 0=有码 1=无码 2=欧美 3=FC2
 JAVDB_MAKER_TYPES = [
     {"n": "有码", "v": "0"},
     {"n": "无码", "v": "1"},
@@ -126,13 +140,10 @@ JAVDB_MAKER_TYPES = [
     {"n": "FC2",  "v": "3"},
 ]
 
-# 片商库筛选只保留无码
 JAVDB_MAKER_TYPES_WM = [
     {"n": "无码", "v": "1"},
 ]
 
-# 片商列表（手工维护）
-# v 是 filter_by=1:m:<v>:m 里的 <v>，必须是从抓包里拿到的真实 id
 JAVDB_MAKERS = [
     {"n": "Tokyo-Hot", "v": "k14"},
     {"n": "麻豆傳媒映畫", "v": "N73g"},
@@ -324,6 +335,8 @@ def _mod_pow(base, exp, mod):
 
 
 def _encode_block(input_bytes):
+    if len(input_bytes) > 117:
+        raise ValueError("block too large: %d" % len(input_bytes))
     block = bytearray(128)
     fill_end = 127 - len(input_bytes)
     for i in range(1, max(1, fill_end)):
@@ -455,6 +468,149 @@ def _set_cookie_text(set_cookie):
     return "; ".join(str(v).split(";")[0].strip() for v in set_cookie if str(v).split(";")[0].strip())
 
 
+# ============ 6盘 gRPC 基础(移植自 6pan.py) ============
+
+def _p6_enc_varint(n):
+    n = int(n) & ((1 << 64) - 1)
+    out = bytearray()
+    while True:
+        b = n & 0x7F
+        n >>= 7
+        if n:
+            out.append(b | 0x80)
+        else:
+            out.append(b)
+            return bytes(out)
+
+
+def _p6_enc_key(fn, wt):
+    return _p6_enc_varint((fn << 3) | wt)
+
+
+def _p6_enc_str(fn, s):
+    b = str(s).encode("utf-8", "replace")
+    return _p6_enc_key(fn, 2) + _p6_enc_varint(len(b)) + b
+
+
+def _p6_enc_msg(fn, payload):
+    return _p6_enc_key(fn, 2) + _p6_enc_varint(len(payload)) + payload
+
+
+def _p6_enc_i32(fn, n):
+    return _p6_enc_key(fn, 0) + _p6_enc_varint(int(n) & 0xFFFFFFFF)
+
+
+def _p6_enc_i64(fn, n):
+    return _p6_enc_key(fn, 0) + _p6_enc_varint(int(n))
+
+
+def _p6_dec_varint(b, i):
+    x = 0
+    s = 0
+    while i < len(b):
+        c = b[i]
+        i += 1
+        x |= (c & 0x7F) << s
+        if c < 0x80:
+            return x, i
+        s += 7
+    return x, i
+
+
+def _p6_dec_fields(b):
+    i = 0
+    out = {}
+    while i < len(b):
+        key, i = _p6_dec_varint(b, i)
+        fn, wt = key >> 3, key & 7
+        if wt == 0:
+            v, i = _p6_dec_varint(b, i)
+        elif wt == 1:
+            v = b[i:i + 8]
+            i += 8
+        elif wt == 2:
+            ln, i = _p6_dec_varint(b, i)
+            v = b[i:i + ln]
+            i += ln
+        elif wt == 5:
+            v = b[i:i + 4]
+            i += 4
+        else:
+            break
+        if fn in out:
+            prev = out[fn]
+            if not isinstance(prev, list):
+                out[fn] = [prev, v]
+            else:
+                prev.append(v)
+        else:
+            out[fn] = v
+    return out
+
+
+def _p6_as_str(v):
+    if v is None:
+        return ""
+    if isinstance(v, (bytes, bytearray)):
+        try:
+            return bytes(v).decode("utf-8")
+        except Exception:
+            return bytes(v).decode("utf-8", "replace")
+    return str(v)
+
+
+def _p6_as_int(v, default=0):
+    if v is None:
+        return default
+    if isinstance(v, bytes):
+        try:
+            x = 0
+            for c in v:
+                x = (x << 8) | c
+            return x
+        except Exception:
+            return default
+    try:
+        return int(v)
+    except Exception:
+        return default
+
+
+def _p6_as_msgs(v):
+    if v is None:
+        return []
+    if isinstance(v, (bytes, bytearray)):
+        return [bytes(v)]
+    if isinstance(v, list):
+        return [bytes(x) for x in v if isinstance(x, (bytes, bytearray))]
+    return []
+
+
+def _p6_frame(msg):
+    return struct.pack(">BI", 0, len(msg)) + msg
+
+
+def _p6_parse_grpc_web(data):
+    msg = b""
+    trailers = {}
+    i = 0
+    while i + 5 <= len(data):
+        flag = data[i]
+        ln = struct.unpack(">I", data[i + 1:i + 5])[0]
+        i += 5
+        chunk = data[i:i + ln]
+        i += ln
+        if flag & 0x80:
+            text = chunk.decode("utf-8", "replace")
+            for line in text.split("\r\n"):
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    trailers[k.strip().lower()] = v.strip()
+        else:
+            msg += chunk
+    return msg, trailers
+
+
 class Spider:
     def __init__(self):
         self.s = self.session = self.sess = None
@@ -477,6 +633,7 @@ class Spider:
         self._key = JAVDB_KEY
         self.enable_magnet_play = True
         self.enable_offline_115 = True
+        self.enable_offline_pan6 = True
         self.enable_115 = True
         self.enable_javdb = True
 
@@ -484,9 +641,25 @@ class Spider:
         self.offline_app_ver = "4.8.2"
         self.offline_timeout = 15
 
+        # info_hash -> pickcode 本地缓存（同一会话二次播放直接命中）
+        self._cache_pickcode = {}
+
+        # 6盘离线
+        self.pan6_token = ""
+        self.pan6_refresh = ""
+        self.pan6_user = ""
+        self.pan6_pass = ""
+        self.pan6_save_path = PAN6_DEFAULT_SAVE_PATH
+        self.pan6_timeout = PAN6_POLL_TIMEOUT
+        self._pan6_login_error = ""
+        self._sess_pan6 = None
+        # info_hash -> 6盘文件路径 本地缓存
+        self._cache_pan6_file = {}
+
         if requests:
             self.s = self.session = self.sess = requests.Session()
             self._sess_jav = requests.Session()
+            self._sess_pan6 = requests.Session()
             self._sess_jav.headers.update({
                 "User-Agent": self.ua,
                 "Accept": "application/json, text/plain, */*",
@@ -526,15 +699,51 @@ class Spider:
             self.enable_javdb = bool(extend["enableJavdb"])
         if "enableOffline115" in extend:
             self.enable_offline_115 = bool(extend["enableOffline115"])
+        if "enableOfflinePan6" in extend:
+            self.enable_offline_pan6 = bool(extend["enableOfflinePan6"])
         if extend.get("offlineSavePath"):
             self.offline_save_path = str(extend["offlineSavePath"])
         if extend.get("offlineAppVer"):
             self.offline_app_ver = str(extend["offlineAppVer"])
 
+        pan6 = extend.get("pan6") if isinstance(extend.get("pan6"), dict) else {}
+        self.pan6_token = (
+            _to_text(extend.get("pan6Token") or extend.get("pan6_token")
+                     or extend.get("pan6AccessToken") or pan6.get("token")
+                     or pan6.get("access_token"))
+            or _env("PAN6_TOKEN")
+        )
+        self.pan6_refresh = (
+            _to_text(extend.get("pan6Refresh") or extend.get("pan6_refresh")
+                     or pan6.get("refresh_token"))
+            or _env("PAN6_REFRESH")
+        )
+        self.pan6_user = (
+            _to_text(extend.get("pan6User") or extend.get("pan6_user")
+                     or extend.get("pan6Account") or pan6.get("username")
+                     or pan6.get("user"))
+            or _env("PAN6_USER")
+        )
+        self.pan6_pass = (
+            _to_text(extend.get("pan6Pass") or extend.get("pan6_pass")
+                     or extend.get("pan6Password") or pan6.get("password"))
+            or _env("PAN6_PASS")
+        )
+        self.pan6_save_path = _to_text(
+            extend.get("pan6SavePath") or pan6.get("save_path")
+            or PAN6_DEFAULT_SAVE_PATH)
+        if extend.get("pan6Timeout"):
+            try:
+                self.pan6_timeout = max(5, int(extend["pan6Timeout"]))
+            except Exception:
+                pass
+
     def homeContent(self, filter=None):
         classes = []
         if self.enable_javdb:
             classes.extend(dict(c) for c in JAVDB_CLASSES)
+        if self.enable_offline_pan6:
+            classes.append({"type_id": "pan6", "type_name": "6盘"})
         if self.enable_115:
             classes.append({"type_id": "0", "type_name": "115网盘"})
 
@@ -548,7 +757,6 @@ class Spider:
                      "value": [dict(x) for x in JAVDB_SORTS]},
                 ]
 
-            # 片商库：分类只保留无码
             if JAVDB_MAKERS:
                 filters["jav_maker"] = [
                     {"key": "mtype", "name": "分类", "init": "1",
@@ -565,7 +773,57 @@ class Spider:
         t = _to_text(tid)
         if t.startswith("jav_"):
             return self._jav_category(t, pg, extend)
+        if t == "pan6" or t.startswith(PAN6_BROWSE_PREFIX):
+            return self._pan6_category(t, pg)
         return self._115_category(t, pg)
+
+    def _pan6_category(self, tid, pg):
+        page = self._safe_int(pg, 1)
+        path = "/"
+        t = _to_text(tid)
+        if t.startswith(PAN6_BROWSE_PREFIX):
+            rest = t[len(PAN6_BROWSE_PREFIX):].strip()
+            if rest:
+                path = rest
+        if not path.startswith("/"):
+            path = "/" + path
+        if not self._p6_ensure_login():
+            return {"list": [], "page": page, "pagecount": 1,
+                    "limit": PAGE_SIZE, "total": 0}
+        out = []
+        seen = set()
+        for c in self._p6_list_children(path):
+            name = c.get("name") or ""
+            cpath = c.get("path") or ""
+            if not name or not cpath:
+                continue
+            if c.get("is_dir"):
+                vid = PAN6_BROWSE_PREFIX + cpath
+                if vid in seen:
+                    continue
+                seen.add(vid)
+                out.append({
+                    "vod_id": vid,
+                    "vod_name": name,
+                    "vod_pic": FOLDER_PIC,
+                    "vod_remarks": "目录",
+                    "vod_tag": "folder",
+                    "ratio": 1.33,
+                })
+            elif self.isVideoFormat(name):
+                vid = "%s%s#%s" % (PAN6_FILE_PREFIX, c.get("identity") or "", cpath)
+                if vid in seen:
+                    continue
+                seen.add(vid)
+                out.append({
+                    "vod_id": vid,
+                    "vod_name": name,
+                    "vod_pic": VIDEO_PIC,
+                    "vod_remarks": _format_size(c.get("size")),
+                    "ratio": 1.33,
+                })
+        return {"list": out, "page": page, "pagecount": page,
+                "limit": PAGE_SIZE, "total": len(out)}
 
     def _115_category(self, tid, pg):
         page = self._safe_int(pg, 1)
@@ -627,6 +885,9 @@ class Spider:
     def detailContent(self, ids):
         vid = str(ids[0]) if isinstance(ids, (list, tuple)) and ids else str(ids or "")
 
+        if vid.startswith(PAN6_BROWSE_PREFIX) or vid.startswith(PAN6_FILE_PREFIX):
+            return self._pan6_detail(vid)
+
         if vid and not vid.startswith("LOCAL###"):
             return self._jav_detail(vid)
 
@@ -657,6 +918,48 @@ class Spider:
                 })
         return {"list": rows}
 
+    def _pan6_detail(self, vid):
+        if vid.startswith(PAN6_FILE_PREFIX):
+            rest = vid[len(PAN6_FILE_PREFIX):]
+            identity, _, path = rest.partition("#")
+            name = path.rsplit("/", 1)[-1] if path else "6盘文件"
+            return {"list": [{
+                "vod_id": vid,
+                "vod_name": name,
+                "vod_pic": VIDEO_PIC,
+                "vod_content": "文件名: %s" % name,
+                "vod_play_from": PLAY_FROM,
+                "vod_play_url": "播放$%s" % vid,
+            }]}
+        path = vid[len(PAN6_BROWSE_PREFIX):] if vid.startswith(PAN6_BROWSE_PREFIX) else vid
+        if not path.startswith("/"):
+            path = "/" + path
+        name = path.rsplit("/", 1)[-1] or "6盘"
+        if not self._p6_ensure_login():
+            return {"list": [{
+                "vod_id": vid,
+                "vod_name": name,
+                "vod_pic": FOLDER_PIC,
+                "vod_content": "6盘未配置账号（%s）" % (self._pan6_login_error or "请配置 pan6User/pan6Pass"),
+            }]}
+        eps = []
+        for c in self._p6_list_children(path):
+            if c.get("is_dir") or not c.get("path"):
+                continue
+            cname = c.get("name") or c.get("path")
+            if not self.isVideoFormat(cname):
+                continue
+            eps.append("%s$%s%s#%s" % (cname, PAN6_FILE_PREFIX,
+                                       c.get("identity") or "", c.get("path")))
+        return {"list": [{
+            "vod_id": vid,
+            "vod_name": name,
+            "vod_pic": FOLDER_PIC,
+            "vod_content": "6盘目录: %s" % path,
+            "vod_play_from": PLAY_FROM if eps else "",
+            "vod_play_url": "#".join(eps),
+        }]}
+
     def _jav_detail(self, mid):
         movie = (self._jav_data("/v4/movies/" + mid) or {}).get("movie") or {}
         if not movie:
@@ -686,8 +989,24 @@ class Spider:
             info.append("【磁力】：把磁力交给播放器处理")
         if self.enable_offline_115:
             info.append("115离线：提交到115云端下载，完成后到115网盘源播放")
+        if self.enable_offline_pan6:
+            info.append("6盘离线：提交到6盘云端下载，完成后自动取直链播放")
 
         froms, urls = [], []
+
+        magnet_items = [(i, g, (g.get("hash") or "").strip()) for i, g in enumerate(magnets)]
+        magnet_items = [(i, g, h) for i, g, h in magnet_items if h]
+
+        if self.enable_offline_pan6 and magnet_items:
+            eps = []
+            used = set()
+            for i, g, h in magnet_items:
+                label = self._unique_jav_label(g, i, num, used)
+                b64 = base64.b64encode(("magnet:?xt=urn:btih:%s" % h).encode("utf-8")).decode("ascii")
+                eps.append("%s$%s%s" % (label, OFF_PREFIX_6PAN, b64))
+            if eps:
+                froms.append("6盘离线")
+                urls.append("#".join(eps))
 
         if self.emby and self.emby_key:
             froms.append("正片")
@@ -697,13 +1016,11 @@ class Spider:
             froms.append("预告片")
             urls.append("预告片$preview:%s" % mid)
 
-        magnet_items = [(i, g, (g.get("hash") or "").strip()) for i, g in enumerate(magnets)]
-        magnet_items = [(i, g, h) for i, g, h in magnet_items if h]
-
         if self.enable_magnet_play and magnet_items:
             eps = []
+            used = set()
             for i, g, h in magnet_items:
-                label = self._jav_magnet_label(g, i, num)
+                label = self._unique_jav_label(g, i, num, used)
                 eps.append("%s$magnet:?xt=urn:btih:%s" % (label, h))
             if eps:
                 froms.append("磁力")
@@ -711,8 +1028,9 @@ class Spider:
 
         if self.enable_offline_115 and magnet_items:
             eps = []
+            used = set()
             for i, g, h in magnet_items:
-                label = self._jav_magnet_label(g, i, num)
+                label = self._unique_jav_label(g, i, num, used)
                 b64 = base64.b64encode(("magnet:?xt=urn:btih:%s" % h).encode("utf-8")).decode("ascii")
                 eps.append("%s$%s%s" % (label, OFF_PREFIX_115, b64))
             if eps:
@@ -793,6 +1111,49 @@ class Spider:
 
         if vid.startswith("115off:"):
             return self._submit_offline_115(vid[7:].strip())
+
+        if vid.startswith(OFF_PREFIX_6PAN):
+            b64 = vid[len(OFF_PREFIX_6PAN):].strip()
+            try:
+                magnet = base64.b64decode(b64.encode("ascii")).decode("utf-8")
+            except Exception:
+                return {"parse": 0, "jx": 0, "url": "", "header": {},
+                        "msg": "磁力解码失败"}
+            return self._submit_offline_pan6(magnet)
+
+        if vid.startswith("pan6off:"):
+            return self._submit_offline_pan6(vid[8:].strip())
+
+        if vid.startswith(PAN6_FILE_PREFIX):
+            rest = vid[len(PAN6_FILE_PREFIX):]
+            identity, _, path = rest.partition("#")
+            if not self._p6_ensure_login():
+                return {"parse": 0, "jx": 0, "url": "", "header": {},
+                        "msg": "6盘未配置账号（%s）" % (self._pan6_login_error or "请配置 pan6User/pan6Pass")}
+            info = None
+            if identity:
+                msg = _p6_enc_str(1, identity)
+                data, _err = self._p6_grpc("/v6.services.pub.PubUserFile/Get", msg,
+                                           attempts=1, timeout=12)
+                if data:
+                    f = data if isinstance(data, dict) else _p6_dec_fields(data)
+                    info = {
+                        "identity": _p6_as_str(f.get(1)) or identity,
+                        "path": _p6_as_str(f.get(5)) or path,
+                    }
+            if not info:
+                info = {"identity": identity, "path": path}
+            addr, err = self._p6_direct_url(info.get("identity") or "",
+                                            info.get("path") or path)
+            if not addr:
+                return {"parse": 0, "jx": 0, "url": "", "header": {},
+                        "msg": "6盘取链失败: %s" % err}
+            return {
+                "parse": 0,
+                "jx": 0,
+                "url": addr,
+                "header": {"User-Agent": PAN6_UA, "Referer": PAN6_SITE + "/"},
+            }
 
         if vid.startswith("emby:"):
             mid, _, num = vid[5:].partition("|")
@@ -1121,6 +1482,14 @@ class Spider:
         return ""
 
     def _submit_offline_115(self, magnet):
+        """提交/解析 115 离线。
+
+        顺序：
+          0) 本地 pickcode 缓存命中 -> 直接播
+          1) （av.py 磁力无 dn，跳过按名搜网盘）
+          2) 按 info_hash 查离线任务 -> 已完成则播
+          3) 提交离线；提交失败也兜底再搜一次网盘
+        """
         if not self.cookie:
             return {"parse": 0, "jx": 0, "url": "", "header": {},
                     "msg": "未配置115 Cookie，无法提交离线"}
@@ -1133,6 +1502,33 @@ class Spider:
             return {"parse": 0, "jx": 0, "url": "", "header": {},
                     "msg": "无法从磁力中解析 info_hash"}
 
+        # 0) 本地缓存命中
+        cached = self._cache_pickcode.get(info_hash)
+        if cached:
+            res = self._resolve_pickcode(cached)
+            if res.get("url"):
+                return res
+            self._cache_pickcode.pop(info_hash, None)
+
+        name_hint = ""
+
+        # 2) 再看离线任务里是否已完成
+        task = None
+        try:
+            task = self._offline_find_task(info_hash)
+        except Exception:
+            task = None
+        if task:
+            done, failed, name_or_msg = self._offline_task_state(task)
+            if name_or_msg:
+                name_hint = name_or_msg
+            if done:
+                pickcode = self._find_pickcode_by_name(name_or_msg, retries=3, interval=1)
+                if pickcode:
+                    self._cache_pickcode[info_hash] = pickcode
+                    return self._resolve_pickcode(pickcode)
+
+        # 3) 才真正提交离线
         try:
             res = self._offline_add(magnet)
         except Exception as e:
@@ -1141,21 +1537,29 @@ class Spider:
 
         if not res.get("state"):
             msg = str(res.get("message") or res.get("error") or "提交失败")
+            # 提交失败也兜底搜网盘
+            if name_hint:
+                pickcode = self._find_pickcode_by_name(name_hint, retries=3, interval=1)
+                if pickcode:
+                    self._cache_pickcode[info_hash] = pickcode
+                    return self._resolve_pickcode(pickcode)
             if "已存在" not in msg and "重复" not in msg:
                 return {"parse": 0, "jx": 0, "url": "", "header": {},
                         "msg": "115离线提交失败：%s" % msg}
 
-        name_hint = ""
-        try:
-            task = self._offline_find_task(info_hash)
-            if task:
-                name_hint = task.get("name") or task.get("file_name") or ""
-        except Exception:
-            pass
+        # 提交后，用任务名再搜一次
+        if not name_hint:
+            try:
+                task = self._offline_find_task(info_hash)
+                if task:
+                    name_hint = task.get("name") or task.get("file_name") or ""
+            except Exception:
+                pass
 
         if name_hint:
             pickcode = self._find_pickcode_by_name(name_hint, retries=1, interval=0)
             if pickcode:
+                self._cache_pickcode[info_hash] = pickcode
                 return self._resolve_pickcode(pickcode)
 
         done, name_or_msg = self._offline_wait_done(info_hash)
@@ -1165,12 +1569,415 @@ class Spider:
                     "msg": "已提交115离线，正在下载中（%s），请稍后重试"
                            % (name_or_msg or "等待完成")}
 
-        pickcode = self._find_pickcode_by_name(name_or_msg, retries=3, interval=1)
+        pickcode = self._find_pickcode_by_name(name_or_msg or name_hint, retries=3, interval=1)
         if not pickcode:
             return {"parse": 0, "jx": 0, "url": "", "header": {},
                     "msg": "离线已完成，但115网盘里还没搜到文件，请稍后重试"}
 
+        self._cache_pickcode[info_hash] = pickcode
         return self._resolve_pickcode(pickcode)
+
+    # ============ 6盘离线 ============
+
+    @staticmethod
+    def _p6_sign(path, ts, token=None):
+        path = "/" + str(path or "").lstrip("/")
+        r = "%s%s%s%s" % (path, ts, PAN6_APP_ID, PAN6_APP_VER)
+        if token:
+            r += "Bearer " + token
+        return hashlib.md5((r + PAN6_APP_SEC).encode("utf-8")).hexdigest()
+
+    def _p6_grpc(self, method, msg, token=None, attempts=2, timeout=15):
+        if self._sess_pan6 is None:
+            if not requests:
+                return None, "requests 模块不可用"
+            self._sess_pan6 = requests.Session()
+        path = "/" + str(method or "").lstrip("/")
+        tok = token if token is not None else (self.pan6_token or "")
+        ts = str(int(time.time() * 1000))
+        headers = {
+            "Content-Type": "application/grpc-web+proto",
+            "X-User-Agent": "grpc-web-javascript/0.1",
+            "Accept": "application/grpc-web+proto",
+            "timestamp": ts,
+            "appid": PAN6_APP_ID,
+            "appversion": PAN6_APP_VER,
+            "sign": self._p6_sign(path, ts, tok or None),
+        }
+        if tok:
+            headers["authorization"] = "Bearer " + tok
+        last = None
+        for i in range(max(1, attempts)):
+            try:
+                r = self._sess_pan6.post(PAN6_API_BASE + path, headers=headers,
+                                         data=_p6_frame(msg), timeout=timeout)
+                body, trailers = _p6_parse_grpc_web(r.content or b"")
+                status = (trailers.get("grpc-status")
+                          or r.headers.get("grpc-status")
+                          or r.headers.get("Grpc-Status"))
+                gmsg = (trailers.get("grpc-message")
+                        or r.headers.get("grpc-message")
+                        or r.headers.get("Grpc-Message") or "")
+                if status is None and r.content:
+                    status = "0"
+                if status and str(status) != "0":
+                    err = "grpc %s %s" % (status, gmsg)
+                    if str(status) == "16" and self.pan6_refresh and tok:
+                        if self._p6_try_refresh():
+                            return self._p6_grpc(path, msg, token=self.pan6_token,
+                                                 attempts=1, timeout=timeout)
+                    last = err
+                    if str(status) in ("4", "14") and i + 1 < attempts:
+                        time.sleep(0.3)
+                        continue
+                    return None, err
+                if status is None and not body:
+                    return None, "空响应"
+                return (_p6_dec_fields(body) if body else {}), ""
+            except Exception as e:
+                last = str(e)
+                if i + 1 < attempts:
+                    time.sleep(0.25)
+        return None, last or "请求失败"
+
+    def _p6_login(self):
+        pwd = str(self.pan6_pass or "").strip()
+        if not pwd:
+            return False, "未配置6盘密码"
+        if not re.fullmatch(r"[0-9a-fA-F]{32}", pwd):
+            pwd = hashlib.md5(pwd.encode("utf-8")).hexdigest()
+        cap = json.dumps({"ticket": "tvbox", "randstr": "tvbox", "type": "tencent"},
+                         ensure_ascii=False)
+        msg = b""
+        msg += _p6_enc_str(1, self.pan6_user)
+        msg += _p6_enc_str(2, pwd)
+        msg += _p6_enc_str(4, self.pan6_user)
+        msg += _p6_enc_i32(5, 3)
+        msg += _p6_enc_str(9, cap)
+        msg += _p6_enc_str(11, "86")
+        msg += _p6_enc_str(12, "web")
+        msg += _p6_enc_i32(17, 1)
+        data, err = self._p6_grpc("/v6.services.pub.PubUser/Login", msg,
+                                  token="", attempts=2, timeout=18)
+        if err or not data:
+            return False, err or "登录失败"
+        tok = data.get(1)
+        if not tok:
+            return False, "登录无token"
+        tk = tok if isinstance(tok, dict) else _p6_dec_fields(tok)
+        at = _p6_as_str(tk.get(5))
+        rt = _p6_as_str(tk.get(6))
+        if not at:
+            return False, "登录无token"
+        self.pan6_token = at
+        self.pan6_refresh = rt or ""
+        return True, ""
+
+    def _p6_try_refresh(self):
+        if not self.pan6_refresh:
+            return False
+        msg = b""
+        if self.pan6_token:
+            msg += _p6_enc_str(5, self.pan6_token)
+        if self.pan6_refresh:
+            msg += _p6_enc_str(6, self.pan6_refresh)
+        data, err = self._p6_grpc("/v6.services.pub.PubUser/Refresh", msg,
+                                  token=self.pan6_token, attempts=1, timeout=12)
+        if err or not data:
+            return False
+        tk = data if isinstance(data, dict) else _p6_dec_fields(data)
+        at = _p6_as_str(tk.get(5))
+        rt = _p6_as_str(tk.get(6))
+        if at:
+            self.pan6_token = at
+        if rt:
+            self.pan6_refresh = rt
+        return bool(self.pan6_token)
+
+    def _p6_ensure_login(self):
+        if self.pan6_token:
+            return True
+        if self.pan6_user and self.pan6_pass:
+            ok, err = self._p6_login()
+            if ok:
+                return True
+            self._pan6_login_error = err or "登录失败"
+        return False
+
+    def _p6_offline_add(self, magnet):
+        msg = b""
+        msg += _p6_enc_str(8, magnet)
+        if self.pan6_save_path:
+            msg += _p6_enc_str(20, self.pan6_save_path)
+        data, err = self._p6_grpc("/v6.services.pub.PubOfflineTask/Add", msg,
+                                  attempts=2, timeout=18)
+        if err:
+            return None, err
+        return data or {}, ""
+
+    def _p6_offline_list(self, page=1, limit=20):
+        scan = b""
+        scan += _p6_enc_i64(2, limit)
+        scan += _p6_enc_i32(4, max(1, int(page or 1)))
+        data, err = self._p6_grpc("/v6.services.pub.PubOfflineTask/List",
+                                  _p6_enc_msg(3, scan), attempts=2, timeout=12)
+        if err or not data:
+            return [], err or "离线列表失败"
+        return _p6_as_msgs(data.get(1) if isinstance(data, dict) else None), ""
+
+    def _p6_offline_find_task(self, info_hash):
+        for page in (1, 2):
+            tasks, err = self._p6_offline_list(page)
+            if err or not tasks:
+                break
+            for tb in tasks:
+                t = _p6_dec_fields(tb)
+                url = _p6_as_str(t.get(8)).lower()
+                h = self._magnet_hash(url)
+                if h and h == info_hash.lower():
+                    return t
+        return None
+
+    @staticmethod
+    def _p6_task_state(task):
+        if not task:
+            return False, False, "任务未找到"
+        file = _p6_as_str(task.get(6))
+        status = _p6_as_int(task.get(3), -1)
+        code = _p6_as_int(task.get(12), 0)
+        msg = _p6_as_str(task.get(13))
+        name = _p6_as_str(task.get(10)) or file
+        try:
+            progress = float(_p6_as_int(task.get(16), 0))
+        except Exception:
+            progress = 0.0
+        if code or msg:
+            return False, True, msg or ("离线任务失败 code=%d" % code)
+        if file or status >= 1000:
+            return True, False, name or file
+        if status in (0, 1, 2, 10) or status < 0 or progress < 100:
+            if progress > 0:
+                return False, False, "%s %d%%" % (name or "下载中", int(progress))
+            return False, False, name or "下载中"
+        return False, False, name or "等待完成"
+
+    def _p6_resolve_task_file(self, task):
+        """已完成任务的 file 字段常为空，按任务名在保存目录下解析实际路径。"""
+        file = _p6_as_str(task.get(6))
+        if file:
+            return file
+        name = _p6_as_str(task.get(10))
+        if not name:
+            return ""
+        bases = []
+        if self.pan6_save_path:
+            bases.append(self.pan6_save_path)
+        for b in PAN6_INBOX_PATHS:
+            if b not in bases:
+                bases.append(b)
+        for _attempt in range(3):
+            for base in bases:
+                base = base.rstrip("/") or ""
+                info = self._p6_file_info(base + "/" + name)
+                if info:
+                    return info.get("path") or (base + "/" + name)
+            for base in bases:
+                for c in self._p6_list_children(base or "/"):
+                    if (c.get("name") or "") == name:
+                        return c.get("path") or ""
+            time.sleep(1)
+        return ""
+
+    def _p6_wait_done_task(self, info_hash, timeout=None):
+        deadline = time.time() + (timeout if timeout else self.pan6_timeout)
+        last = ""
+        while time.time() < deadline:
+            try:
+                task = self._p6_offline_find_task(info_hash)
+            except Exception:
+                task = None
+            done, failed, msg = self._p6_task_state(task)
+            if done and task:
+                return task, ""
+            if failed:
+                return None, msg
+            if msg:
+                last = msg
+            time.sleep(PAN6_POLL_INTERVAL)
+        return None, last
+
+    def _p6_file_info(self, path):
+        msg = _p6_enc_str(5, path)
+        data, err = self._p6_grpc("/v6.services.pub.PubUserFile/Get", msg,
+                                  attempts=2, timeout=12)
+        if err or not data:
+            return None
+        f = data if isinstance(data, dict) else _p6_dec_fields(data)
+        return {
+            "identity": _p6_as_str(f.get(1)),
+            "name": _p6_as_str(f.get(4)),
+            "path": _p6_as_str(f.get(5)) or path,
+            "is_dir": bool(_p6_as_int(f.get(13))),
+            "size": _p6_as_int(f.get(7)),
+        }
+
+    def _p6_list_children(self, path, limit=50):
+        parent = _p6_enc_str(5, path)
+        scan = _p6_enc_i64(2, limit)
+        scan += _p6_enc_msg(3, _p6_enc_str(1, "update") + _p6_enc_str(2, "false"))
+        msg = _p6_enc_msg(1, parent) + _p6_enc_msg(3, scan)
+        data, err = self._p6_grpc("/v6.services.pub.PubUserFile/List", msg,
+                                  attempts=1, timeout=15)
+        if err or not data:
+            return []
+        out = []
+        for fb in _p6_as_msgs(data.get(1) if isinstance(data, dict) else None):
+            f = _p6_dec_fields(fb)
+            out.append({
+                "identity": _p6_as_str(f.get(1)),
+                "name": _p6_as_str(f.get(4)),
+                "path": _p6_as_str(f.get(5)),
+                "is_dir": bool(_p6_as_int(f.get(13))),
+                "size": _p6_as_int(f.get(7)),
+            })
+        return out
+
+    def _p6_pick_video(self, path):
+        info = self._p6_file_info(path)
+        if not info:
+            return None
+        if not info["is_dir"]:
+            return info
+        children = [c for c in self._p6_list_children(info["path"])
+                    if not c["is_dir"] and c["path"]]
+        vids = [c for c in children
+                if self.isVideoFormat(c["name"] or c["path"])]
+        if not vids:
+            vids = children
+        if not vids:
+            sub_dirs = [c for c in self._p6_list_children(info["path"])
+                        if c["is_dir"] and c["path"]]
+            for d in sub_dirs[:3]:
+                sub = [c for c in self._p6_list_children(d["path"])
+                       if not c["is_dir"] and c["path"]
+                       and self.isVideoFormat(c["name"] or c["path"])]
+                if sub:
+                    sub.sort(key=lambda c: c.get("size") or 0, reverse=True)
+                    return sub[0]
+            return None
+        vids.sort(key=lambda c: c.get("size") or 0, reverse=True)
+        return vids[0]
+
+    def _p6_direct_url(self, identity, path):
+        msg = b""
+        if identity:
+            msg += _p6_enc_str(1, identity)
+        msg += _p6_enc_i32(2, 1)
+        if path:
+            msg += _p6_enc_str(3, path)
+        msg += _p6_enc_str(6, PAN6_UA)
+        for c in ("h264", "hevc", "h265", "vp9", "av1", "mpeg4"):
+            msg += _p6_enc_str(7, c)
+        for c in ("aac", "mp3", "opus", "ac3", "eac3"):
+            msg += _p6_enc_str(8, c)
+        data, err = self._p6_grpc("/v6.services.pub.PubUserFile/GetDirectDownloadAddress",
+                                  msg, attempts=3, timeout=18)
+        if err or not data:
+            return "", err or "取链失败"
+        addr = _p6_as_str(data.get(1))
+        if not addr:
+            return "", "无下载地址"
+        return addr, ""
+
+    def _p6_play_path(self, path):
+        picked = self._p6_pick_video(path)
+        if not picked:
+            return {"parse": 0, "jx": 0, "url": "", "header": {},
+                    "msg": "6盘文件不存在: %s" % path}
+        addr, err = self._p6_direct_url(picked.get("identity") or "",
+                                        picked.get("path") or path)
+        if not addr:
+            return {"parse": 0, "jx": 0, "url": "", "header": {},
+                    "msg": "6盘取链失败: %s" % err}
+        return {
+            "parse": 0,
+            "jx": 0,
+            "url": addr,
+            "header": {"User-Agent": PAN6_UA, "Referer": PAN6_SITE + "/"},
+        }
+
+    def _submit_offline_pan6(self, magnet):
+        """提交/解析 6盘 离线，完成后取直链播放。
+
+        顺序：
+          0) 本地文件路径缓存命中 -> 直接取直链
+          1) 按 info_hash 查离线任务 -> 已完成则取直链
+          2) 提交离线；轮询等待；完成后取直链
+        """
+        if not self._p6_ensure_login():
+            tip = self._pan6_login_error or "请配置 pan6User/pan6Pass 或 pan6Token"
+            return {"parse": 0, "jx": 0, "url": "", "header": {},
+                    "msg": "未配置6盘账号，无法提交离线（%s）" % tip}
+
+        info_hash = self._magnet_hash(magnet)
+        if not info_hash:
+            return {"parse": 0, "jx": 0, "url": "", "header": {},
+                    "msg": "无法从磁力中解析 info_hash"}
+
+        cached = self._cache_pan6_file.get(info_hash)
+        if cached:
+            res = self._p6_play_path(cached)
+            if res.get("url"):
+                return res
+            self._cache_pan6_file.pop(info_hash, None)
+
+        task = None
+        try:
+            task = self._p6_offline_find_task(info_hash)
+        except Exception:
+            task = None
+        if task:
+            done, failed, name_or_msg = self._p6_task_state(task)
+            if failed:
+                return {"parse": 0, "jx": 0, "url": "", "header": {},
+                        "msg": "6盘离线任务失败: %s" % name_or_msg}
+            if done:
+                file = self._p6_resolve_task_file(task)
+                if file:
+                    self._cache_pan6_file[info_hash] = file
+                    return self._p6_play_path(file)
+
+        try:
+            res, err = self._p6_offline_add(magnet)
+        except Exception as e:
+            return {"parse": 0, "jx": 0, "url": "", "header": {},
+                    "msg": "提交6盘离线失败：%s" % e}
+        if err:
+            # 提交失败也可能任务已存在，兜底再查一次
+            try:
+                task = self._p6_offline_find_task(info_hash)
+            except Exception:
+                task = None
+            if task:
+                done, failed, name_or_msg = self._p6_task_state(task)
+                if done:
+                    file = self._p6_resolve_task_file(task)
+                    if file:
+                        self._cache_pan6_file[info_hash] = file
+                        return self._p6_play_path(file)
+            return {"parse": 0, "jx": 0, "url": "", "header": {},
+                    "msg": "6盘离线提交失败：%s" % err}
+
+        task, wait_msg = self._p6_wait_done_task(info_hash)
+        if task:
+            file = self._p6_resolve_task_file(task)
+            if file:
+                self._cache_pan6_file[info_hash] = file
+                return self._p6_play_path(file)
+
+        return {"parse": 0, "jx": 0, "url": "", "header": {},
+                "msg": "已提交6盘离线，正在下载中（%s），请稍后重试"
+                       % (wait_msg or "等待完成")}
 
     def _jav_sign(self):
         ts = str(int(time.time()))
@@ -1256,11 +2063,10 @@ class Spider:
                 "order_by": ext.get("order") or "desc",
             })
         elif raw == "maker":
-            mt = str(ext.get("mtype") or "1")   # 0/1/2/3
+            mt = str(ext.get("mtype") or "1")
             mid = (ext.get("maker") or "").strip()
             if not mid:
                 return [], False
-            # 真实格式: filter_by=1:m:k14:m
             fb = "%s:m:%s:m" % (mt, mid)
             d = self._jav_data("/v1/movies/tags", {
                 "filter_by": fb,
@@ -1275,11 +2081,37 @@ class Spider:
         movies = [m for m in (d.get("movies") or []) if m.get("number")]
         return movies, len(movies) >= 1
 
-    def _jav_magnet_label(self, g, i, num):
+    @staticmethod
+    def _jav_magnet_label(g, i, num):
         raw_nm = (g.get("name") or "").strip() or num or ("资源%d" % (i + 1))
         safe_nm = re.sub(r"\s+", " ", raw_nm.translate(_SAFE_CHARS)).strip()[:40] or ("资源%d" % (i + 1))
         sz = _size_mb(g.get("size"))
         return safe_nm + (" " + sz if sz else "")
+
+    @classmethod
+    def _unique_jav_label(cls, g, i, num, used):
+        """保证同一播放源内选集名唯一。
+
+        冲突时优先追加短 hash，仍冲突则追加序号。
+        """
+        base = cls._jav_magnet_label(g, i, num)
+        if base not in used:
+            used.add(base)
+            return base
+
+        h = (g.get("hash") or "").strip()[:8]
+        cand = "%s [%s]" % (base, h) if h else base
+        if cand not in used:
+            used.add(cand)
+            return cand
+
+        n = 2
+        while True:
+            cand2 = "%s (%d)" % (cand, n)
+            if cand2 not in used:
+                used.add(cand2)
+                return cand2
+            n += 1
 
     def _emby_play(self, code):
         if not (self.emby and self.emby_key and code):
