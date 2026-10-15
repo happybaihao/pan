@@ -466,7 +466,12 @@ def _fetch_text(src):
     _log("_fetch_text: %r" % s)
 
     if s.startswith('http://') or s.startswith('https://'):
-        req = urllib.request.Request(s, headers={'User-Agent': UA})
+        # URL 里可能有中文, 请求前先编码
+        try:
+            s_quoted = urllib.parse.quote(s, safe=':/?&=#%')
+        except Exception:
+            s_quoted = s
+        req = urllib.request.Request(s_quoted, headers={'User-Agent': UA})
         with urllib.request.urlopen(req, timeout=15) as r:
             data = r.read().decode('utf-8', 'replace')
             _log("http 读到 %d 字符" % len(data))
