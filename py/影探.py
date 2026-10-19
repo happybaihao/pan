@@ -17,7 +17,7 @@ class Spider(Spider):
         'cmskey': 'wP5bvxoc3yv7FoBQENFZuAF0EUYr4LTy',
         'RawPlayUrl': 0,
         # ldmax 内置解析接口
-        'parse_api': 'http://61.184.23.217:6163/api/index?parsesId=4&appid=10001&videoUrl='
+        'parse_api': 'http://47.92.94.193:22002/api/?key=O5aZSG7SAonllf0vgk&url='
     }
 
     def init(self, extend=''):
