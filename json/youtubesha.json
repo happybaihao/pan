@@ -14,6 +14,14 @@
 			"type_name":"音樂"
 		},
 		{
+			"type_id":"PL谍战剧",
+			"type_name":"谍战剧"
+		},	
+		{
+			"type_id":"PD陈奕迅",
+			"type_name":"陈奕迅"
+		},			
+		{
 			"type_id":"短劇",
 			"type_name":"短劇"
 		},
@@ -193,8 +201,8 @@
 					{"n":"穿越","v":"穿越 短劇"},
 					{"n":"喜剧","v":"喜剧 短劇"},
 					{"n":"奇幻","v":"奇幻 短劇"},
-					{"n":"九酱爱追剧","v":"@NineSauceDramaTV"},
-					{"n":"百万好剧场","v":"@1-pw5ox"},
+					{"n":"长青剧场","v":"@@EvergreenDrama99"},
+					{"n":"凌云短剧蛇","v":"@lingyunduanjushe-r7q"},
 					{"n":"咖啡追剧","v":"@@coffeedrama605"},
 					{"n":"斗罗短剧","v":"@DouluoDrama123 斗羅短劇"},
 					{"n":"嘟嘟剧场","v":"@DUDUJUCHANG"},
@@ -1234,7 +1242,7 @@
 			{
 				"key":"tid",
 				"name":"頻道主",
-				"value":[
+				"value":[			
 					{"n":"李子柒","v":"李子柒 Liziqi @cnliziqi"},
 					{"n":"滇西小哥","v":"滇西小哥 @dianxixiaoge"},
 					{"n":"老高與小茉","v":"老高與小茉 @laogao"},
