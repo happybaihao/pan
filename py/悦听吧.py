@@ -1,392 +1,770 @@
-# coding=utf-8
-#!/usr/bin/env python3
-"""TVBox / 影视仓 Python 源: 悦听吧有声书。"""
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @file    : 悦听吧_T3.py  (影视仓 / T3 内置 python; 同源文件 悦听吧.py 为 hipy-server T4 版)
+"""
+悦听吧 (yuetingba.cn) TVBox py 爬虫
+
+站点分析 (2026-10):
+- IIS + 自定义模板 (非 maccms), 页面纯服务端渲染, 结构:
+  分类  /book/{cid}/{page}      cid: 1玄幻 2历史 3武侠 4都市 5科幻 6名著 7女频 8社科 9儿童 a评书
+  详情  /book/detail/{uuid}/{offset}   offset 每页 200 集 (0/200/400...)
+  搜索  /search?type=1&name=xx&pageIndex=N   (1书名 2作者 3演播)
+  榜单  /top/latest/1  /top/recommend/1
+- 广告/乱跳分析: 全站 HTML 无 window.open / popunder / adsbygoogle, 仅挂了
+  Google Analytics + 百度统计 + disable-devtool(浏览器反调试), 乱跳只发生在
+  浏览器 JS 层面; 本爬虫纯 HTTP 抓取、不执行任何页面 JS, 广告跳转完全无影响。
+  详情页内嵌 uni-app 播放 iframe (/tingpage), 也不使用 —— 播放地址本地算法直出。
+
+播放链 (逆向自 /tingpage/assets/pages-book-bookplay.js, 已沙箱实测 206 audio/mpeg):
+1. 详情页内嵌 var assl (AES 服务端列表, 全站同一份) / var py (书代号) / var bookId / var sk (签名盐)
+   assl 解密: 先 replace(sk,'') -> AES-128-CBC
+   key = b64('le95G3hnFDJsBE+1/v9eYw=='), iv = b64('IvswQFEUdKYf+d1wKpYLTg==')
+2. 选服务器: AsType=='1' 且 Type=='A'; bookId 第5段(-分隔)命中 BookIds 用命中项,
+   否则用 BookIds 为空的项; 再筛 Ratio>0 取第一个
+3. 单集 efi: GET /api/app/docs-listen/{tingId}/ting-with-efi -> {efi, creationTime}
+   key/iv 派生 (AES-256-CBC): A=tingId去掉所有'-'; ct=creationTime去掉-:T.和空格后右侧补'0'到20位
+   gk: 前20位 A[i]+int(ct[i]), 其后 A[i]+int(ct[i-20]);  gi: i从20递减到5, A[i]+int(ct[i-1])
+   解密得真实路径, 取文件名 fname
+4. 路径改写: 服务器名 _p 结尾 -> /{py}_{bookId}/{fname}
+            服务器名 _b 结尾 -> /myfiles/host/listen/booksdir/{py}_{bookId}/{fname}
+5. 签名: expire=floor(now/1000)+600, token=md5(fname+'|'+expire+'|'+sk)
+   最终 {Scheme}://{Value}:{Port}{path}?token=&expire= (path 按段 urlencode, 支持 Range 拖动)
+
+环境无 pycryptodome 时自动回退内置纯 Python AES 实现。
+"""
 
 import base64
 import hashlib
-import html as html_lib
 import json
-import random
+import os
 import re
 import sys
+import tempfile
+import threading
 import time
-from urllib.parse import unquote, urljoin
+from concurrent.futures import ThreadPoolExecutor
 
-import requests
+import requests as N
 
 sys.path.append('..')
 try:
-    from base.spider import Spider as BaseSpider
-except ImportError:
-    class BaseSpider(object):
+    from base.spider import Spider as A          # 影视仓 / T3 内置 python
+except Exception:
+    try:
+        from base.spider import BaseSpider as A  # hipy-server T4
+    except Exception:
+        try:
+            from t4.base.spider import BaseSpider as A
+        except Exception:
+            class A(object):                     # 兜底: 独立加载不报错
+                def __init__(self):
+                    pass
+
+UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+BASE = 'http://yuetingba.cn'
+FLAG = '悦听吧'
+# assl 全站同一份 + 签名盐 (逆向自详情页内嵌 JS, 已实测)
+ASSL_KEY_B64 = 'le95G3hnFDJsBE+1/v9eYw=='
+ASSL_IV_B64 = 'IvswQFEUdKYf+d1wKpYLTg=='
+SK_DEFAULT = 'xMiP5W1DHBxC5PwQ5oj5QfRn0tsT5UBk'
+PAGE_STEP = 200                # 详情页每页集数
+CACHE_FILE = os.path.join(tempfile.gettempdir(), 'tvbox_yuetingba_cache.json')
+CACHE_LOCK = threading.Lock()
+
+CLASSES = [
+    ('1', '玄幻'), ('2', '历史'), ('3', '武侠'), ('4', '都市'), ('5', '科幻'),
+    ('6', '名著'), ('7', '女频'), ('8', '社科'), ('9', '儿童'), ('a', '评书'),
+]
+
+
+def LOG(msg):
+    try:
+        print('[悦听吧]', msg)
+    except Exception:
         pass
 
 
-class Spider(BaseSpider):
-    site = 'http://www.yuetingba.cn'
-    _assl_marker = 'xMiP5W1DHBxC5PwQ5oj5QfRn0tsT5UBk'
-    _assl_key = 'le95G3hnFDJsBE+1/v9eYw=='
-    _assl_iv = 'IvswQFEUdKYf+d1wKpYLTg=='
+# ---------------- 纯 Python AES (CBC 解密, 无 pycryptodome 依赖) ----------------
+_g_SBOX = None
+_g_ISBOX = None
+
+
+def _gmul(a, b):
+    p = 0
+    for _ in range(8):
+        if b & 1:
+            p ^= a
+        hi = a & 0x80
+        a = (a << 1) & 0xFF
+        if hi:
+            a ^= 0x1B
+        b >>= 1
+    return p
+
+
+def _gpow(a, n):
+    r = 1
+    while n:
+        if n & 1:
+            r = _gmul(r, a)
+        a = _gmul(a, a)
+        n >>= 1
+    return r
+
+
+def _sbox_init():
+    global _g_SBOX, _g_ISBOX
+    if _g_SBOX is not None:
+        return
+    sbox = [0] * 256
+    for x in range(256):
+        sbox[x] = 0 if x == 0 else _gpow(x, 254)   # GF(2^8) 乘法逆元
+    out = [0] * 256
+    for i in range(256):
+        v = sbox[i]
+        r = v
+        for _ in range(4):                          # 仿射变换
+            v = ((v << 1) | (v >> 7)) & 0xFF
+            r ^= v
+        out[i] = r ^ 0x63
+    inv = [0] * 256
+    for i, v in enumerate(out):
+        inv[v] = i
+    _g_SBOX = out
+    _g_ISBOX = inv
+
+
+def _aes_key_expand(key, nk):
+    _sbox_init()
+    nr = nk + 6
+    w = [list(key[4 * i:4 * i + 4]) for i in range(nk)]
+    rcon = 1
+    for i in range(nk, 4 * (nr + 1)):
+        t = list(w[i - 1])
+        if i % nk == 0:
+            t = t[1:] + t[:1]
+            t = [_g_SBOX[b] for b in t]
+            t[0] ^= rcon
+            rcon = _gmul(rcon, 2)
+        elif nk > 6 and i % nk == 4:
+            t = [_g_SBOX[b] for b in t]
+        w.append([w[i - nk][j] ^ t[j] for j in range(4)])
+    return w, nr
+
+
+def _aes_dec_block(block, w, nr):
+    _sbox_init()
+    s = list(block)
+
+    def add_round_key(rnd):
+        for c in range(4):
+            wk = w[rnd * 4 + c]
+            for r in range(4):
+                s[r + 4 * c] ^= wk[r]
+
+    def inv_shift_rows():
+        old = s[:]
+        for r in range(1, 4):
+            for c in range(4):
+                s[r + 4 * c] = old[r + 4 * ((c - r) % 4)]
+
+    def inv_sub_bytes():
+        ib = _g_ISBOX
+        for i in range(16):
+            s[i] = ib[s[i]]
+
+    def inv_mix_columns():
+        for c in range(4):
+            i = 4 * c
+            a, b, cc, d = s[i], s[i + 1], s[i + 2], s[i + 3]
+            s[i] = _gmul(a, 14) ^ _gmul(b, 11) ^ _gmul(cc, 13) ^ _gmul(d, 9)
+            s[i + 1] = _gmul(a, 9) ^ _gmul(b, 14) ^ _gmul(cc, 11) ^ _gmul(d, 13)
+            s[i + 2] = _gmul(a, 13) ^ _gmul(b, 9) ^ _gmul(cc, 14) ^ _gmul(d, 11)
+            s[i + 3] = _gmul(a, 11) ^ _gmul(b, 13) ^ _gmul(cc, 9) ^ _gmul(d, 14)
+
+    add_round_key(nr)
+    for rnd in range(nr - 1, 0, -1):
+        inv_shift_rows()
+        inv_sub_bytes()
+        add_round_key(rnd)
+        inv_mix_columns()
+    inv_shift_rows()
+    inv_sub_bytes()
+    add_round_key(0)
+    return bytes(s)
+
+
+def _aes_cbc_decrypt(cipher_b64, key, iv):
+    """AES-CBC 解密 (key 16/24/32 字节自动选轮数), 返回去 PKCS7 的 utf8 字符串"""
+    try:
+        from Crypto.Cipher import AES
+        c = AES.new(key, AES.MODE_CBC, iv)
+        pt = c.decrypt(base64.b64decode(cipher_b64))
+    except Exception:
+        nk = len(key) // 4
+        w, nr = _aes_key_expand(key, nk)
+        raw = base64.b64decode(cipher_b64)
+        out = bytearray()
+        prev = iv
+        for i in range(0, len(raw), 16):
+            blk = raw[i:i + 16]
+            dec = _aes_dec_block(blk, w, nr)
+            out.extend(bytes(x ^ y for x, y in zip(dec, prev)))
+            prev = blk
+        pt = bytes(out)
+    if pt:
+        pad = pt[-1]
+        if 1 <= pad <= 16 and pt[-pad:] == bytes([pad]) * pad:
+            pt = pt[:-pad]
+    return pt.decode('utf-8', 'ignore')
+
+
+# ---------------- 悦听吧 ----------------
+class Spider(A):
 
     def __init__(self):
-        try:
-            super().__init__()
-        except TypeError:
-            pass
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': (
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                'AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/120.0.0.0 Safari/537.36'
-            ),
-            'Referer': self.site + '/',
-        })
-        self.cateManual = {
-            '玄幻': '1', '都市': '4', '历史': '2', '名著': '6',
-            '女频': '7', '科幻': '5', '武侠': '3', '评书': 'a', '社科': '8',
-        }
-        self._runtime_cache = {}
+        super().__init__()
+        self.name = FLAG
+        self.extend = {}
+        self._assl_raw = None
+        self._sk = SK_DEFAULT
+        self._servers = None
+        self._loadDisk()
 
-    def init(self, extend=''):
-        pass
+    # ---- 缓存 (assl 全站一份, 落盘复用) ----
+    def _loadDisk(self):
+        try:
+            with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                d = json.load(f)
+            self._assl_raw = d.get('assl')
+            self._sk = d.get('sk') or SK_DEFAULT
+            self._servers = d.get('servers')
+        except Exception:
+            pass
+
+    def _saveDisk(self):
+        try:
+            with CACHE_LOCK:
+                with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump({'assl': self._assl_raw, 'sk': self._sk,
+                               'servers': self._servers}, f)
+        except Exception:
+            pass
 
     def getName(self):
-        return '悦听吧'
+        return self.name
 
-    def isVideoFormat(self, url):
-        pass
+    def init(self, extend='{}'):
+        try:
+            self.extend = json.loads(extend) if extend else {}
+            if isinstance(self.extend, dict):
+                self.name = self.extend.get('name', FLAG) or FLAG
+                if self.extend.get('url'):
+                    self.BASE = str(self.extend['url']).rstrip('/')
+        except Exception as e:
+            LOG(e)
+            self.extend = {}
 
-    def manualVideoCheck(self):
-        pass
+    def _base(self):
+        return getattr(self, 'BASE', None) or BASE
+
+    # ---- 网络: 重试 + 退避 (站点限流 5次/5秒, 见响应头 x-rate-limit-limit) ----
+    def _req(self, url, tries=4, timeout=15):
+        last = None
+        for i in range(tries):
+            try:
+                r = N.get(url, headers={'User-Agent': UA,
+                                        'Referer': self._base() + '/'},
+                          timeout=timeout)
+                if r.status_code == 200 and r.text:
+                    return r.text
+                last = Exception('HTTP %s %s' % (r.status_code, url))
+                if r.status_code == 429:
+                    # 撞限流: 快速重试仍在 5s 窗口内会连续 429, 等窗口滑出再拉,
+                    # 否则翻页拿到空列表 app 会误判为"没有下一页"
+                    time.sleep(5.2)
+                    continue
+            except Exception as e:
+                last = e
+            time.sleep(0.3 * (i + 1))
+        raise last or Exception('req fail: ' + url)
+
+    # ---- 列表卡片解析 (分类/搜索/首页同构) ----
+    def _parseCards(self, html):
+        out, seen = [], set()
+        for chunk in html.split('section-box-list-item')[1:]:
+            mu = re.search(r'href="/book/detail/([0-9a-f-]{36})/\d+"', chunk)
+            if not mu:
+                continue
+            uid = mu.group(1)
+            if uid in seen:
+                continue
+            seen.add(uid)
+            mt = re.search(r'box-list-item-text-title"><a[^>]*>([^<]+)</a>', chunk)
+            if not mt:
+                continue
+            name = mt.group(1).strip()
+            mp = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', chunk)
+            pic = mp.group(1) if mp else ''
+            if pic.startswith('/'):
+                pic = self._base() + pic
+            ma = re.search(r'type=2&name=([^"&\s]+)', chunk)
+            ms = re.search(r'type=3&name=([^"&\s]+)', chunk)
+            try:
+                from urllib.parse import unquote
+                author = unquote(ma.group(1)) if ma else ''
+                teller = unquote(ms.group(1)) if ms else ''
+            except Exception:
+                author = ma.group(1) if ma else ''
+                teller = ms.group(1) if ms else ''
+            out.append({'id': uid, 'name': name, 'pic': pic,
+                        'author': author, 'teller': teller})
+        return out
+
+    def _buildVod(self, c):
+        return {
+            'vod_id': c['id'],
+            'vod_name': c['name'],
+            'vod_pic': c['pic'],
+            'vod_remarks': c.get('teller') or c.get('author') or '',
+            'vod_content': '',
+        }
 
     def homeContent(self, filter):
-        return {
-            'class': [
-                {'type_id': value, 'type_name': name}
-                for name, value in self.cateManual.items()
-            ],
-            'filters': {}, 'list': [], 'parse': 0, 'jx': 0,
-        }
+        try:
+            html = self._req(self._base() + '/')
+        except Exception as e:
+            LOG('home fail: %s' % e)
+            return {'class': list({'type_id': c, 'type_name': n} for c, n in CLASSES),
+                    'filters': {}, 'list': [], 'parse': 0, 'jx': 0}
+        classes = list({'type_id': c, 'type_name': n} for c, n in CLASSES)
+        try:
+            nav = re.findall(r'<a[^>]*href="/book/([0-9a-zA-Z]+)/1"[^>]*>([^<]+)</a>', html)
+            if nav:
+                seen, cls = set(), []
+                for cid, nm in nav:
+                    if cid in seen:
+                        continue
+                    seen.add(cid)
+                    cls.append({'type_id': cid, 'type_name': nm.strip()})
+                classes = cls
+        except Exception:
+            pass
+        cards = self._parseCards(html)
+        return {'class': classes, 'filters': {},
+                'list': [self._buildVod(c) for c in cards],
+                'parse': 0, 'jx': 0}
 
     def homeVideoContent(self):
-        result = {'list': [], 'parse': 0, 'jx': 0}
         try:
-            result['list'] = self._parse_books(self._get('/').text)[:30]
-        except Exception as error:
-            print('homeVideoContent error: %s' % error)
-        return result
+            html = self._req(self._base() + '/')
+            cards = self._parseCards(html)
+            return {'list': [self._buildVod(c) for c in cards]}
+        except Exception as e:
+            LOG('homeVideo fail: %s' % e)
+            return {'list': []}
 
-    def categoryContent(self, tid, pg, filter, extend):
-        page = self._page_number(pg)
-        result = {'list': [], 'parse': 0, 'jx': 0, 'page': page}
+    def categoryContent(self, cid, page, filter, ext):
         try:
-            page_html = self._get('/book/%s/%s' % (tid, page)).text
-            result['list'] = self._parse_books(page_html)
-            total_match = re.search(r'共\s*(\d+)\s*条', page_html)
-            total = int(total_match.group(1)) if total_match else len(result['list'])
-            result['total'] = total
-            result['limit'] = 10
-            result['pagecount'] = max(page, (total + 9) // 10)
-        except Exception as error:
-            print('categoryContent error: %s' % error)
-            result.update({'total': 0, 'limit': 10, 'pagecount': page})
-        return result
-
-    def detailContent(self, ids):
-        result = {'list': [], 'parse': 0, 'jx': 0}
-        book_id = ids[0] if ids else ''
-        if not book_id:
-            return result
-        book_id = self._book_id(book_id)
+            pg = int(page or 1)
+        except Exception:
+            pg = 1
+        if pg < 1:
+            pg = 1
+        S = {'page': pg, 'pagecount': pg, 'limit': 10, 'total': 0,
+             'list': [], 'parse': 0, 'jx': 0}
+        url = '%s/book/%s/%s' % (self._base(), cid, pg)
         try:
-            first_html = self._get('/book/detail/%s/0' % book_id).text
-            title = self._first_text(first_html, r'<h1[^>]*>(.*?)</h1>')
-            if not title:
-                title = self._first_text(first_html, r'book-detail-title[^>]*>(.*?)</h2>')
-            pic_match = re.search(
-                r'<div class="books-detail-img">.*?<img[^>]+src=["\']([^"\']+)',
-                first_html, re.S,
-            )
-            pic = urljoin(self.site, pic_match.group(1)) if pic_match else ''
-            author = self._field(first_html, '作\s*者')
-            category = self._field(first_html, '分\s*类')
-            speaker = self._field(first_html, '演\s*播')
-            status = self._field(first_html, '状\s*态')
-            count = self._field(first_html, '集\s*数')
-            desc_match = re.search(
-                r'内容简介：</h4>.*?text-desc-content[^>]*>\s*<p>(.*?)</p>',
-                first_html, re.S,
-            )
-            desc = self._clean(desc_match.group(1)) if desc_match else ''
-
-            offsets = sorted({
-                int(value) for value in re.findall(
-                    r'/book/detail/%s/(\d+)' % re.escape(book_id), first_html
-                )
-            }) or [0]
-            episodes = self._parse_episodes(first_html)
-            seen = {episode_id for _, episode_id in episodes}
-            for offset in offsets:
-                if offset == 0:
-                    continue
-                page_html = self._get('/book/detail/%s/%s' % (book_id, offset)).text
-                for episode in self._parse_episodes(page_html):
-                    if episode[1] not in seen:
-                        episodes.append(episode)
-                        seen.add(episode[1])
-
-            vod = {
-                'vod_id': book_id,
-                'vod_name': title,
-                'vod_pic': pic,
-                'type_name': category,
-                'vod_year': '',
-                'vod_area': '',
-                'vod_remarks': ('%s · %s集' % (status, count)).strip(' ·'),
-                'vod_actor': speaker,
-                'vod_director': author,
-                'vod_content': desc,
-                'vod_play_from': '悦听吧',
-                'vod_play_url': '#'.join(
-                    '%s$%s' % (self._play_name(name), episode_id)
-                    for name, episode_id in episodes
-                ),
-            }
-            result['list'].append(vod)
-        except Exception as error:
-            print('detailContent error: %s' % error)
-        return result
-
-    def playerContent(self, flag, id, vipFlags):
+            html = self._req(url)
+        except Exception as e:
+            LOG('category fail %s: %s' % (cid, e))
+            return S                          # pagecount==page => 无下一页, 停止翻页
+        cards = self._parseCards(html)
+        S['list'] = [self._buildVod(c) for c in cards]
+        total = 0
         try:
-            audio_url = self._resolve_audio(id)
-            return {
-                'parse': 0,
-                'url': audio_url,
-                'jx': 0,
-                'header': {
-                    'User-Agent': self.session.headers['User-Agent'],
-                    'Referer': self.site + '/',
-                },
-            }
-        except Exception as error:
-            print('playerContent error: %s' % error)
-            return {'parse': 1, 'url': id, 'jx': 0, 'header': {}}
+            m = re.search(r'共(\d+)条', html)
+            if m:
+                total = int(m.group(1))
+        except Exception:
+            pass
+        if total:
+            # 站点给了总数: 页数精确可算; 本页满 10 条时确保 pagecount>page,
+            # 让 app 判定"还有下一页"继续上滑加载
+            S['total'] = total
+            S['pagecount'] = max((total + 9) // 10, pg + 1 if len(cards) >= 10 else pg)
+        elif len(cards) >= 10:
+            S['pagecount'] = pg + 1           # 满页 => 下一页待拉
+            S['total'] = (pg + 1) * 10
+        else:
+            S['total'] = (pg - 1) * 10 + len(cards)
+        return S
 
-    def searchContent(self, key, quick, pg='1'):
-        page = self._page_number(pg)
-        result = {'list': [], 'parse': 0, 'jx': 0, 'page': page}
+    def searchContent(self, key, quick, page='1'):
+        from urllib.parse import quote
         try:
-            response = self._get('/Search', params={
-                'type': '1', 'name': key, 'pageIndex': page,
-            })
-            result['list'] = self._parse_books(response.text)
-            total_match = re.search(r'共\s*(\d+)\s*条', response.text)
-            total = int(total_match.group(1)) if total_match else len(result['list'])
-            result.update({
-                'total': total,
-                'limit': 10,
-                'pagecount': max(page, (total + 9) // 10),
-            })
-        except Exception as error:
-            print('searchContent error: %s' % error)
-            result.update({'total': 0, 'limit': 10, 'pagecount': page})
-        return result
+            pg = int(page or 1)
+        except Exception:
+            pg = 1
+        if pg < 1:
+            pg = 1
+        S = {'page': pg, 'pagecount': pg, 'limit': 10, 'total': 0,
+             'list': [], 'parse': 0, 'jx': 0}
+        url = '%s/search?type=1&name=%s&pageIndex=%s' % (
+            self._base(), quote(str(key)), pg)
+        try:
+            html = self._req(url)
+        except Exception as e:
+            LOG('search fail: %s' % e)
+            return S
+        cards = self._parseCards(html)
+        S['list'] = [self._buildVod(c) for c in cards]
+        total = 0
+        try:
+            m = re.search(r'共(\d+)条', html)
+            if m:
+                total = int(m.group(1))
+        except Exception:
+            pass
+        if total:
+            S['total'] = total
+            S['pagecount'] = max((total + 9) // 10, pg + 1 if len(cards) >= 10 else pg)
+        elif len(cards) >= 10:
+            S['pagecount'] = pg + 1           # 满页 => 还有下一页
+            S['total'] = (pg + 1) * 10
+        else:
+            S['total'] = (pg - 1) * 10 + len(cards)
+        return S
+
+    # ---- 详情: 元数据 + 全量选集 (按 200/页并行拉取) ----
+    def _detailMeta(self, html, uid):
+        def grab(pat, default=''):
+            m = re.search(pat, html, re.S)
+            return m.group(1).strip() if m else default
+
+        name = grab(r'<h1 class="hidden-xs">\s*([^<]+?)\s*</h1>')
+        author = grab(r'作\s*者：</span>\s*<span class="text-desc-content">\s*(?:<a[^>]*>)?([^<]+)')
+        teller = grab(r'演\s*播：</span>\s*<span class="text-desc-content">\s*(?:<a[^>]*>)?([^<]+)')
+        cat = grab(r'分\s*类：</span>\s*<span class="text-desc-content">\s*([^<]+)')
+        status = grab(r'状\s*态：</span>\s*<span class="text-desc-content">\s*([^<]+)')
+        cnt = grab(r'集\s*数：</span>\s*<span class="text-desc-content">\s*(\d+)')
+        intro = grab(r'内容简介：</h4></div>\s*<div class="col-md-12 text-desc-content">(.*?)</div>')
+        intro = re.sub(r'<br\s*/?>', '\n', intro)
+        intro = re.sub(r'<[^>]+>', '', intro).strip()
+        mpic = re.search(r'<div class="books-detail-img">\s*<img src="([^"]+)"', html)
+        pic = mpic.group(1) if mpic else ''
+        assl = grab(r"var assl = '([^']+)'")
+        py = grab(r"var py\s*=\s*'([^']+)'")
+        book = grab(r"var bookId = '([^']+)'") or uid
+        sk = grab(r"var sk = '([^']+)'")
+        return {'name': name, 'author': author, 'teller': teller, 'cat': cat,
+                'status': status, 'count': int(cnt) if cnt.isdigit() else 0,
+                'intro': intro, 'pic': pic, 'assl': assl, 'py': py,
+                'book': book, 'sk': sk}
+
+    @staticmethod
+    def _parseEps(html):
+        eps = []
+        for m in re.finditer(
+                r'<a title="([^"]+)"[^>]*onclick="testFn\(\'([0-9a-f-]{36})\'\)"', html):
+            title, tid = m.group(1).strip(), m.group(2)
+            if title:
+                eps.append((title, tid))
+        if not eps:  # 兜底: item_ 锚点
+            for m in re.finditer(
+                    r'id="item_([0-9a-f-]{36})"[^>]*>.*?<a[^>]*>\s*([^<]+?)\s*</a>',
+                    html, re.S):
+                eps.append((m.group(2).strip(), m.group(1)))
+        return eps
+
+    def detailContent(self, did):
+        uid = did[0] if isinstance(did, (list, tuple)) else str(did)
+        uid = uid.split('|')[0].split('$')[0].strip()
+        detail_url = '%s/book/detail/%s/0' % (self._base(), uid)
+        html = None
+        last = None
+        for _ in range(2):                       # 整体重试 1 轮
+            try:
+                html = self._req(detail_url)
+                if 'testFn' in html or '集  数' in html:
+                    break
+                html = None
+                raise Exception('detail 页异常')
+            except Exception as e:
+                last = e
+        if not html:
+            LOG('detail fail %s: %s' % (uid, last))
+            return {'list': []}
+
+        meta = self._detailMeta(html, uid)
+        eps = self._parseEps(html)
+        offsets = []
+        if meta['count'] > PAGE_STEP:
+            offsets = list(range(PAGE_STEP, meta['count'], PAGE_STEP))
+            found = set(int(x) for x in re.findall(
+                r'/book/detail/%s/(\d+)' % re.escape(uid), html))
+            offsets = [o for o in offsets if o in found] or offsets
+
+        if offsets:
+            def fetch(off):
+                try:
+                    return self._req('%s/book/detail/%s/%s' % (self._base(), uid, off))
+                except Exception as e:
+                    LOG('detail page %s fail: %s' % (off, e))
+                    return ''
+            with ThreadPoolExecutor(max_workers=5) as ex:
+                for h in ex.map(fetch, offsets):
+                    if h:
+                        eps.extend(self._parseEps(h))
+
+        seen, eplist = set(), []
+        for title, tid in eps:
+            if tid in seen:
+                continue
+            seen.add(tid)
+            eplist.append((title, tid))
+
+        if meta['assl']:
+            self._assl_raw = meta['assl']
+        if meta['sk']:
+            self._sk = meta['sk']
+        if meta['py'] and meta['book']:
+            # py/book 落盘, 进程重启后 playerContent 仍可直出
+            try:
+                with CACHE_LOCK:
+                    d = {}
+                    try:
+                        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                            d = json.load(f)
+                    except Exception:
+                        pass
+                    books = d.get('books') or {}
+                    books[meta['book']] = meta['py']
+                    d.update({'assl': self._assl_raw, 'sk': self._sk,
+                              'servers': self._servers, 'books': books})
+                    with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+                        json.dump(d, f)
+            except Exception:
+                pass
+
+        play = '#'.join('%s$%s@%s@%s' % (t, tid, meta['book'], meta['py'])
+                        for t, tid in eplist)
+        vod = {
+            'vod_id': uid,
+            'vod_name': meta['name'],
+            'vod_pic': meta['pic'],
+            'vod_remarks': meta['status'] or ('%s集' % meta['count'] if meta['count'] else ''),
+            'vod_actor': meta['teller'],
+            'vod_director': meta['author'],
+            'vod_area': meta['cat'],
+            'vod_content': meta['intro'],
+            'vod_play_from': FLAG,
+            'vod_play_url': play,
+        }
+        return {'list': [vod]}
+
+    # ---- 服务器列表 (assl 解密, 全站一份, 内存+落盘缓存) ----
+    def _getServers(self, book=''):
+        if self._servers:
+            return self._servers
+        assl, sk = self._assl_raw, self._sk
+        if not assl and book:
+            try:
+                html = self._req('%s/book/detail/%s/0' % (self._base(), book))
+                meta = self._detailMeta(html, book)
+                assl, py = meta['assl'], meta['py']
+                if meta['sk']:
+                    sk = meta['sk']
+                if py and book:
+                    with CACHE_LOCK:
+                        d = {}
+                        try:
+                            with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                                d = json.load(f)
+                        except Exception:
+                            pass
+                        books = d.get('books') or {}
+                        books[book] = py
+                        d['books'] = books
+                        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+                            json.dump(d, f)
+            except Exception as e:
+                LOG('assl fetch fail: %s' % e)
+        if not assl:
+            raise Exception('assl 不可用')
+        raw = assl.replace(sk or SK_DEFAULT, '', 1)
+        dec = _aes_cbc_decrypt(raw,
+                               base64.b64decode(ASSL_KEY_B64),
+                               base64.b64decode(ASSL_IV_B64))
+        servers = json.loads(dec)
+        if not isinstance(servers, list) or not servers:
+            raise Exception('assl 解密结果异常')
+        self._assl_raw, self._sk = assl, sk or SK_DEFAULT
+        self._servers = servers
+        self._saveDisk()
+        return servers
+
+    @staticmethod
+    def _pickServer(servers, book):
+        pool = [s for s in servers if str(s.get('AsType')) == '1'] or list(servers)
+        ap = [s for s in pool if s.get('Type') == 'A'] or pool
+        part = ''
+        try:
+            seg = str(book).split('-')
+            if len(seg) > 4:
+                part = seg[4]
+        except Exception:
+            pass
+        if part:
+            hit = [s for s in ap if part in json.dumps(s.get('BookIds') or '',
+                                                       ensure_ascii=False)]
+            if hit:
+                ap = hit
+            else:
+                empty = [s for s in ap if not s.get('BookIds')]
+                if empty:
+                    ap = empty
+        ratio = [s for s in ap if (s.get('Ratio') or 0) > 0]
+        return (ratio or ap)[0]
+
+    @staticmethod
+    def _deriveKeys(ting_id, creation_time):
+        A = ting_id.replace('-', '')
+        ct = (creation_time.replace('-', '').replace(':', '')
+              .replace('T', '').replace('.', '').replace(' ', ''))
+        ct = ct.ljust(20, '0')[:20]
+        key = bytes(ord(A[i]) + int(ct[i]) for i in range(20))
+        key += bytes(ord(A[i]) + int(ct[i - 20]) for i in range(20, len(A)))
+        iv = bytes(ord(A[i]) + int(ct[i - 1]) for i in range(20, 4, -1))
+        return key, iv
+
+    @staticmethod
+    def _encPath(path):
+        try:
+            from urllib.parse import quote
+            return '/'.join(quote(seg) for seg in path.split('/'))
+        except Exception:
+            return path
+
+    def playerContent(self, flag, pid, vipFlags):
+        out = {'parse': 0, 'jx': 0, 'url': '', 'header': {'User-Agent': UA}}
+        try:
+            parts = str(pid).split('@')
+            ting = parts[0].strip()
+            book = parts[1].strip() if len(parts) > 1 else ''
+            py = parts[2].strip() if len(parts) > 2 else ''
+            if not ting:
+                return out
+
+            # 1) efi 接口
+            j = None
+            for i in range(3):
+                try:
+                    j = json.loads(self._req(
+                        '%s/api/app/docs-listen/%s/ting-with-efi' % (self._base(), ting)))
+                    if j.get('efi'):
+                        break
+                    j = None
+                except Exception as e:
+                    j = None
+                    last = e
+                time.sleep(0.3 * (i + 1))
+            if not j:
+                LOG('efi fail %s' % ting)
+                return out
+            book = book or j.get('bookId') or ''
+
+            # 2) 服务器列表 + 解密 efi
+            servers = self._getServers(book)
+            srv = self._pickServer(servers, book)
+            key, iv = self._deriveKeys(ting, j.get('creationTime') or '')
+            path = _aes_cbc_decrypt(j['efi'], key, iv).strip()
+            if not path:
+                LOG('efi 解密为空')
+                return out
+
+            # 3) 路径改写
+            try:
+                from urllib.parse import unquote
+                fname = unquote(path.rstrip('/').split('/')[-1])
+            except Exception:
+                fname = path.rstrip('/').split('/')[-1]
+            name = str(srv.get('Name') or '')
+            if name.endswith('_p'):
+                final = '/%s_%s/%s' % (py, book, fname)
+            elif name.endswith('_b'):
+                final = '/myfiles/host/listen/booksdir/%s_%s/%s' % (py, book, fname)
+            else:
+                final = path
+
+            # 4) token 签名
+            sk = self._sk or SK_DEFAULT
+            expire = int(time.time()) + 600
+            token = hashlib.md5(
+                ('%s|%s|%s' % (fname, expire, sk)).encode('utf-8')).hexdigest()
+
+            # 5) 拼最终地址
+            scheme = srv.get('Scheme') or 'http'
+            value = srv.get('Value') or ''
+            port = srv.get('Port') or 80
+            base = '%s://%s:%s' % (scheme, value, port)
+            play = '%s%s?token=%s&expire=%s' % (
+                base, self._encPath(final), token, expire)
+
+            # 6) 轻量探活 (失败换下一个可用服务器重试一次)
+            try:
+                chk = N.get(play, headers={'User-Agent': UA, 'Referer': self._base() + '/'},
+                            timeout=8, stream=True)
+                code = chk.status_code
+                chk.close()
+                if code in (200, 206):
+                    out['url'] = play
+                    return out
+                LOG('探活 HTTP %s, 换服务器重试' % code)
+                others = [s for s in servers if s is not srv]
+                for alt in others[:3]:
+                    srv2 = self._pickServer([alt], book)
+                    name2 = str(srv2.get('Name') or '')
+                    if name2.endswith('_p'):
+                        final2 = '/%s_%s/%s' % (py, book, fname)
+                    elif name2.endswith('_b'):
+                        final2 = '/myfiles/host/listen/booksdir/%s_%s/%s' % (py, book, fname)
+                    else:
+                        final2 = path
+                    play2 = '%s://%s:%s%s?token=%s&expire=%s' % (
+                        srv2.get('Scheme') or 'http', srv2.get('Value'),
+                        srv2.get('Port') or 80, self._encPath(final2), token, expire)
+                    try:
+                        c2 = N.get(play2, headers={'User-Agent': UA,
+                                                   'Referer': self._base() + '/'},
+                                   timeout=8, stream=True)
+                        ok = c2.status_code in (200, 206)
+                        c2.close()
+                        if ok:
+                            out['url'] = play2
+                            return out
+                    except Exception:
+                        continue
+            except Exception:
+                out['url'] = play   # 探活网络异常时仍给出地址
+            if not out['url']:
+                out['url'] = play
+        except Exception as e:
+            LOG('player fail %s: %s' % (pid, e))
+        return out
 
     def localProxy(self, params):
-        return [200, 'audio/mpeg', {}, '']
+        return None
 
-    def _get(self, path, **kwargs):
-        url = path if path.startswith('http') else urljoin(self.site + '/', path.lstrip('/'))
-        response = self.session.get(url, timeout=20, **kwargs)
-        response.raise_for_status()
-        response.encoding = response.apparent_encoding or 'utf-8'
-        return response
+    def isVideoFormat(self, url):
+        return bool(re.search(r'\.(mp3|m4a|aac|mp4|m3u8)(\?|$)', str(url), re.I))
 
-    def _parse_books(self, page_html):
-        videos = []
-        seen = set()
-        pattern = re.compile(
-            r'<div[^>]+class="[^"]*section-box-list-item[^"]*"[^>]*>(.*?)'
-            r'(?=<div[^>]+class="[^"]*section-box-list-item|</section>|<div class="pagelist")',
-            re.S,
-        )
-        for block in pattern.findall(page_html):
-            link = re.search(r'href=["\']/book/detail/([^/"\']+)/\d+["\']', block)
-            title = re.search(
-                r'box-list-item-text-title[^>]*>\s*<a[^>]*>(.*?)</a>', block, re.S
-            )
-            image = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', block)
-            if not link or not title:
-                continue
-            book_id = link.group(1)
-            if book_id in seen:
-                continue
-            seen.add(book_id)
-            author_speaker = [self._clean(value) for value in re.findall(
-                r'<span[^>]+title=["\']([^"\']+)["\']', block
-            )]
-            remark = ' / '.join(author_speaker[:2])
-            videos.append({
-                'vod_id': book_id,
-                'vod_name': self._clean(title.group(1)),
-                'vod_pic': urljoin(self.site, image.group(1)) if image else '',
-                'vod_remarks': remark,
-            })
-        return videos
+    def manualVideoCheck(self):
+        return False
 
-    def _parse_episodes(self, page_html):
-        episodes = []
-        for episode_id, block in re.findall(
-            r'<div id="item_([0-9a-f-]{36})" class="ting-list-content-item">(.*?)</div>\s*</div>',
-            page_html, re.S | re.I,
-        ):
-            titles = re.findall(r'<a[^>]+title="([^"]+)"', block, re.S)
-            name = self._clean(titles[-1]) if titles else episode_id
-            episodes.append((name, episode_id))
-        return episodes
+    def destroy(self):
+        pass
 
-    def _resolve_audio(self, episode_id):
-        data = self._get(
-            '/api/app/docs-listen/%s/ting-with-efi' % episode_id
-        ).json()
-        book_id = data['bookId']
-        ting_no = int(data.get('tingNo') or 1)
-        offset = ((ting_no - 1) // 200) * 200
-        runtime = self._book_runtime(book_id, offset)
 
-        plain_id = data['id'].replace('-', '')
-        compact_time = re.sub(r'[-:T. ]', '', data['creationTime']).ljust(20, '0')
-        key = bytes(
-            (ord(plain_id[index]) + int(compact_time[index % 20])) & 0xff
-            for index in range(len(plain_id))
-        )
-        iv = bytes(
-            (ord(plain_id[index]) + int(compact_time[index - 1])) & 0xff
-            for index in range(20, 4, -1)
-        )
-        source_path = self._aes_decrypt(data['efi'], key, iv).decode('utf-8').strip()
-        filename = unquote(source_path.rstrip('/').split('/')[-1])
-        server = self._pick_server(runtime['servers'], book_id)
-
-        path = source_path
-        if '_p' in server['Name']:
-            path = '/%s_%s/%s' % (runtime['py'], book_id, filename)
-        elif '_b' in server['Name']:
-            path = '/myfiles/host/listen/booksdir/%s_%s/%s' % (
-                runtime['py'], book_id, filename,
-            )
-
-        expires = int(time.time()) + 600
-        signature = hashlib.md5(
-            ('%s|%s|%s' % (filename, expires, self._assl_marker)).encode('utf-8')
-        ).hexdigest()
-        host = '%s://%s:%s' % (server['Scheme'], server['Value'], server['Port'])
-        return '%s%s?token=%s&expire=%s' % (host, path, signature, expires)
-
-    def _book_runtime(self, book_id, offset):
-        cached = self._runtime_cache.get(book_id)
-        if cached and time.time() - cached['cached_at'] < 1800:
-            return cached
-        page_html = self._get('/book/detail/%s/%s' % (book_id, offset)).text
-        assl = self._js_var(page_html, 'assl').replace(self._assl_marker, '')
-        servers = json.loads(self._aes_decrypt(
-            assl, base64.b64decode(self._assl_key), base64.b64decode(self._assl_iv)
-        ).decode('utf-8'))
-        runtime = {
-            'servers': servers,
-            'py': self._js_var(page_html, 'py'),
-            'cached_at': time.time(),
-        }
-        self._runtime_cache[book_id] = runtime
-        return runtime
-
-    @staticmethod
-    def _pick_server(servers, book_id):
-        available = [
-            item for item in servers
-            if str(item.get('AsType')) == '1' and item.get('Type') == 'A'
-        ]
-        group = book_id.split('-')[4]
-        dedicated = [
-            item for item in available
-            if item.get('BookIds') and group in item['BookIds']
-        ]
-        if dedicated:
-            available = dedicated
-        else:
-            available = [
-                item for item in available
-                if int(item.get('Ratio') or 0) > 0
-                and not str(item.get('BookIds') or '').strip()
-            ]
-        if not available:
-            raise ValueError('没有可用的音频服务器')
-        weights = [max(0, int(item.get('Ratio') or 0)) for item in available]
-        return random.choices(available, weights=weights or None, k=1)[0]
-
-    @staticmethod
-    def _aes_decrypt(cipher_text, key, iv):
-        encrypted = base64.b64decode(re.sub(r'\s+', '', cipher_text))
-        try:
-            from Crypto.Cipher import AES
-            padded = AES.new(key, AES.MODE_CBC, iv).decrypt(encrypted)
-        except ImportError:
-            try:
-                from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-            except ImportError:
-                raise RuntimeError('需要 pycryptodome 或 cryptography 才能解析音频')
-            decryptor = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()
-            padded = decryptor.update(encrypted) + decryptor.finalize()
-        padding_size = padded[-1]
-        if padding_size < 1 or padding_size > 16:
-            raise ValueError('AES 填充无效')
-        return padded[:-padding_size]
-
-    @staticmethod
-    def _js_var(page_html, name):
-        match = re.search(
-            r'\b(?:var|let|const)\s+%s\s*=\s*["\']([^"\']*)["\']' % re.escape(name),
-            page_html,
-        )
-        if not match:
-            raise ValueError('页面缺少参数: %s' % name)
-        return html_lib.unescape(match.group(1))
-
-    @staticmethod
-    def _field(page_html, label):
-        match = re.search(
-            r'text-desc-title[^>]*>\s*%s：?\s*</span>\s*'
-            r'<span[^>]*text-desc-content[^>]*>(.*?)</span>' % label,
-            page_html, re.S,
-        )
-        return Spider._clean(match.group(1)) if match else ''
-
-    @staticmethod
-    def _first_text(page_html, pattern):
-        match = re.search(pattern, page_html, re.S)
-        return Spider._clean(match.group(1)) if match else ''
-
-    @staticmethod
-    def _clean(value):
-        value = re.sub(r'<br\s*/?>', '\n', value or '', flags=re.I)
-        value = re.sub(r'<[^>]+>', '', value)
-        value = html_lib.unescape(value)
-        return re.sub(r'[ \t\r\f\v]+', ' ', value).strip()
-
-    @staticmethod
-    def _page_number(value):
-        try:
-            return max(1, int(value or 1))
-        except (TypeError, ValueError):
-            return 1
-
-    @staticmethod
-    def _book_id(value):
-        match = re.search(r'/book/detail/([^/]+)/', value or '')
-        return match.group(1) if match else value
-
-    @staticmethod
-    def _play_name(name):
-        return (name or '').replace('$', '￥').replace('#', '﹟')
+if __name__ == '__main__':
+    pass
