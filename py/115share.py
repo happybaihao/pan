@@ -124,6 +124,9 @@ DETAIL_CACHE_MAX = 200
 DIR_PREFIX = "115d@"
 FILE_PREFIX = "115f@"
 
+# 有的播放器播放时会新建一个实例、不走 init，这里留一份上次的扩展参数兜底
+_LAST_EXTEND = {"value": ""}
+
 VIDEO_EXTS = [
     ".mp4", ".mkv", ".webm", ".avi", ".wmv", ".flv", ".mov", ".mpeg", ".mpg",
     ".m4v", ".3gp", ".ts", ".m2ts", ".rm", ".rmvb", ".iso",
@@ -222,25 +225,33 @@ def _encode_dir(row_id):
 
 
 def _encode_file(row):
-    payload = {
-        "c": _text(row.get("share_code")),
-        "r": _text(row.get("receive_code")),
-        "f": _text(row.get("fid")),
-        "p": _text(row.get("cid")),
-        "n": _text(row.get("name")),
-    }
-    return FILE_PREFIX + _b64e(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+    """token 要尽量短：一季几百集拼起来就是十几万字符，太长播放器会截断。"""
+    parts = [
+        _text(row.get("share_code")),
+        _text(row.get("receive_code")),
+        _text(row.get("fid")),
+        _text(row.get("cid")),
+    ]
+    return FILE_PREFIX + _b64e("|".join(parts))
 
 
 def _decode_file(value):
     raw = _text(value)
     if not raw.startswith(FILE_PREFIX):
         return None
+    body = raw[len(FILE_PREFIX):]
+    # 新格式：base64 的 c|r|f|p
+    plain = _b64d(body)
+    if plain.count("|") == 3:
+        c, r, f, p = plain.split("|")
+        if f:
+            return {"c": c, "r": r, "f": f, "p": p, "n": ""}
+    # 老格式：base64 的 JSON，保持兼容
     try:
-        data = json.loads(_b64d(raw[len(FILE_PREFIX):]))
+        data = json.loads(plain)
     except Exception:
         return None
-    if not data or not data.get("f"):
+    if not isinstance(data, dict) or not data.get("f"):
         return None
     return data
 
@@ -289,6 +300,24 @@ def _http_json(url, headers=None, timeout=None, data=None):
         return json.loads(body.decode("utf-8", "replace"))
     except Exception:
         return {}
+
+
+def _http_call(url, headers=None, timeout=None, data=None):
+    """返回 (dict, 请求层错误)。请求层错误为空表示拿到了合法 JSON。"""
+    try:
+        body = _http_get(url, headers=headers, timeout=timeout, data=data)
+    except Exception as exc:
+        return {}, "网络请求失败(%s)" % type(exc).__name__
+    text = body.decode("utf-8", "replace") if body else ""
+    if not text.strip():
+        return {}, "接口无返回内容"
+    try:
+        obj = json.loads(text)
+    except Exception:
+        return {}, "接口返回的不是 JSON"
+    if not isinstance(obj, dict):
+        return {}, "接口返回结构异常"
+    return obj, ""
 
 
 # ---------------------------------------------------------------- 参数解析
@@ -859,6 +888,83 @@ class _Library(object):
 
 
 # ---------------------------------------------------------------- 115 网盘接口
+# 115 有一批老接口（share/download、user/check…）现在对任何请求都回
+# “服务器开小差了，稍后再试吧”，原样透给播放器就会变成“播放失败/自动换源”。
+# 这里统一翻成人话，别让用户以为是自己的问题。
+_SERVER_BUSY_HINTS = ("服务器开小差", "稍后再试", "系统繁忙", "服务异常")
+
+
+def _friendly_error(message, errno=None):
+    text = _text(message)
+    code = _int(errno)
+    if code in (990001, 990002, 990003) or "登录超时" in text or "重新登录" in text:
+        return "115 提示登录已失效，cookie 需要重新获取"
+    if code in (990009, 990010) or "会员" in text:
+        return "115 提示该文件需要会员权限才能取直链"
+    if any(hint in text for hint in _SERVER_BUSY_HINTS):
+        return "115 接口暂时不可用，稍后重试"
+    if "不存在" in text or "已删除" in text or "失效" in text:
+        return "分享已失效或被取消"
+    return text or "115 直链获取失败"
+
+
+def _unquote_url(value):
+    """115 有时把 file_url 编码过一层，解一次就够，别解两次把签名里的 % 搞坏。"""
+    text = _text(value)
+    if not text:
+        return ""
+    if text.lower().startswith("http%3a") or "%2f" in text.lower()[:40]:
+        try:
+            return urllib.parse.unquote(text)
+        except Exception:
+            return text
+    return text
+
+
+def _expand_direct(url, timeout=12):
+    """检查直链能不能拉流，返回 (最终地址, 说明)。
+
+    115 有时给的是中转地址，得跟一跳；但跟过头会落到 HTML 登录页，
+    所以只认视频类的响应，认不出就原样交出去让播放器自己处理。
+    """
+    target = _text(url)
+    if not target:
+        return "", "空地址"
+    req = urllib.request.Request(target, headers={
+        "User-Agent": UA,
+        "Referer": "https://115.com/",
+        "Range": "bytes=0-1",
+        "Accept": "*/*",
+    })
+    try:
+        import ssl
+        ctx = ssl._create_unverified_context()
+        resp = urllib.request.urlopen(req, timeout=timeout, context=ctx)
+    except Exception as exc:
+        return target, "直链校验跳过(%s)" % type(exc).__name__
+    try:
+        final = _text(resp.geturl()) or target
+        ctype = _text(resp.headers.get("Content-Type")).lower()
+        status = int(getattr(resp, "status", 200) or 200)
+        try:
+            resp.read(2)
+        except Exception:
+            pass
+    except Exception:
+        return target, "直链校验跳过"
+    finally:
+        try:
+            resp.close()
+        except Exception:
+            pass
+    if status >= 400:
+        return target, "直链返回 %s" % status
+    if "text/html" in ctype or "application/json" in ctype:
+        # 跟到了网页/接口页，不是视频，原地址反而更靠谱
+        return target, "直链校验跳过(返回网页)"
+    return final, ""
+
+
 class _Pan115(object):
     """分享浏览 + 直链解析。直链必须带登录 cookie，没有就只能给分享页。"""
 
@@ -894,27 +1000,108 @@ class _Pan115(object):
             "shareinfo": payload.get("shareinfo") or {},
         }
 
+    # ---------- 登录态 ----------
+    def check_login(self):
+        """cookie 到底有没有登录态。115 的 user/check 已经废了，改问 my.115.com 的 nav。"""
+        if getattr(self, "_login_state", None) is not None:
+            return self._login_state
+        if not self.cookie:
+            self._login_state = False
+            return False
+        data, err = _http_call("https://my.115.com/?ct=ajax&ac=nav", headers=self.header, timeout=8)
+        if err:
+            # 网络抖动不下结论，免得把能用的 cookie 说成过期
+            return True
+        if data.get("state"):
+            self._login_state = True
+            return True
+        if "登录" in _text(data.get("error")):
+            self._login_state = False
+            return False
+        return True
+
+    # ---------- 取直链 ----------
+    def downurl(self, share_code, receive_code, file_id):
+        """115 现在真正在用的接口，POST 优先、GET 兜底。"""
+        params = {
+            "share_code": _text(share_code),
+            "receive_code": _text(receive_code),
+            "file_id": _text(file_id),
+        }
+        endpoint = "https://webapi.115.com/share/downurl"
+        header = dict(self.header)
+        header["Content-Type"] = "application/x-www-form-urlencoded"
+        tries = [
+            (endpoint, header, urllib.parse.urlencode(params).encode("utf-8")),
+            (endpoint + "?" + urllib.parse.urlencode(params), self.header, None),
+        ]
+        last = {"state": False, "url": "", "msg": "接口无响应", "errno": 0}
+        for url, hdr, body in tries:
+            data, err = _http_call(url, headers=hdr, data=body, timeout=20)
+            if err:
+                last = {"state": False, "url": "", "msg": err, "errno": 0}
+                continue
+            payload = data.get("data") if isinstance(data.get("data"), dict) else {}
+            url_out = _text(payload.get("file_url") or payload.get("url") or payload.get("dl_url"))
+            if data.get("state") and url_out:
+                return {"state": True, "url": _unquote_url(url_out), "msg": "", "errno": 0}
+            last = {
+                "state": False,
+                "url": "",
+                "msg": _friendly_error(data.get("error") or data.get("error_msg"),
+                                       data.get("errno") or data.get("errNo")),
+                "errno": _int(data.get("errno") or data.get("errNo")),
+                "raw": _text(data.get("error")),
+            }
+        return last
+
     def download(self, share_code, receive_code, file_id):
+        """老接口，115 已经大面积停用，只当最后兜底。"""
         query = {
             "share_code": _text(share_code),
             "receive_code": _text(receive_code),
             "file_id": _text(file_id),
         }
         url = "https://webapi.115.com/share/download?" + urllib.parse.urlencode(query)
-        data = _http_json(url, headers=self.header)
-        if not isinstance(data, dict):
-            return {"state": False, "url": "", "msg": "接口无响应"}
+        data, err = _http_call(url, headers=self.header, timeout=15)
+        if err:
+            return {"state": False, "url": "", "msg": err, "errno": 0}
         payload = data.get("data") if isinstance(data.get("data"), dict) else {}
         url_out = _text(payload.get("file_url") or payload.get("url"))
         return {
             "state": bool(data.get("state")) and bool(url_out),
-            "url": url_out,
-            "msg": _text(data.get("error")) or _text(data.get("error_msg")),
-            "errno": _int(data.get("errno")),
+            "url": _unquote_url(url_out),
+            "msg": _friendly_error(data.get("error") or data.get("error_msg"),
+                                   data.get("errno") or data.get("errNo")),
+            "errno": _int(data.get("errno") or data.get("errNo")),
+            "raw": _text(data.get("error")),
         }
 
+    def resolve(self, share_code, receive_code, file_id):
+        """按新版接口取直链。
+
+        实测 115 现在只有 share/downurl 和 share/receive 是活的，
+        share/download、share/play、share/m3u8 一律回“服务器开小差了”，
+        所以老的 download 只留作极端情况兜底，不做主路径。
+        """
+        try:
+            got = self.downurl(share_code, receive_code, file_id)
+        except Exception as exc:
+            return {"state": False, "url": "", "msg": "接口异常(%s)" % type(exc).__name__, "errno": 0}
+        if got.get("state") and got.get("url"):
+            return got
+        # downurl 完全没响应（网络问题）时，才去碰一次老接口
+        if not got.get("errno") and "网络" in _text(got.get("msg")):
+            try:
+                legacy = self.download(share_code, receive_code, file_id)
+                if legacy.get("state") and legacy.get("url"):
+                    return legacy
+            except Exception:
+                pass
+        return got
+
     def receive(self, share_code, receive_code, file_id):
-        """把分享里的文件转存到自己网盘，转存后 download 才会给直链。"""
+        """把分享里的文件转存到自己网盘，转存后部分分享才会给直链。"""
         body = urllib.parse.urlencode({
             "share_code": _text(share_code),
             "receive_code": _text(receive_code),
@@ -922,10 +1109,13 @@ class _Pan115(object):
         }).encode("utf-8")
         header = dict(self.header)
         header["Content-Type"] = "application/x-www-form-urlencoded"
-        data = _http_json("https://webapi.115.com/share/receive", headers=header, data=body)
-        if not isinstance(data, dict):
+        data, err = _http_call("https://webapi.115.com/share/receive", headers=header, data=body, timeout=20)
+        if err:
             return False
-        return bool(data.get("state"))
+        if data.get("state"):
+            return True
+        # 已经在网盘里也算成功
+        return _int(data.get("errno")) in (991001, 990007)
 
 
 # ---------------------------------------------------------------- 主类
@@ -949,6 +1139,11 @@ class Spider(_BaseSpider):
 
     def init(self, extend=""):
         self.cfg = _parse_extend(extend)
+        if self.cfg:
+            try:
+                _LAST_EXTEND["value"] = extend
+            except Exception:
+                pass
         cookie = _resolve_cookie(self.cfg)
         self.pan = _Pan115(cookie)
         self._cookie_note = _cookie_missing(self.pan.cookie) if self.pan.cookie else list(COOKIE_KEYS)
@@ -1183,6 +1378,8 @@ class Spider(_BaseSpider):
             episodes = []
             for item in line["items"]:
                 name = _clean(item["name"], 60) or "正片"
+                # $ 和 # 是多集播放串的分隔符，出现在名字里会把后面的全串错位
+                name = name.replace("$", "＄").replace("#", "＃").replace("\r", " ").replace("\n", " ")
                 index = 2
                 while name in used_name:
                     name = "%s(%d)" % (name, index)
@@ -1249,23 +1446,29 @@ class Spider(_BaseSpider):
         parent = self.library.find_dir_by_cid(info.get("p"))
         parent_name = self._dir_title(parent) if parent else ""
         siblings = self.library.all_files(info["p"]) if info.get("p") else []
+        file_name = _text(info.get("n"))
+        if not file_name and siblings:
+            for row in siblings:
+                if _text(row.get("fid")) == _text(info["f"]):
+                    file_name = _text(row.get("name"))
+                    break
         if siblings:
             siblings.sort(key=lambda r: _nat_key(r.get("name")))
             rows = siblings
         else:
             rows = [{
                 "share_code": info["c"], "receive_code": info["r"],
-                "cid": info.get("p"), "fid": info["f"], "name": info["n"],
+                "cid": info.get("p"), "fid": info["f"], "name": file_name,
             }]
         play = self._build_play([{"label": parent_name or "115分享", "rows": rows}])
         return {
             "vod_id": token,
-            "vod_name": _clean(parent_name or _strip_ext(info["n"])),
+            "vod_name": _clean(parent_name or _strip_ext(file_name) or "115分享"),
             "vod_pic": VIDEO_PIC,
             "vod_remarks": "%d个文件" % len(rows),
             "vod_content": "\n".join([x for x in [
                 _share_url(info["c"], info["r"]),
-                _clean(info["n"], 200),
+                _clean(file_name, 200),
             ] if x]),
             "type_name": "115分享",
             **play,
@@ -1293,16 +1496,41 @@ class Spider(_BaseSpider):
 
     # ---------- 播放 ----------
     def playerContent(self, flag, id, vipFlags=None):
+        try:
+            return self._player(id)
+        except Exception as exc:
+            # 播放器最恨的就是抛异常，抛了就是“服务器开小差了/自动换源”
+            return {
+                "parse": 0,
+                "url": "",
+                "msg": "115 播放出错(%s)，换个文件或稍后重试" % type(exc).__name__,
+            }
+
+    def _player(self, id):
+        # 有的播放器是新建实例直接调播放，没走 init，这里补一次
+        if not self._init_done or not (self.pan and self.pan.cookie):
+            try:
+                self.init(_LAST_EXTEND.get("value") or "")
+            except Exception:
+                pass
+
         info = _decode_file(id)
         if not info:
-            return {"parse": 0, "url": "", "msg": "115分享播放参数无效"}
+            # id 可能被播放器 URL 解码过一次
+            try:
+                info = _decode_file(urllib.parse.unquote(_text(id)))
+            except Exception:
+                info = None
+        if not info:
+            return {"parse": 0, "url": "", "msg": "这集的播放参数没解析出来，退回详情重新点一次"}
 
         share_code = info["c"]
         receive_code = info["r"]
         file_id = info["f"]
         share_page = _share_url(share_code, receive_code)
+        page_header = {"User-Agent": UA, "Referer": "https://115.com/"}
 
-        if not self.pan.cookie:
+        if not self.pan or not self.pan.cookie:
             note = ""
             missing = getattr(self, "_cookie_note", None) or []
             if missing and len(missing) < len(COOKIE_KEYS):
@@ -1310,33 +1538,40 @@ class Spider(_BaseSpider):
             return {
                 "parse": 1,
                 "url": share_page,
-                "header": {"User-Agent": UA, "Referer": "https://115.com/"},
+                "header": page_header,
                 "msg": "没读到 115 cookie%s，只能打开分享页；把 cookie 写进站点 JSON 的 ext 里就能直接播" % note,
             }
 
-        result = self.pan.download(share_code, receive_code, file_id)
+        result = self.pan.resolve(share_code, receive_code, file_id)
+
+        # 还没转存过就拿不到直链，转存一次再取（要用户自己开 transfer=1）
+        if not result.get("state") and self.auto_transfer:
+            try:
+                if self.pan.receive(share_code, receive_code, file_id):
+                    result = self.pan.resolve(share_code, receive_code, file_id)
+            except Exception:
+                pass
+
         if result.get("state") and result.get("url"):
+            final_url, note = _expand_direct(result["url"])
+            # 直链只带 UA/Referer，带 115 cookie 反而容易被 cdn 拒绝
             header = {"User-Agent": UA, "Referer": "https://115.com/"}
-            if self.pan.cookie:
-                header["Cookie"] = self.pan.cookie
-            return {"parse": 0, "url": result["url"], "header": header}
+            payload = {"parse": 0, "url": final_url or result["url"], "header": header}
+            if note and "跳过" not in note:
+                payload["msg"] = note
+            return payload
 
-        # 未转存时 download 不给直链，转存一次再取（默认关闭，靠 transfer=1 打开）
-        if self.auto_transfer:
-            if self.pan.receive(share_code, receive_code, file_id):
-                retry = self.pan.download(share_code, receive_code, file_id)
-                if retry.get("state") and retry.get("url"):
-                    header = {"User-Agent": UA, "Referer": "https://115.com/"}
-                    header["Cookie"] = self.pan.cookie
-                    return {"parse": 0, "url": retry["url"], "header": header}
-
-        msg = result.get("msg") or "115 直链获取失败，已退回分享页"
+        msg = result.get("msg") or "115 直链暂时取不到"
         missing = getattr(self, "_cookie_note", None) or []
         if missing and len(missing) < len(COOKIE_KEYS):
             msg = "%s（cookie 里缺 %s，115 需要 UID/CID/SEID/KID 四项）" % (msg, "/".join(missing))
-        return {
-            "parse": 1,
-            "url": share_page,
-            "header": {"User-Agent": UA, "Referer": "https://115.com/"},
-            "msg": msg,
-        }
+        elif "登录" in msg or "cookie" in msg:
+            # 明确是登录问题时顺手复核一次，把话说准
+            try:
+                if not self.pan.check_login():
+                    msg = "115 提示登录已失效（cookie 过期了），换一份新的 cookie 就能播"
+            except Exception:
+                pass
+        if not self.auto_transfer and "登录" not in msg and "cookie" not in msg:
+            msg += "；如果这个分享要转存才给直链，在 ext 里加 transfer=1"
+        return {"parse": 1, "url": share_page, "header": page_header, "msg": msg}
