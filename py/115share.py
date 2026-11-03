@@ -16,13 +16,33 @@ JS 版不是 API 源，它读的是一个 SQLite 分享库（约 38MB，15.8 万
 所以这本 py 也是同一个套路：首次访问自动下载分享库到本地缓存，
 然后用 sqlite3 直接查，不依赖任何上游接口。
 
-==================== 配置方式（三选一，优先级从高到低） ====================
+==================== 配置方式（推荐 ext，优先级从高到低） ====================
 
-1) 写在站点地址后面（OK影视「数据源」里填这一整行）：
-   115share.py
+★ 推荐：cookie 放站点 JSON 的 ext 里，地址栏保持干净
+   {
+     "key": "pan115share_cookie",
+     "name": "115分享(可播)",
+     "type": 3,
+     "api": "http://你的服务器/115share.py",
+     "searchable": 1,
+     "quickSearch": 1,
+     "filterable": 0,
+     "ext": "cookie=UID=1234567_A1_1699999999; CID=xxxx; SEID=xxxx; KID=xxxx"
+   }
+
+   ext 这几种写法都认（随便挑一种）：
+     "ext": "cookie=UID=..; CID=..; SEID=..; KID=.."
+     "ext": "UID=..; CID=..; SEID=..; KID=.."                    ← 裸 cookie 也行
+     "ext": "{\"cookie\":\"UID=..; CID=..; SEID=..; KID=..\"}"   ← JSON 串
+     "ext": {"cookie": "UID=..; CID=..; SEID=..; KID=.."}        ← 对象
+     "ext": {"UID":"..","CID":"..","SEID":"..","KID":".."}       ← 四键分开
+     "ext": "{\"cookie\":\"...\",\"db\":\"http://x/share.db\",\"size\":60}"  ← 顺带配别的
+
+   如果播放器不方便写 ext，用同目录文本文件也行：
+     在 py 旁边放一个 115cookie.txt，里面只写那一行 cookie，自动读取。
+
+1) 写在站点地址后面（老写法，仍然支持，但地址里有空格容易被截断，不推荐）：
    115share.py?db=http://your-host/share.db&cookie=UID=xxx;CID=xxx;SEID=xxx;KID=xxx
-   115share.py?db=/sdcard/115share.db&size=60
-   多参数用 & 连，也可以整套塞 JSON：
    115share.py?{"db":"http://x/share.db","cookie":"UID=...;KID=...","size":60}
 
 2) 环境变量：PAN115SHARE_DB / PAN115SHARE_DB_URL / PAN115SHARE_COOKIE
@@ -30,11 +50,16 @@ JS 版不是 API 源，它读的是一个 SQLite 分享库（约 38MB，15.8 万
 3) 直接改下面 DEFAULT_* 常量
 
 参数说明：
-  db        分享库路径或 URL。不填就用内置默认镜像（首次自动下载 38MB）
-  cookie    115 登录 cookie，只有「播放出直链」才需要，不填也能浏览/搜索
-  size      每页条数，默认 60（搜索固定 40，跟 JS 版一致）
-  transfer  1 = 播放时若未转存，自动转存到你自己网盘再取直链（默认 0，保守）
-  cache     分享库缓存目录，默认自动挑一个可写目录
+  cookie      115 登录 cookie，只有「播放出直链」才需要，不填也能浏览/搜索
+  cookie_file 从文件读 cookie（不填则自动找 py 同目录的 115cookie.txt）
+  db          分享库路径或 URL。不填就用内置默认镜像（首次自动下载 38MB）
+  size        每页条数，默认 60（搜索固定 40，跟 JS 版一致）
+  transfer    1 = 播放时若未转存，自动转存到你自己网盘再取直链（默认 0，保守）
+  cache       分享库缓存目录，默认自动挑一个可写目录
+
+  cookie 写法容错：URL 编码（%3B/%20）、多余空格、缺空格、前后引号、
+  带 "cookie=" 前缀、整条带 ?cookie= 的地址，全都能自动纠正；
+  缺 CID 这类半残 cookie 会被识别为「没配」，不会给播放器一个残废 cookie。
 
 ==================== 能力 ====================
 首页 13 个合集 + 分类逐层浏览（目录/视频混排分页）/ 关键词搜索（目录命中优先）/
@@ -281,8 +306,110 @@ def _maybe_json(value):
     return None
 
 
+COOKIE_KEYS = ("UID", "CID", "SEID", "KID")
+COOKIE_FILE_NAME = "115cookie.txt"
+
+
+def _cookie_from_parts(data):
+    """ext 里直接写 {"UID": "...", "CID": "..."} 也能吃。"""
+    if not isinstance(data, dict):
+        return ""
+    flat = {}
+    for key, val in data.items():
+        name = _text(key).upper()
+        if name in COOKIE_KEYS:
+            flat[name] = _text(val)
+    if not flat.get("UID"):
+        return ""
+    return _normalize_cookie("; ".join("%s=%s" % (k, flat[k]) for k in COOKIE_KEYS if flat.get(k)))
+
+
+def _normalize_cookie(value):
+    """把各种写法的 115 cookie 收敛成 'UID=..; CID=..; SEID=..; KID=..'。
+
+    能吃：URL 编码（%3B / %20）、多余空格、缺分号、前后引号、带 cookie= 前缀、
+    带 cookie: 前缀，甚至把整条 api 地址（http://x/115share.py?cookie=UID=...）丢进来。
+    """
+    if isinstance(value, dict):
+        return _cookie_from_parts(value)
+    text = _text(value)
+    if not text:
+        return ""
+
+    if "%" in text:
+        try:
+            text = urllib.parse.unquote(text)
+        except Exception:
+            pass
+
+    text = text.strip().strip('"').strip("'").strip()
+    low = text.lower()
+    # 整条地址 / 带前缀的写法，取最后一个 cookie= 之后
+    if "cookie=" in low:
+        text = text[low.rfind("cookie=") + 7:]
+    elif low.startswith("cookie:"):
+        text = text[7:]
+    text = text.strip().strip('"').strip("'").strip()
+
+    if "UID=" not in text.upper():
+        return ""
+
+    text = text.replace("\r", ";").replace("\n", ";").replace("&", ";").replace(",", ";")
+    got = {}
+    for chunk in text.split(";"):
+        item = chunk.strip()
+        if not item or "=" not in item:
+            continue
+        key, _, val = item.partition("=")
+        key = key.strip().upper()
+        val = val.strip().strip('"').strip("'")
+        if not key or not val:
+            continue
+        got[key] = val
+
+    if not got.get("UID") or not got.get("CID"):
+        return ""
+    return "; ".join("%s=%s" % (k, got[k]) for k in COOKIE_KEYS if got.get(k))
+
+
+def _cookie_missing(cookie):
+    """返回还差哪几项，用来在播放失败时给人话提示。"""
+    text = _text(cookie)
+    have = set()
+    for chunk in text.split(";"):
+        key = chunk.split("=", 1)[0].strip().upper()
+        if key:
+            have.add(key)
+    return [k for k in COOKIE_KEYS if k not in have]
+
+
+def _parse_query(text):
+    """只按 & 切。分号是 cookie 的一部分，用 parse_qsl 会被当分隔符切碎。"""
+    cfg = {}
+    for chunk in _text(text).split("&"):
+        item = chunk.strip()
+        if not item or "=" not in item:
+            continue
+        key, _, val = item.partition("=")
+        key = key.strip()
+        if not key:
+            continue
+        try:
+            val = urllib.parse.unquote(val)
+        except Exception:
+            pass
+        if key == "cookie":
+            cfg["cookie"] = val
+        elif key not in cfg:
+            cfg[key] = val
+    return cfg
+
+
 def _parse_extend(extend):
-    """init 传进来的可能是 dict、JSON 串、query 串，甚至是路径。全都吃。"""
+    """init 传进来的可能是 dict、JSON 串、query 串、整条 api 地址、裸 cookie，甚至是路径。全都吃。
+
+    优先级：ext（JSON / dict / query）> api 地址里的 query > 裸 cookie 串 > 路径。
+    """
     cfg = {}
     raw = extend
     if isinstance(raw, (dict, list)):
@@ -291,31 +418,106 @@ def _parse_extend(extend):
             data = data[0] if data and isinstance(data[0], dict) else {}
         if isinstance(data, dict):
             cfg.update({str(k): v for k, v in data.items()})
+            return _expand_ext(cfg)
         return cfg
 
     text = _text(raw)
     if not text:
         return cfg
 
+    # 有的播放器会把整个 ext 做一次 URL 编码再传进来
+    if "%" in text:
+        low_text = text.lower()
+        if any(tag in low_text for tag in ("%3d", "%7b", "%22", "%20", "%3a")):
+            try:
+                decoded = urllib.parse.unquote(text)
+                if decoded and decoded != text:
+                    text = decoded
+            except Exception:
+                pass
+
     parsed = _maybe_json(text)
     if isinstance(parsed, dict):
         cfg.update({str(k): v for k, v in parsed.items()})
-        return cfg
+        return _expand_ext(cfg)
     if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict):
         cfg.update({str(k): v for k, v in parsed[0].items()})
-        return cfg
+        return _expand_ext(cfg)
+
+    lower = text.lower()
+    if "uid=" in lower and ("cid=" in lower or "seid=" in lower or "kid=" in lower):
+        # 裸 cookie 串（含整条带 ?cookie= 的地址）
+        cfg["cookie"] = text
+        return _expand_ext(cfg)
 
     if "=" in text:
-        query = text.split("?", 1)[-1]
-        try:
-            for key, val in urllib.parse.parse_qsl(query, keep_blank_values=True):
-                cfg[key] = val
-        except Exception:
-            pass
-    elif text.lower().endswith(".db") or "/" in text or "\\" in text:
+        cfg.update(_parse_query(text.split("?", 1)[-1]))
+    elif lower.endswith(".db") or "/" in text or "\\" in text:
         # 有些播放器会把 extend 直接当路径传进来
         cfg["db"] = text
-    return cfg
+    return _expand_ext(cfg)
+
+
+def _expand_ext(cfg):
+    """ext 里可以再套一层 ext（有的播放器会包一层），也可能是 {"UID":..,"CID":..} 这种。"""
+    if not isinstance(cfg, dict):
+        return {}
+    out = {}
+    for key, val in cfg.items():
+        out[_text(key)] = val
+
+    nested = out.get("ext") if "ext" in out else out.get("extend")
+    if nested and (isinstance(nested, (dict, list)) or "=" in _text(nested) or _text(nested).lstrip()[:1] in "{["):
+        for key, val in _parse_extend(nested).items():
+            out.setdefault(key, val)
+
+    if not out.get("cookie"):
+        parts = _cookie_from_parts(out)
+        if parts:
+            out["cookie"] = parts
+    return out
+
+
+def _read_file_text(path):
+    try:
+        with open(path, "r", encoding="utf-8-sig") as handle:
+            return handle.read()
+    except Exception:
+        return ""
+
+
+def _resolve_cookie(cfg):
+    """cookie 来源优先级：ext 里的 cookie > ext 指定的 cookie 文件 > py 同目录 115cookie.txt
+    > 环境变量 PAN115SHARE_COOKIE > 文件内 DEFAULT_COOKIE。
+
+    只要哪一层拿出的是完整可用的（UID + CID），就用它；半残的会被跳过，
+    避免给了播放器一个缺 CID 的 cookie 然后一直报未登录。
+    """
+    cfg = cfg or {}
+
+    direct = _normalize_cookie(cfg.get("cookie"))
+    if direct:
+        return direct
+
+    paths = []
+    file_opt = _text(cfg.get("cookie_file") or cfg.get("cookiefile") or cfg.get("cookieFile"))
+    if file_opt:
+        paths.append(file_opt)
+    try:
+        paths.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), COOKIE_FILE_NAME))
+    except Exception:
+        pass
+    for path in paths:
+        if path and os.path.isfile(path):
+            from_file = _normalize_cookie(_read_file_text(path))
+            if from_file:
+                return from_file
+
+    env = _normalize_cookie(os.environ.get("PAN115SHARE_COOKIE"))
+    if env:
+        return env
+
+    return _normalize_cookie(DEFAULT_COOKIE)
 
 
 # ---------------------------------------------------------------- 分享库
@@ -661,7 +863,7 @@ class _Pan115(object):
     """分享浏览 + 直链解析。直链必须带登录 cookie，没有就只能给分享页。"""
 
     def __init__(self, cookie=""):
-        self.cookie = _text(cookie)
+        self.cookie = _normalize_cookie(cookie)
         self.header = {
             "User-Agent": UA,
             "Referer": "https://115.com/",
@@ -747,8 +949,9 @@ class Spider(_BaseSpider):
 
     def init(self, extend=""):
         self.cfg = _parse_extend(extend)
-        cookie = _text(self.cfg.get("cookie") or os.environ.get("PAN115SHARE_COOKIE") or DEFAULT_COOKIE)
+        cookie = _resolve_cookie(self.cfg)
         self.pan = _Pan115(cookie)
+        self._cookie_note = _cookie_missing(self.pan.cookie) if self.pan.cookie else list(COOKIE_KEYS)
         self.page_size = max(10, min(200, _int(self.cfg.get("size"), DEFAULT_PAGE_SIZE)))
         env_db = _text(os.environ.get("PAN115SHARE_DB"))
         if env_db and "db" not in self.cfg:
@@ -1100,11 +1303,15 @@ class Spider(_BaseSpider):
         share_page = _share_url(share_code, receive_code)
 
         if not self.pan.cookie:
+            note = ""
+            missing = getattr(self, "_cookie_note", None) or []
+            if missing and len(missing) < len(COOKIE_KEYS):
+                note = "（cookie 缺 %s）" % "/".join(missing)
             return {
                 "parse": 1,
                 "url": share_page,
                 "header": {"User-Agent": UA, "Referer": "https://115.com/"},
-                "msg": "没配 115 cookie，只能打开分享页；填上 cookie 就能直接播",
+                "msg": "没读到 115 cookie%s，只能打开分享页；把 cookie 写进站点 JSON 的 ext 里就能直接播" % note,
             }
 
         result = self.pan.download(share_code, receive_code, file_id)
@@ -1123,9 +1330,13 @@ class Spider(_BaseSpider):
                     header["Cookie"] = self.pan.cookie
                     return {"parse": 0, "url": retry["url"], "header": header}
 
+        msg = result.get("msg") or "115 直链获取失败，已退回分享页"
+        missing = getattr(self, "_cookie_note", None) or []
+        if missing and len(missing) < len(COOKIE_KEYS):
+            msg = "%s（cookie 里缺 %s，115 需要 UID/CID/SEID/KID 四项）" % (msg, "/".join(missing))
         return {
             "parse": 1,
             "url": share_page,
             "header": {"User-Agent": UA, "Referer": "https://115.com/"},
-            "msg": result.get("msg") or "115 直链获取失败，已退回分享页",
+            "msg": msg,
         }
