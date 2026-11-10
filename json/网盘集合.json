@@ -1,0 +1,38 @@
+[
+  {
+    "share_index": "个人网盘",
+    "share_name": "我的夸克盘",
+    "share_id": "selfquark",
+    "share_type":"quark"
+  },
+  {
+    "share_index": "个人网盘",
+    "share_name": "我的UC盘",
+    "share_id": "selfuc",
+    "share_type":"uc"
+  },
+  {
+    "share_index": "个人网盘",
+    "share_name": "我的摆渡盘",
+    "share_id": "selfbaidu",
+    "share_type":"baidu"
+  },
+  {
+    "share_index": "个人网盘",
+    "share_name": "我的115盘",
+    "share_id": "self115",
+    "share_type":"115"
+  },
+  {
+    "share_index": "个人网盘",
+    "share_name": "我的阿里盘",
+    "share_id": "selfaliyun",
+    "share_type":"aliyun"
+  },
+  {
+    "share_index": "个人网盘",
+    "share_name": "我的光鸭盘",
+    "share_id": "selfguangya",
+    "share_type":"guangya"
+  }
+]
