@@ -1,0 +1,37 @@
+[{
+	"list": [{
+		"icon": "http://pic.96xz.com/uploadfile/2025/0124/67933e8da96b9.png",
+		"name": "OK影视UC盘",
+		"url": "https://drive.uc.cn/s/e7b5fd4698704",
+		"version": "OK合集包"
+	},
+{
+	"icon": "http://pic.96xz.com/uploadfile/2025/0124/67933e8da96b9.png",
+	"name": "壳子合集",
+	"url": "https://pan.quark.cn/s/7675d475c0fe",
+	"version": "APP合集包"
+},
+{
+	"icon": "http://pic.96xz.com/uploadfile/2025/0124/67933e8da96b9.png",
+	"name": "新影视夸克盘",
+	"url": "https://pan.quark.cn/s/714c4ae0584e",
+	"version": "新影视合集包"
+}
+],
+	"name": "影视APP"
+}, {
+	"list": [{
+			"icon": "https://d.dayeapp.net/y.jpg",
+			"name": "OK影视原版",
+			"url": "http://xz.rihou.cc:88/xz.apk?id=OKTV.apk",
+			"version": "电视版32位"
+		},
+		{
+			"name": "默影视",
+			"url": "http://xz.rihou.cc:88/xz.apk?id=wh.apk",
+			"icon": "https://d.dayeapp.net/y.jpg",
+			"version": "电视版32位"
+		}
+	],
+	"name": "电视软件"
+}]
