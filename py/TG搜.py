@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python
 import base64
+import gzip
 import json
 import re
 import zlib
@@ -59,8 +60,8 @@ CHANNELS = [
         "type_name": "热播综合"
     },
     {
-        "type_id": "xiangnikanj",
-        "type_name": "短剧频道"
+        "type_id": "yun123pan",
+        "type_name": "123云盘臻藏阁"
     },
     {
         "type_id": "Quark_Movies",
@@ -75,8 +76,8 @@ CHANNELS = [
         "type_name": "YOYO资源|夸克|短剧"
     },
     {
-        "type_id": "yeqingjie_GJG666",
-        "type_name": "爷青回动画分享"
+        "type_id": "QukanMovie",
+        "type_name": "115影视资源分享"
     },
     {
         "type_id": "zhenyingsg",
@@ -176,6 +177,18 @@ VIDEO_EXTS_SET = frozenset((
 ))
 ROOT_CID = '0'
 P115_CACHE_TTL = 1800
+
+# ---- 115 分享库：fake115share.db 导出的静态 gzip 索引 ----
+# 索引每行以 TAB 分隔：
+#   C\t<share_code>\t<receive_code>       合集码表（13 条）
+#   F\t<name>\t<cidx>\t<fid>\t<cid>      视频文件（约 13.7 万）
+#   D\t<name>\t<row_id>\t<cid>\t<pid>     目录（约 1.2 万）
+# 放在与 py 相同的静态托管下；可用站源 ext 的 115db_url 覆盖。
+SHARE115_DEFAULT_URL = ('https://445569.pages.dev/https://raw.githubusercontent.com/'
+                        'happybaihao/pan/main/115share_index.txt.gz')
+SHARE115_SEARCH_LIMIT = 40
+SHARE115_MAX_EPISODES = 60
+SHARE115_MAX_LINES = 12
 P115_TRANSFER_TIMEOUT = 25
 
 RSA_N = 0x8686980c0f5a24c4b9d43020cd2c22703ff3f450756529058b1cf88f09b8602136477198a6e2683149659bd122c33592fdb5ad47944ad1ea4d36c6b172aad6338c3bb6ac6227502d010993ac967d1aef00f0c8e038de2e4d3bc2ec368af2e9f10a6f1eda4f7262f136420c07c331b871bf139f74f3010e3c4fe57df3afb71683
@@ -893,6 +906,152 @@ def unpack_id(s):
         return None
 
 
+class Share115DB(object):
+    """115 分享库静态索引：懒加载 gzip 文本，按名称子串检索。
+
+    只保留 bytes 行做线性扫描，不建倒排、不需要 sqlite3，
+    内存占用约 20MB；搜索与 TG 频道搜索并行执行，失败不影响原结果。
+    """
+
+    def __init__(self, fetcher, url='', timeout=20, enabled=True):
+        self.fetcher = fetcher
+        self.url = (url or '').strip() or SHARE115_DEFAULT_URL
+        try:
+            self.timeout = max(12, min(int(timeout or 20), 60))
+        except Exception:
+            self.timeout = 20
+        self.enabled = bool(enabled)
+        self.lines = []
+        self.codes = []
+        self.error = ''
+        self._lock = threading.Lock()
+        self._loaded = False
+        self._last_try = 0
+
+    @staticmethod
+    def clean(s):
+        s = str(s or '')
+        for ch in ('\t', '\r', '\n', '$', '#'):
+            s = s.replace(ch, ' ')
+        return ' '.join(s.split()).strip()
+
+    def load(self):
+        if self._loaded:
+            return bool(self.lines)
+        if not self.enabled or not self.fetcher or requests is None:
+            return False
+        with self._lock:
+            if self._loaded:
+                return bool(self.lines)
+            if time.time() - self._last_try < 60:
+                return bool(self.lines)
+            self._last_try = time.time()
+            try:
+                raw = self.fetcher(self.url, self.timeout)
+                if not raw:
+                    raise RuntimeError('索引下载为空或地址不可达')
+                if raw[:2] == b'\x1f\x8b':
+                    raw = gzip.decompress(raw)
+                if not raw.startswith(b'C\t'):
+                    raise RuntimeError('索引格式不正确')
+                lines = raw.split(b'\n')
+                codes = []
+                for ln in lines:
+                    if ln.startswith(b'C\t'):
+                        p = ln.decode('utf-8', 'ignore').split('\t')
+                        if len(p) >= 3:
+                            codes.append((p[1], p[2]))
+                if not codes:
+                    raise RuntimeError('索引码表为空')
+                self.codes = codes
+                self.lines = lines
+                self.error = ''
+                self._loaded = True
+            except Exception as e:
+                self.error = '115 分享库加载失败：%s' % str(e)[:80]
+            return bool(self.lines)
+
+    @staticmethod
+    def parse(ln):
+        try:
+            p = ln.decode('utf-8', 'ignore').split('\t')
+        except Exception:
+            return None
+        if len(p) < 2 or not p[0]:
+            return None
+        if p[0] == 'F' and len(p) >= 5:
+            return {'k': 'F', 'n': p[1], 'ci': p[2], 'f': p[3], 'cid': p[4]}
+        if p[0] == 'D' and len(p) >= 5:
+            return {'k': 'D', 'n': p[1], 'rid': p[2], 'cid': p[3], 'pid': p[4]}
+        return None
+
+    def code(self, ci):
+        try:
+            return self.codes[int(ci)]
+        except Exception:
+            return ('', '')
+
+    def search(self, key, page=1, limit=SHARE115_SEARCH_LIMIT):
+        if not self.load() or not key:
+            return [], self.error
+        needle = str(key).strip().lower().encode('utf-8')
+        if not needle:
+            return [], self.error
+        # 纯中文按 UTF-8 字节子串匹配；含 ASCII 字母时忽略大小写
+        ascii_kw = any(65 <= b <= 90 or 97 <= b <= 122 for b in needle)
+        dirs, files = [], []
+        for ln in self.lines:
+            if not (ln.startswith(b'F\t') or ln.startswith(b'D\t')):
+                continue
+            if needle in (ln.lower() if ascii_kw else ln):
+                (dirs if ln.startswith(b'D\t') else files).append(ln)
+        hits = dirs + files
+        start = max(0, (max(1, page) - 1) * limit)
+        return hits[start:start + limit], ''
+
+    def files_by_cid(self, cid, limit=SHARE115_MAX_EPISODES):
+        target = str(cid).encode('utf-8')
+        out = []
+        for ln in self.lines:
+            if not ln.startswith(b'F\t') or ln.rsplit(b'\t', 1)[-1] != target:
+                continue
+            d = self.parse(ln)
+            if d:
+                out.append(d)
+            if len(out) >= limit:
+                break
+        return out
+
+    def dir_children(self, parent_cid):
+        target = str(parent_cid).encode('utf-8')
+        out = []
+        for ln in self.lines:
+            if not ln.startswith(b'D\t') or ln.rsplit(b'\t', 1)[-1] != target:
+                continue
+            d = self.parse(ln)
+            if d:
+                out.append(d)
+        return out
+
+    def collect_dir(self, cid, max_files=SHARE115_MAX_EPISODES, max_depth=5):
+        """深度优先展开目录树；返回 [(线路名, [文件 dict ...]), ...]"""
+        groups, total, steps = [], 0, 0
+        stack = [(str(cid), '', 0)]
+        while stack and total < max_files and steps < 300:
+            steps += 1
+            cur, label, depth = stack.pop()
+            fs = self.files_by_cid(cur, max_files - total)
+            if fs:
+                groups.append((label or '根目录', fs))
+                total += len(fs)
+            if depth >= max_depth or total >= max_files:
+                continue
+            kids = self.dir_children(cur)
+            for k in reversed(kids):
+                stack.append((k['cid'], (label + '/' + k['n']).strip('/'), depth + 1))
+        return groups
+
+
 class Spider(Spider):
     host = 'https://t.me'
     UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
@@ -916,6 +1075,11 @@ class Spider(Spider):
         self.save_dir_name = '最近接收'
         self.save_cid = ''
         self.p115 = None
+        self.db115 = None
+        self.db115_enable = True
+        self.db115_url = ''
+        self.search_group = 'pan'
+        self.group_only = False
 
     # ------------------------------------------------------------ 初始化
     def init(self, extend=''):
@@ -936,6 +1100,24 @@ class Spider(Spider):
         self.save_cid = str(ext.get('save_cid') or '').strip()
         self.p115 = P115(self.cookie_115, self.save_dir_name, self.save_cid,
                          timeout=self.timeout) if self.cookie_115 else None
+
+        # ---- 115 分享库：静态索引，首次搜索时按需下载，不走推送 ----
+        self.db115_enable = str(ext.get('115db_enable', 1)).strip().lower() \
+            not in ('0', 'false', 'no', 'off', '')
+        self.db115_url = str(ext.get('115db_url') or '').strip()
+        self.db115 = Share115DB(self._get_bytes, self.db115_url,
+                                timeout=max(12, self.timeout + 8),
+                                enabled=self.db115_enable)
+
+        # ---- 搜索结果分类：pan=按网盘类型 / channel=按频道 / 0=关闭 ----
+        sg = str(ext.get('search_group', 'pan')).strip().lower()
+        if sg in ('pan', 'channel'):
+            self.search_group = sg
+        elif sg in ('0', 'false', 'no', 'off', ''):
+            self.search_group = '0'
+        else:
+            self.search_group = 'pan'
+        self.group_only = str(ext.get('group_only', 0)).strip().lower() in ('1', 'true', 'yes', 'on')
 
         chans = ext.get('channels')
         if isinstance(chans, list) and chans:
@@ -1261,6 +1443,11 @@ class Spider(Spider):
             page = int(pg or 1)
         except (TypeError, ValueError):
             page = 1
+        if tid.startswith('scat|'):
+            d = unpack_id(tid[len('scat|'):]) or {}
+            v = d.get('v') or []
+            return {'list': v, 'page': 1, 'pagecount': 1,
+                    'limit': len(v), 'total': len(v)}
         if tid.startswith('detail|'):
             return self._cat_groups(tid.split('|', 1)[1])
         if tid.startswith('group|'):
@@ -1345,6 +1532,19 @@ class Spider(Spider):
         if not ids:
             return {'list': []}
         raw = unquote(str(ids[0])).strip()
+        if raw.startswith('db115err|'):
+            d = unpack_id(raw[len('db115err|'):]) or {}
+            msg = str(d.get('m') or '索引未加载')
+            return {'list': [{
+                'vod_id': raw, 'vod_name': '115大包索引未加载', 'vod_pic': '',
+                'vod_content': (msg + '\n请把 115share_index.txt.gz 上传到静态托管，'
+                                '并确认站源 ext 的 115db_url 能下载到该文件。'
+                                '索引下载会并发尝试代理与直连两条线路。'),
+                'vod_play_from': '提示',
+                'vod_play_url': '索引加载失败$115err|',
+            }]}
+        if raw.startswith('115db|'):
+            return self._detail_115db(raw[len('115db|'):])
         if raw.startswith('pan|'):
             return self._detail_one(raw)
         if raw.startswith('detail|'):
@@ -1450,6 +1650,156 @@ class Spider(Spider):
         }]}
 
     # ------------------------------------------------------------ 搜索
+    # ---------------------------------- 115 分享库：下载 / 搜索 / 详情 / 播放
+    def _get_bytes(self, url, timeout=20):
+        """下载二进制索引：代理链路与国内直连并发双试，谁先成功用谁。"""
+        if requests is None:
+            return None
+
+        def via_proxy():
+            s = self._ensure_session()
+            if s is None:
+                return None
+            try:
+                r = s.get(url, timeout=timeout)
+                return r.content if r.status_code == 200 and r.content else None
+            except Exception:
+                return None
+
+        def direct():
+            try:
+                s = requests.Session()
+                s.trust_env = False
+                r = s.get(url, timeout=timeout)
+                return r.content if r.status_code == 200 and r.content else None
+            except Exception:
+                return None
+
+        ex = ThreadPoolExecutor(max_workers=2)
+        try:
+            futs = [ex.submit(via_proxy), ex.submit(direct)]
+            for f in as_completed(futs, timeout=timeout + 2):
+                try:
+                    data = f.result()
+                except Exception:
+                    continue
+                if data:
+                    return data
+        except Exception:
+            pass
+        finally:
+            ex.shutdown(wait=False)
+        return None
+
+    def _db115_play_id(self, f):
+        c, r = self.db115.code(f.get('ci', '0')) if self.db115 else ('', '')
+        return '115db|' + pack_id({
+            'k': 'P',
+            'c': c or str(f.get('c') or ''),
+            'r': r or str(f.get('r') or ''),
+            'f': str(f.get('f') or ''),
+            'n': Share115DB.clean(f.get('n') or '')[:120],
+        })
+
+    def _db115_episodes(self, files):
+        eps, seen = [], set()
+        for f in files:
+            fid = str(f.get('f') or '')
+            if not fid or fid in seen:
+                continue
+            seen.add(fid)
+            nm = re.sub(r'\.[A-Za-z0-9]{2,5}$', '', Share115DB.clean(f.get('n') or ''))
+            eps.append('%s$%s' % (nm[:60] or '播放', self._db115_play_id(f)))
+        return eps
+
+    def _db115_item(self, row):
+        name = Share115DB.clean(row.get('n') or '')[:60] or '115分享'
+        data = {'k': row['k'], 'n': str(row.get('n') or '')[:160],
+                'cid': row.get('cid', '')}
+        if row['k'] == 'F':
+            data['ci'] = row.get('ci', '0')
+            data['f'] = row.get('f', '')
+        return {
+            'vod_id': '115db|' + pack_id(data),
+            'vod_name': name,
+            'vod_pic': '',
+            'vod_remarks': '115大包 · ' + ('合集目录' if row['k'] == 'D' else '分享文件'),
+            'vod_content': Share115DB.clean(row.get('n') or '')[:200],
+        }
+
+    def _detail_115db(self, payload):
+        data = unpack_id(payload) or {}
+        title = Share115DB.clean(data.get('n') or '115分享资源')[:60]
+        base = {'vod_id': '115db|' + payload, 'vod_name': title,
+                'vod_pic': '', 'vod_content': title}
+        if not self.db115 or not self.db115_enable:
+            return {'list': [dict(base, vod_play_from='提示',
+                                  vod_play_url='115 分享库已关闭$115err|')]}
+        self.db115.load()
+        if data.get('k') == 'D':
+            groups = self.db115.collect_dir(data.get('cid') or '')
+            if not groups:
+                return {'list': [dict(base, vod_play_from='提示',
+                                      vod_play_url='索引未加载或合集为空$115err|')]}
+            play_from, play_url = [], []
+            for label, fs in groups[:SHARE115_MAX_LINES]:
+                eps = self._db115_episodes(fs)
+                if eps:
+                    play_from.append(Share115DB.clean(label)[:24] or '115')
+                    play_url.append('#'.join(eps))
+        else:
+            files = [data]
+            if data.get('cid'):
+                sibs = self.db115.files_by_cid(data['cid'], SHARE115_MAX_EPISODES)
+                if sibs:
+                    files = ([f for f in sibs if f.get('f') == data.get('f')] +
+                             [f for f in sibs if f.get('f') != data.get('f')])
+            eps = self._db115_episodes(files)
+            play_from = ['115大包']
+            play_url = ['#'.join(eps) if eps else '无资源$115err|']
+        if not play_from:
+            play_from, play_url = ['提示'], ['索引未加载$115err|']
+        return {'list': [dict(base,
+                              vod_play_from='$$$'.join(play_from),
+                              vod_play_url='$$$'.join(play_url))]}
+
+    def _play_115db(self, payload):
+        d = unpack_id(payload) or {}
+        if d.get('k') == 'D':
+            return self._p115_error('这是 115 合集目录，请进入详情选择具体集数')
+        if not self.p115 or not self.p115.enabled:
+            return self._p115_error('115 分享库需在站源 ext 配置 115_cookie 才能直接播放（不走推送）')
+        try:
+            return self.p115.play(str(d.get('c') or ''), str(d.get('r') or ''),
+                                  str(d.get('f') or ''), str(d.get('n') or ''))
+        except Exception as e:
+            return self._p115_error('115 分享库播放失败：%s' % e)
+
+    def _make_group_cards(self, buckets, mode):
+        """把搜索结果按分类聚合成 folder 卡片（vod_tag=folder -> categoryContent）。"""
+        cards = []
+
+        def slim(it):
+            return {'vod_id': it.get('vod_id', ''),
+                    'vod_name': it.get('vod_name', ''),
+                    'vod_pic': it.get('vod_pic', ''),
+                    'vod_remarks': it.get('vod_remarks', ''),
+                    'vod_content': it.get('vod_content', '')}
+
+        for name in sorted(buckets, key=lambda k: (-len(buckets[k]), k)):
+            v = [slim(x) for x in buckets[name][:60]]
+            if not v:
+                continue
+            cards.append({
+                'vod_id': 'scat|' + pack_id({'n': name, 'v': v}),
+                'vod_name': '%s (%d)' % (name, len(v)),
+                'vod_pic': '',
+                'vod_remarks': '按网盘分类' if mode == 'pan' else '按频道分类',
+                'vod_content': '共 %d 条资源，点击进入列表' % len(v),
+                'vod_tag': 'folder',
+            })
+        return cards
+
     def searchContent(self, key, quick=False, pg='1'):
         return self.searchContentPage(key, quick, pg)
 
@@ -1475,35 +1825,79 @@ class Spider(Spider):
                 return cid, []
 
         channels = self.channels
-        ex = ThreadPoolExecutor(max_workers=10)
+        ex = ThreadPoolExecutor(max_workers=11)
+        tasks, db_hits = {}, []
         try:
-            futures = [ex.submit(one, ch) for ch in channels]
-            for fut in as_completed(futures, timeout=30):
+            for ch in channels:
+                tasks[ex.submit(one, ch)] = ('tg', None)
+            if self.db115 and self.db115_enable:
+                tasks[ex.submit(self.db115.search, key, page,
+                                SHARE115_SEARCH_LIMIT)] = ('db', None)
+            for fut in as_completed(tasks, timeout=35):
+                kind, _ = tasks[fut]
                 try:
-                    cid, msgs = fut.result()
+                    res = fut.result()
                 except Exception:
                     continue
-                if msgs:
-                    results[cid] = msgs
+                if kind == 'tg':
+                    cid, msgs = res
+                    if msgs:
+                        results[cid] = msgs
+                else:
+                    db_hits = (res or ([], ''))[0]
         except Exception:
             pass
         finally:
             ex.shutdown(wait=False)
 
         names = {str(ch.get('type_id')): (ch.get('type_name') or ch.get('type_id')) for ch in channels}
-        items, seen = [], set()
+        items, seen, buckets = [], set(), {}
         for ch in channels:
             cid = str(ch.get('type_id') or '')
+            chan_name = Share115DB.clean(names.get(cid, cid))[:20] or cid
             for msg in results.get(cid, []):
                 it = self._item(msg, prefix=names.get(cid, cid))
                 if it['vod_id'] in seen:
                     continue
                 seen.add(it['vod_id'])
                 items.append(it)
+                if self.search_group == 'channel':
+                    keys = [chan_name]
+                else:
+                    keys = [Share115DB.clean(g[0])[:16] or '其它'
+                            for g in (msg.get('groups') or [])]
+                for k in (keys or ['其它']):
+                    buckets.setdefault(k, []).append(it)
                 if len(items) >= 60:
                     break
             if len(items) >= 60:
                 break
+        # 115 分享库结果：平铺的同时归入「115大包」分类
+        for ln in db_hits:
+            row = Share115DB.parse(ln)
+            if not row:
+                continue
+            it = self._db115_item(row)
+            if it['vod_id'] in seen:
+                continue
+            seen.add(it['vod_id'])
+            items.append(it)
+            buckets.setdefault('115大包', []).append(it)
+
+        cards = []
+        if self.search_group in ('pan', 'channel') and buckets:
+            cards = self._make_group_cards(buckets, self.search_group)
+        items = cards if self.group_only else (cards + items[:24])
+
+        # 索引失败时给出可见提示，避免「搜不到却不知道为什么」
+        if self.db115 and self.db115_enable and self.db115.error:
+            items.append({
+                'vod_id': 'db115err|' + pack_id({'m': self.db115.error}),
+                'vod_name': '115大包索引未加载',
+                'vod_pic': '',
+                'vod_remarks': '点开查看原因',
+                'vod_content': self.db115.error,
+            })
         return {'list': items, 'page': page, 'pagecount': page + 1 if items else page,
                 'limit': len(items), 'total': 999999}
 
@@ -1518,6 +1912,10 @@ class Spider(Spider):
             url = self._first_url(url)
         if '$' in url:
             url = url.rsplit('$', 1)[-1].strip()
+
+        # ---- 115 分享库：直连播放，绝不推送 ----
+        if url.startswith('115db|'):
+            return self._play_115db(url[len('115db|'):])
 
         # ---- 115：直连播放，绝不推送 ----
         if url.startswith('115P|'):
