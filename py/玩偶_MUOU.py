@@ -15,6 +15,7 @@ import json
 import os
 import re
 import ssl
+import time
 import urllib.parse
 import urllib.request
 
@@ -243,6 +244,406 @@ def parse_ext(extend):
     return out
 
 
+# ==============================================================================
+# 网盘账号的「外置到站点 ext」支持
+# ------------------------------------------------------------------------------
+# TVBox / FongMi 的 Python Spider 有个硬约束：init(extend) 只收到【该站点自己】
+# 的 ext，站点 A 的 ext 里的 Cookie，站点 B 的 Spider 看不到。所以想让
+# 「配置中心」站点的 ext 成为全局配置，必须让每个 Spider 主动去读配置。
+#
+# 于是设计了 4 条互补通道，按优先级自动选择：
+#   ① json/pan_accounts.runtime.json —— 配置中心站点被点开时把自己 init() 收到的
+#                                        ext 写成运行时快照；代表用户「最近一次在
+#                                        UI 里确认过的配置」，优先级最高，因此
+#                                        广播过旧账号后再改 UI 也能覆盖旧值。
+#                                        同时解决「壳子 UI 改 ext 只存自己的数据库、
+#                                        不回写 FongMi.json」的问题。
+#   ② 当前站点自己的 ext.panAccounts —— gen_config.py --broadcast 一键广播，
+#                                        壳子一定会把 ext 传给该站点的 Spider，最可靠
+#   ③ FongMi.json 里配置中心站点的 ext —— 直接编辑配置文件这一处即可全局生效
+#   ④ json/pan_accounts.json           —— 原来的文件方式，向后兼容
+# 三处 ext 的值都支持「就地写数组/对象」或「写一个 http(s) JSON 直链」：
+#   "panAccounts": [ {...}, {...} ]                 就地写账号数组
+#   "panAccounts": "https://host/panAccounts.json"  值本身就是直链
+#   "panAccountsUrl": "https://host/acc.json"       单独的直链键（推荐，不会被广播工具覆盖）
+#   "panConfigUrl":   "https://host/config.json"    一个直链同时给 panAccounts + panOptions
+#   "panOptions": {...} / "panOptions": "https://host/opt.json" / "panOptionsUrl": ...
+# 直链返回数组、{"panAccounts":[...], "panOptions":{...}}、单账号对象、
+# 甚至 {"quark":"cookie...", "baidu":"cookie..."} 都能识别，见 normalize_accounts()。
+# ==============================================================================
+SITE_EXT = {}
+_EXT_KEYS = ("panAccounts", "pan_accounts", "accounts", "panAccountsUrl",
+             "pan_accounts_url", "accountsUrl")
+_OPT_KEYS = ("panOptions", "pan_options", "options", "panOptionsUrl",
+             "pan_options_url", "optionsUrl")
+_CFG_KEYS = ("panConfig", "panConfigUrl", "pan_config", "pan_config_url", "configUrl")
+_ALL_EXT_KEYS = _EXT_KEYS + _OPT_KEYS + _CFG_KEYS
+_GLOBAL_CACHE = {"sig": None, "ext": {}}
+
+# 远程直链：进程内 TTL 缓存 + 最后一次拉取状态（供配置中心首页显示）
+REF_TTL = 300
+_REF_CACHE = {}
+_REF_STATE = {"url": "", "ok": False, "info": "未使用", "ts": 0}
+
+
+def ref_state():
+    """→ dict：最后一次远程直链拉取的状态（url / ok / info / ts）"""
+    return dict(_REF_STATE)
+
+
+def reset_ref_cache():
+    """「立即应用到全局」时调用，强制下次重新拉取远程配置"""
+    _REF_CACHE.clear()
+
+
+def _is_http(v):
+    return isinstance(v, str) and bool(re.match(r"^https?://", v.strip(), re.I))
+
+
+def fetch_json_ref(url, force=False, timeout=8):
+    """拉取一份远程 JSON 配置。成功缓存 REF_TTL 秒；失败时若有过成功缓存仍返回旧值。
+    用本包自己的 http_get（跳过证书校验、自动解压/判编码），不引入第三方库。
+    """
+    u = str(url or "").strip()
+    if not _is_http(u):
+        return None
+    now = time.time()
+    old = _REF_CACHE.get(u)
+    if not force and old and now - old[0] < REF_TTL:
+        return old[1]
+    try:
+        txt = http_get(u, headers={"Accept": "application/json,text/plain,*/*"},
+                       timeout=timeout) or ""
+        t = txt.lstrip("\ufeff \r\n\t")
+        if not t.startswith(("[", "{")):
+            a, b = t.find("["), t.find("{")
+            st = min(x for x in (a, b) if x >= 0) if (a >= 0 or b >= 0) else -1
+            if st > 0:
+                t = t[st:]
+        data = json.loads(t)
+        _REF_CACHE[u] = (now, data)
+        _REF_STATE.update({"url": u, "ok": True, "ts": int(now),
+                           "info": "OK · %s" % (type(data).__name__)})
+        return data
+    except Exception as e:
+        _REF_STATE.update({"url": u, "ok": False, "ts": int(now),
+                           "info": "拉取失败：%s" % str(e)[:100]})
+        return old[1] if old else None
+
+
+_TYPE_ALIAS = {
+    "夸克": "quark", "夸克网盘": "quark", "quark": "quark", "quarkpan": "quark",
+    "uc": "uc", "uc网盘": "uc", "ucpan": "uc",
+    "阿里": "aliyun", "阿里云盘": "aliyun", "阿里网盘": "aliyun", "ali": "aliyun",
+    "aliyun": "aliyun", "alipan": "aliyun", "aliyundrive": "aliyun",
+    "123": "123", "123云盘": "123", "123网盘": "123", "123pan": "123",
+    "115": "115", "115网盘": "115", "pan115": "115",
+    "百度": "baidu", "百度网盘": "baidu", "bd": "baidu", "bdyun": "baidu",
+    "baidu": "baidu", "baidupan": "baidu",
+    "光鸭": "guangya", "光鸭网盘": "guangya", "guangya": "guangya",
+    "迅雷": "Thunder", "迅雷云盘": "Thunder", "迅雷网盘": "Thunder",
+    "xunlei": "Thunder", "thunder": "Thunder",
+}
+
+
+def normalize_accounts(rows):
+    """把第三方 panAccounts.json 的常见写法规整成本包格式：
+    type/cookie 别名、中文网盘名、{"type":"cookie"} 映射、单账号对象。
+    """
+    if not isinstance(rows, list):
+        return []
+    out = []
+    for a in rows:
+        if isinstance(a, dict):
+            d = dict(a)
+        elif isinstance(a, str) and a.strip():
+            # ["UID=..;CID=.."] 之类无法判断类型，跳过
+            continue
+        else:
+            continue
+        t = ""
+        for k in ("type", "panType", "pan_type", "pan", "drive", "id"):
+            if d.get(k):
+                t = str(d[k]).strip()
+                break
+        ck = ""
+        for k in ("cookie", "Cookie", "COOKIE", "ck", "cookies", "cookieStr"):
+            if d.get(k):
+                ck = str(d[k]).strip()
+                break
+        if not ck:
+            data = d.get("data") if isinstance(d.get("data"), dict) else {}
+            for k in ("refresh_token", "token", "access_token", "cookie"):
+                if d.get(k) or data.get(k):
+                    ck = str(d.get(k) or data.get(k))
+                    if k == "refresh_token":
+                        ck = "refresh_token=" + ck
+                    break
+        if not ck or not t:
+            continue
+        typ = _TYPE_ALIAS.get(t.lower(), _TYPE_ALIAS.get(t, t))
+        d["type"] = typ
+        d["cookie"] = ck
+        d.setdefault("id", typ)
+        d.setdefault("name", typ)
+        d["enabled"] = d.get("enabled") is not False
+        out.append(d)
+    return out
+
+
+def _raw_json(v, depth=0):
+    """把 URL / JSON 字符串还原成原始 JSON 对象，不做任何结构猜测。
+    给 panConfigUrl 用：整包配置必须原样保留，才能从中分别取账号和选项。
+    """
+    if v is None or depth > 4:
+        return None
+    if isinstance(v, str):
+        s = v.strip()
+        if _is_http(s):
+            return _raw_json(fetch_json_ref(s), depth + 1)
+        if s.startswith(("[", "{")):
+            try:
+                return _raw_json(json.loads(s), depth + 1)
+            except Exception:
+                return None
+        return None
+    return v
+
+
+def _as_json_value(v, kind, depth=0):
+    """把任意 ext 值（数组/对象/JSON 字符串/URL 字符串）规整成 list 或 dict。"""
+    if v is None or depth > 4:
+        return None
+    if isinstance(v, str):
+        s = v.strip()
+        if _is_http(s):
+            return _as_json_value(fetch_json_ref(s), kind, depth + 1)
+        if s.startswith(("[", "{")):
+            try:
+                return _as_json_value(json.loads(s), kind, depth + 1)
+            except Exception:
+                return None
+        return None
+    if kind == "list":
+        if isinstance(v, list):
+            return normalize_accounts(v)
+        if isinstance(v, dict):
+            for k in ("panAccounts", "pan_accounts", "accounts", "data",
+                      "list", "config"):
+                if k in v:
+                    r = _as_json_value(v[k], "list", depth + 1)
+                    if r:
+                        return r
+            if any(k in v for k in ("cookie", "Cookie", "ck", "token")):
+                return normalize_accounts([v])          # 单个账号对象
+            rows = [{"type": k, "cookie": val, "id": k, "name": k,
+                     "enabled": True}
+                    for k, val in v.items()
+                    if isinstance(val, str) and val.strip()
+                    and not k.startswith("__")
+                    and str(k).lower() not in ("hint", "name", "note", "remark",
+                                               "time", "ts", "date", "version",
+                                               "url", "author", "tip")]
+            return normalize_accounts(rows) if rows else None
+        return None
+    if isinstance(v, dict):
+        for k in ("panOptions", "pan_options", "options", "config", "data"):
+            if isinstance(v.get(k), dict) and not any(
+                    x in v[k] for x in ("panAccounts", "panOptions")):
+                return v[k]
+        rest = {k: val for k, val in v.items()
+                if not k.startswith("__") and k not in _ALL_EXT_KEYS
+                and not isinstance(val, (list, dict))}
+        return rest or None
+    return None
+
+
+def set_site_ext(extend):
+    """记录当前站点 ext；由各 Spider 的 init() 与 play_result() 调用"""
+    global SITE_EXT
+    e = parse_ext(extend)
+    if e:
+        SITE_EXT = e
+    return e
+
+
+def _root_paths(name):
+    """包根目录里配置文件的候选位置（py/ 的上一级）"""
+    out = []
+    for env in ("TVBOX_LOCAL_DIR", "TVBOX_HOME"):
+        v = os.environ.get(env)
+        if v:
+            out.append(os.path.join(v, name))
+    try:
+        out.append(os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), name))
+    except Exception:
+        pass
+    out += [name,
+            os.path.join("/sdcard", "tvboxonly", name),
+            os.path.join("/storage/emulated/0", "tvboxonly", name)]
+    return out
+
+
+def global_ext():
+    """扫描 FongMi.json，取「配置中心」站点的 ext。
+    认 __tvbox_config 标记或 key=tvbox_config；站点改名叫豆瓣也不影响识别。
+    按 mtime+size 缓存，避免展开目录时反复读配置文件。
+    """
+    for p in _root_paths("FongMi.json"):
+        try:
+            st = os.stat(p)
+            sig = (p, st.st_mtime_ns, st.st_size)
+        except Exception:
+            continue
+        if _GLOBAL_CACHE["sig"] == sig:
+            return _GLOBAL_CACHE["ext"]
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except Exception:
+            continue
+        ext = {}
+        for s in cfg.get("sites") or []:
+            if not isinstance(s, dict):
+                continue
+            e = s.get("ext")
+            if isinstance(e, str):
+                try:
+                    e = json.loads(e) if e.strip().startswith("{") else {}
+                except Exception:
+                    e = {}
+            if not isinstance(e, dict):
+                continue
+            if e.get("__tvbox_config") or str(s.get("key")) == "tvbox_config":
+                ext = dict(e)
+                break
+        _GLOBAL_CACHE["sig"] = sig
+        _GLOBAL_CACHE["ext"] = ext
+        return ext
+    return {}
+
+
+def _pick(o, keys, kind):
+    """从 ext 里取 panAccounts / panOptions。值可以是数组/对象、JSON 字符串，
+    也可以是一个 http(s) 直链（由 _as_json_value 拉取并规整）。
+    """
+    if not isinstance(o, dict):
+        return None
+    empty = None
+    for k in keys:
+        if k not in o or o[k] is None:
+            continue
+        v = _as_json_value(o[k], kind)
+        if v:
+            return v
+        # 默认模板里 panAccounts:[] / panOptions:{} 是空占位，
+        # 不能挡住后面 panAccountsUrl / panOptionsUrl 这类直链键
+        if v is not None and empty is None:
+            empty = v
+    return empty
+
+
+def ext_config(o):
+    """把一份 ext 解析成 (账号数组或 None, panOptions 覆盖项或 None)。
+    支持 panConfigUrl 这种「一个直链同时给账号和选项」的整包配置。
+    """
+    if not isinstance(o, dict):
+        return None, None
+    pack = None
+    for k in _CFG_KEYS:
+        if k in o and o[k] is not None:
+            pack = _raw_json(o[k])
+            if isinstance(pack, dict):
+                break
+            pack = None
+    a = _pick(o, _EXT_KEYS, "list")
+    if not a and isinstance(pack, dict):
+        a = _pick(pack, _EXT_KEYS, "list")
+    ov = _pick(o, _OPT_KEYS, "dict")
+    if not ov and isinstance(pack, dict):
+        ov = _pick(pack, _OPT_KEYS, "dict")
+        if not ov:
+            rest = {k: v for k, v in pack.items()
+                    if not k.startswith("__") and k not in _ALL_EXT_KEYS
+                    and not isinstance(v, (list, dict))}
+            ov = rest or None
+    return a, ov
+
+
+def ext_has_ref(o):
+    """该 ext 里是否写了远程直链（拉取失败时用来决定要不要保留旧快照）"""
+    if not isinstance(o, dict):
+        return False
+    return any(_is_http(o.get(k)) for k in _ALL_EXT_KEYS)
+
+
+def _runtime_file():
+    ps = _cfg_paths("pan_accounts.runtime.json")
+    for p in ps:
+        d = os.path.dirname(p)
+        if d and os.path.isdir(d):
+            return p
+    return ps[0] if ps else ""
+
+
+def sync_runtime(accounts, options):
+    """配置中心站点被点开时调用：把 UI 编辑后的 ext 写成全局快照。
+    accounts 为空则删除快照（回到文件通道），避免空快照把文件里的 Cookie 盖掉。
+    """
+    p = _runtime_file()
+    if not p:
+        return ""
+    try:
+        if not accounts:
+            if os.path.exists(p):
+                os.remove(p)
+            return "removed"
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump({"__tvbox_runtime": True, "ts": int(time.time()),
+                       "accounts": accounts, "options": options or {}},
+                      f, ensure_ascii=False)
+        _GLOBAL_CACHE["sig"] = None
+        return "written"
+    except Exception:
+        return ""
+
+
+def account_source():
+    """→ (accounts 或 None, options 覆盖项, 来源标签)
+    accounts 为 None 表示「没有外置配置，回退 json/pan_accounts.json」。
+    """
+    file_opt = load_cfg("pan_options.json", {})
+    if not isinstance(file_opt, dict):
+        file_opt = {}
+    mode = str(file_opt.get("accountSource") or "auto").lower()
+    if mode == "file":
+        return None, {}, "文件(强制)"
+
+    # ① 配置中心点开后写出的运行时快照（用户最近一次 UI 确认值，最高优先）
+    rt = load_cfg("pan_accounts.runtime.json", None)
+    if isinstance(rt, dict) and rt.get("__tvbox_runtime") and rt.get("accounts"):
+        return (list(rt.get("accounts") or []),
+                dict(rt.get("options") or {}), "配置中心(运行时)")
+    # ② 当前站点自己的 ext（广播模式；也可能是远程直链）
+    a, ov = ext_config(SITE_EXT)
+    if a:
+        if not ov:
+            # 广播只写 panAccounts，panOptions 仍从配置中心站点取
+            _, gv = ext_config(global_ext())
+            ov = gv or {}
+        return a, ov, "站点ext(广播)"
+    # ③ FongMi.json 里配置中心站点的 ext（就地数组或远程直链）
+    g = global_ext()
+    a, ov = ext_config(g)
+    if a:
+        return a, ov or {}, "配置中心(FongMi.json)"
+    # ④ 文件
+    if mode == "ext":
+        return [], {}, "仅ext(未配置)"
+    return None, {}, "文件"
+
+
 def _split_fid(u):
     """原 T4 播放串格式：base64("分享链接|文件fid")，fid 用于指定分享目录里的某一集"""
     s = str(u or "")
@@ -279,6 +680,7 @@ def play_result(flag, id_, ext_raw=""):
        解 pan! → ① 账号 Cookie 换官方直链 → ② ext.parseApi → ③ 公共解析 → ④ parse:1 交回壳子
     """
     u = str(id_ or "").strip()
+    set_site_ext(ext_raw)
     if u.startswith("pan!") or u.startswith("pan$"):
         u = pan_decode(u[4:]) or u
     elif re.match(r"^[A-Za-z0-9_-]{24,}$", u):
@@ -341,7 +743,11 @@ def play_result(flag, id_, ext_raw=""):
     if tip:
         extra["tip"] = tip
     elif not ck:
-        extra["tip"] = "未配置该网盘 Cookie，也没配公共解析：需在 json/pan_accounts.json 填 Cookie"
+        msg = ("未配置该网盘 Cookie，也没配公共解析："
+               "在「配置中心」站点 ext 或 json/pan_accounts.json 填 Cookie")
+        if _REF_STATE.get("url") and not _REF_STATE.get("ok"):
+            msg = "远程直链 %s；%s" % (_REF_STATE["info"], msg)
+        extra["tip"] = msg
     else:
         extra["tip"] = "该网盘类型无本地驱动，Cookie 已透传给壳子，需壳子自带解析"
     return {"parse": 1, "url": share, "header": hdr, "extra": extra}
@@ -418,6 +824,10 @@ TVBOX 本地包 / 网盘账号与直链解析
   pan/drivers/uc.js          同源 UC 接口（pc-api.uc.cn）
   pan/drivers/aliyun.js      refresh_token → 匿名分享 → 预览/下载直链
   pan/drivers/pan123.js      CRC32 签名 → 登录 → share/get → share/download/info
+  pan/drivers/pan115.js      m115 RSA 加密 → webapi 列分享 → share/downurl 直链
+  pan/drivers/baidu.js       DLNA 签名免转存直链 / share/transfer → filemetas 直链
+115 的 RSA 与「转存 → pickcode → chrome/downurl」备用链路均为纯标准库复刻，
+已与原包 pan115.js 做加密输出与解密字节的交叉校验。
 只依赖 Python 标准库，可在 TVBox / FongMi 系壳子的 Python Spider 引擎中运行。
 
 对外接口（供 common.py 调用）：
@@ -426,13 +836,17 @@ TVBOX 本地包 / 网盘账号与直链解析
   pan_resolve(info, url, fid)        Cookie 换直链 → {url, header, name} / None
   pan_list_files(info, url)          列分享目录 → [{fid, name}]（展开多集用）
 
-未能纯 REST 移植的驱动（baidu / 115 / guangya / Thunder）保留账号位，
-播放时把 Cookie 透传到播放响应 header，由壳子自带的网盘解析或公共解析接管。
+目前只有 guangya / Thunder 没有本地直链驱动（原包光鸭驱动依赖 JWT 轮换 +
+转存任务轮询，迅雷原包本无驱动），这两类保留账号位，播放时把 Cookie
+透传到播放响应 header。
 """
+import base64
+import hashlib
 import json
 import re
 import ssl
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import zlib
@@ -459,10 +873,115 @@ CD = {
 SIGN_TABLE = "adefghlyijmnopkqrsubcvwsz"
 B123_API = "https://yun.123pan.com/b/api"
 
-SUPPORTED = ("quark", "uc", "aliyun", "123")
+SUPPORTED = ("quark", "uc", "aliyun", "123", "115", "baidu")
 
 
 # ---------------------------------------------------------------- HTTP / Cookie
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """DLNA / 百度 dlink 需要读 302 的 Location，而不是自动跳到 CDN"""
+
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def http_raw(url, method="GET", body=None, headers=None, timeout=15,
+             form=False, follow=True):
+    """返回 (text, headers, status, final_url)；headers['Set-Cookie'] 是列表。
+    body 为 dict/list → JSON，str/bytes → 原样（form=True 时按表单提交）。
+    115 / 百度驱动需要 HTML 响应、Set-Cookie 与 302 Location，故单独实现。
+    """
+    h = {"User-Agent": UA, "Accept": "application/json, text/plain, */*",
+         "Accept-Language": "zh-CN,zh;q=0.9"}
+    data = None
+    if isinstance(body, (dict, list)):
+        data = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        h["Content-Type"] = "application/json"
+    elif isinstance(body, str):
+        data = body.encode("utf-8")
+        if form:
+            h["Content-Type"] = "application/x-www-form-urlencoded"
+    elif isinstance(body, bytes):
+        data = body
+        if form:
+            h["Content-Type"] = "application/x-www-form-urlencoded"
+    if headers:
+        h.update({str(k): str(v) for k, v in headers.items() if v not in (None, "")})
+    req = urllib.request.Request(url, data=data, headers=h, method=method)
+    handlers = []
+    try:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        handlers.append(urllib.request.HTTPSHandler(context=ctx))
+    except Exception:
+        pass
+    if not follow:
+        handlers.insert(0, _NoRedirect())
+    opener = urllib.request.build_opener(*handlers) if handlers \
+        else urllib.request.build_opener()
+    try:
+        r = opener.open(req, timeout=timeout)
+    except urllib.error.HTTPError as e:
+        r = e
+    except Exception as e:
+        raise RuntimeError(str(e))
+    with r:
+        raw = r.read()
+        try:
+            sc = r.headers.get_all("Set-Cookie") or []
+        except Exception:
+            sc = []
+        ce = str(r.headers.get("Content-Encoding", ""))
+        hd = {"Set-Cookie": sc, "Location": r.headers.get("Location", ""),
+              "Content-Type": r.headers.get("Content-Type", "")}
+        status = int(getattr(r, "code", 200) or 200)
+        final = r.geturl() if hasattr(r, "geturl") else url
+    if "gzip" in ce.lower():
+        try:
+            import gzip
+            raw = gzip.decompress(raw)
+        except Exception:
+            pass
+    return raw.decode("utf-8", "ignore"), hd, status, final
+
+
+def raw_json(*args, **kwargs):
+    txt, hd, status, final = http_raw(*args, **kwargs)
+    try:
+        return json.loads(txt), hd, status, final
+    except Exception:
+        return {}, hd, status, final
+
+
+def _deep_url(obj, keys=None):
+    """递归找响应里的 http 直链（115 chrome/downurl、百度 DLNA 都用得上）"""
+    if keys is None:
+        keys = ("url", "dlink", "download_url", "downloadurl")
+    if isinstance(obj, str):
+        return obj if obj.startswith("http") else ""
+    if isinstance(obj, list):
+        for v in obj:
+            hit = _deep_url(v, keys)
+            if hit:
+                return hit
+        return ""
+    if isinstance(obj, dict):
+        for k in keys:
+            v = obj.get(k)
+            if isinstance(v, str) and v.startswith("http"):
+                return v
+            if isinstance(v, dict):
+                hit = _deep_url(v, keys)
+                if hit:
+                    return hit
+        for v in obj.values():
+            hit = _deep_url(v, keys)
+            if hit:
+                return hit
+    return ""
+
+
 def http_json(url, method="GET", body=None, headers=None, timeout=15):
     """urllib 版 axios：返回 (dict, Set-Cookie 列表)；HTTP 错误带出业务 message"""
     h = {"User-Agent": UA, "Accept": "application/json, text/plain, */*",
@@ -546,7 +1065,14 @@ def _qs(base, params):
 
 # ---------------------------------------------------------------- 账号
 def load_accounts():
-    cfg = load_cfg("pan_accounts.json", [])
+    """账号来源：站点 ext（含配置中心 / 广播 / runtime 快照）优先，回退 json 文件。
+    具体优先级见 common.py 的 account_source()。
+    """
+    try:
+        src, _ov, _label = account_source()
+    except Exception:
+        src = None
+    cfg = load_cfg("pan_accounts.json", []) if src is None else src
     if isinstance(cfg, dict):
         cfg = cfg.get("accounts") or []
     if not isinstance(cfg, list):
@@ -570,8 +1096,23 @@ def account_cookie(typ):
 
 
 def pan_options():
-    o = load_cfg("pan_options.json", {})
-    return o if isinstance(o, dict) else {}
+    """文件里的值作默认，外置 ext 的 panOptions 逐项覆盖。
+    accountSource="file" 时完全忽略外置项。
+    """
+    base = load_cfg("pan_options.json", {})
+    if not isinstance(base, dict):
+        base = {}
+    if str(base.get("accountSource") or "auto").lower() == "file":
+        return base
+    try:
+        _src, ov, _label = account_source()
+    except Exception:
+        ov = {}
+    if ov:
+        merged = dict(base)
+        merged.update(ov)
+        return merged
+    return base
 
 
 # ---------------------------------------------------------------- 夸克 / UC
@@ -897,6 +1438,623 @@ def _123_resolve(info, fid, acc, list_only=False):
             "header": {"User-Agent": UA, "Referer": "https://yun.123pan.com/"}}
 
 
+# ---------------------------------------------------------------- 115 网盘
+# pan/drivers/pan115.js 的 m115 加密（模数/指数/密钥表/异或流程），
+# 纯标准库复刻，已与原包 pan115.js 做加密/解密字节级交叉校验。
+P115_MOD = int(
+    "8686980c0f5a24c4b9d43020cd2c22703ff3f450756529058b1cf88f09b86021"
+    "36477198a6e2683149659bd122c33592fdb5ad47944ad1ea4d36c6b172aad633"
+    "8c3bb6ac6227502d010993ac967d1aef00f0c8e038de2e4d3bc2ec368af2e9f1"
+    "0a6f1eda4f7262f136420c07c331b871bf139f74f3010e3c4fe57df3afb71683", 16)
+P115_EXP = 0x10001
+P115_KTS = bytes([
+    240, 229, 105, 174, 191, 220, 191, 138,  26,  69, 232, 190,
+    125, 166, 115, 184, 222, 143, 231, 196,  69, 218, 134, 196,
+    155, 100, 139,  20, 106, 180, 241, 170,  56,   1,  53, 158,
+     38, 105,  44, 134,   0, 107,  79, 165,  54,  52,  98, 166,
+     42, 150, 104,  24, 242,  74, 253, 189, 107, 151, 143,  77,
+    143, 137,  19, 183, 108, 142, 147, 237,  14,  13,  72,  62,
+    215,  47, 136, 216, 254, 254, 126, 134,  80, 149,  79, 209,
+    235,  131,  38,  52, 219, 102, 123, 156, 126, 157, 122, 129,
+     50, 234, 182,  51, 222,  58, 169,  89,  52, 102,  59, 170,
+    186, 129,  96,  72, 185, 213, 129, 156, 248, 108, 132, 119,
+    255,  84, 120,  38,  95, 190, 232,  30,  54, 159,  52, 128,
+     92,  69,  44, 155, 118, 213,  27, 143, 204, 195, 184, 245,
+])
+P115_XOR_A = bytes([0x8d, 0xa5, 0xa5, 0x8d])
+P115_XOR_B = bytes([0x78, 0x06, 0xad, 0x4c, 0x33, 0x86, 0x5d, 0x18,
+                    0x4c, 0x01, 0x3f, 0x46])
+
+
+def _p115_b2i(b):
+    v = 0
+    for x in b:
+        v = (v << 8) | x
+    return v
+
+
+def _p115_i2b(v, length=None):
+    if length is None:
+        length = max(1, (v.bit_length() + 7) // 8)
+    out = bytearray(length)
+    for i in range(length - 1, -1, -1):
+        out[i] = v & 0xFF
+        v >>= 8
+    return bytes(out)
+
+
+def _p115_xor(src, key):
+    out = bytearray(len(src))
+    off = len(src) & 3
+    if off:
+        for i in range(off):
+            out[i] = src[i] ^ key[i]
+    i = off
+    while i < len(src):
+        j = min(i + len(key), len(src))
+        for k in range(i, j):
+            out[k] = src[k] ^ key[k - i]
+        i = j
+    return bytes(out)
+
+
+def _p115_modpow(b, e, m):
+    if m == 1:
+        return 0
+    r = 1
+    b %= m
+    while e:
+        if e & 1:
+            r = (r * b) % m
+        e >>= 1
+        b = (b * b) % m
+    return r
+
+
+def _p115_pad(msg):
+    """pan115.js padPkcs1V15：0x00 | 0x02 填充 | 消息"""
+    buf = bytearray(128)
+    end = 127 - len(msg)
+    for i in range(1, max(1, end)):
+        buf[i] = 2
+    buf[128 - len(msg):128] = msg
+    return _p115_b2i(bytes(buf))
+
+
+def _p115_key(seed, sklen=12):
+    """pan115.js genKey115 / G_KTS"""
+    out = bytearray(sklen)
+    n = sklen * (sklen - 1)
+    s = 0
+    for i in range(sklen):
+        out[i] = P115_KTS[n] ^ ((seed[i] + P115_KTS[s]) & 0xFF)
+        n -= sklen
+        s += sklen
+    return bytes(out)
+
+
+def p115_encrypt(obj):
+    """m115 加密：异或 → 反转 → 异或 → 16 字节种子 → 分块 117 → 公钥模幂 → base64"""
+    raw = json.dumps(obj, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    x = _p115_xor(_p115_xor(raw, P115_XOR_A)[::-1], P115_XOR_B)
+    padded = bytes(16) + x
+    out = bytearray()
+    for i in range(0, len(padded), 117):
+        out.extend(_p115_i2b(
+            _p115_modpow(_p115_pad(padded[i:i + 117]), P115_EXP, P115_MOD), 128))
+    return base64.b64encode(bytes(out)).decode("ascii")
+
+
+def p115_decrypt(b64):
+    """m115 解密：分块 128 → 模幂 → 去 0x00 → 种子换 key → 反转 → 异或"""
+    try:
+        raw = base64.b64decode(b64)
+        merged = bytearray()
+        for i in range(0, len(raw), 128):
+            dec = _p115_i2b(_p115_modpow(_p115_b2i(raw[i:i + 128]),
+                                         P115_EXP, P115_MOD))
+            idx = dec.find(b"\x00")
+            merged.extend(dec[idx + 1:] if idx >= 0 else dec)
+        if len(merged) < 16:
+            return {}
+        key = _p115_key(bytes(merged[:16]), 12)
+        body = _p115_xor(bytes(merged[16:]), key)[::-1]
+        plain = _p115_xor(body, P115_XOR_A)
+        return json.loads(plain.decode("utf-8"))
+    except Exception:
+        return {}
+
+
+def _p115_headers(cookie, referer="https://115.com/"):
+    return {"User-Agent": UA, "Referer": referer, "Origin": "https://115.com",
+            "Cookie": cookie, "Accept": "application/json, text/plain, */*"}
+
+
+def _115_timeout():
+    try:
+        return max(6, min(int(pan_options().get("timeout", 15)), 30))
+    except Exception:
+        return 15
+
+
+def _115_snap(code, pwd, cid, cookie="", pro=False):
+    """pan115.js fetchShareList115（webapi 公开列目录）/ 登录态 proapi 变体"""
+    if pro:
+        url = "https://proapi.115.com/android/2.0/share/snap"
+        p = {"share_code": code, "receive_code": pwd or "", "offset": 0,
+             "limit": 200, "cid": str(cid or "")}
+        hdr = _p115_headers(cookie)
+    else:
+        url = "https://webapi.115.com/share/snap"
+        p = {"share_code": code, "receive_code": pwd or "", "cid": str(cid or ""),
+             "limit": 100, "asc": 0, "offset": 0, "format": "json"}
+        hdr = {"User-Agent": UA, "Accept": "application/json;charset=UTF-8",
+               "Referer": "https://115cdn.com/s/%s?password=%s&" % (code, pwd or "")}
+        if cookie:
+            hdr["Cookie"] = cookie
+    d, _, _, _ = raw_json(_qs(url, p), "GET", None, hdr, timeout=_115_timeout())
+    if d.get("state") is False or (d.get("errno") not in (None, 0)
+                                   and d.get("errno") is not None):
+        raise RuntimeError(str(d.get("error") or d.get("msg") or
+                               "115 分享列表获取失败(errno=%s)" % d.get("errno")))
+    data = d.get("data") or {}
+    if str(data.get("share_state") or "") == "7":
+        raise RuntimeError(str((data.get("shareinfo") or {}).get("forbid_reason")
+                               or "115 分享链接已过期"))
+    return data
+
+
+def _115_files(info, cookie="", pro=False, max_files=200):
+    """列分享目录里的视频；cid 先试 shareCode，再兜底 0（对齐原包）"""
+    code = str(info.get("share_id") or "")
+    pwd = str(info.get("pwd") or "")
+    out = []
+    for root in (code, "0"):
+        stack, visited = [(root, 0)], set()
+        while stack and len(out) < max_files:
+            cid, depth = stack.pop()
+            if depth > 3 or (cid, depth) in visited:
+                continue
+            visited.add((cid, depth))
+            try:
+                data = _115_snap(code, pwd, cid, cookie, pro)
+            except Exception:
+                continue
+            for f in data.get("list") or []:
+                if not isinstance(f, dict):
+                    continue
+                fid = str(f.get("fid") or f.get("file_id") or "")
+                name = str(f.get("n") or f.get("fn") or f.get("name") or fid)
+                fc = str(f.get("fc") or "")
+                isdir = fc == "0" or (not fid and bool(f.get("cid")))
+                if isdir:
+                    sub = str(f.get("cid") or f.get("fid") or "")
+                    if sub and depth < 3:
+                        stack.append((sub, depth + 1))
+                    continue
+                if fid:
+                    out.append({"fid": fid, "name": name,
+                                "size": f.get("s") or f.get("fs") or 0})
+        if out:
+            break
+    vids = [f for f in out if VIDEO_RE.search(f["name"])]
+    return (vids or out)[:max_files]
+
+
+def _115_pick(files, fid):
+    if not files:
+        raise RuntimeError("115 分享中未找到视频文件（链接失效或访问码不对）")
+    if fid:
+        for f in files:
+            if f["fid"] == str(fid):
+                return f
+    return files[0]
+
+
+def _115_share_resolve(info, fid, acc):
+    """主路径（pan115.js）：公开列目录 → m115 加密 share/downurl → 直链，免转存"""
+    cookie = str(acc.get("cookie") or "")
+    target = _115_pick(_115_files(info, "", pro=False), fid)
+    body = "data=" + urllib.parse.quote(p115_encrypt({
+        "share_code": str(info.get("share_id") or ""),
+        "receive_code": str(info.get("pwd") or ""),
+        "file_id": target["fid"]}), safe="")
+    hdr = {"Content-Type": "application/x-www-form-urlencoded",
+           "Cookie": cookie, "User-Agent": UA, "Accept": "application/json"}
+    last = ""
+    for url in ("http://pro.api.115.com/app/share/downurl",
+                "https://proapi.115.com/app/share/downurl"):
+        try:
+            d, _, _, _ = raw_json(url, "POST", body, hdr,
+                                  timeout=_115_timeout(), form=True)
+            if d.get("state") is False:
+                last = str(d.get("msg") or d.get("error") or "")
+                if "登录" in last or "登陆" in last:
+                    raise RuntimeError("115 Cookie 已失效，请重新登录 115.com 复制完整 Cookie")
+                continue
+            enc = d.get("data")
+            inner = p115_decrypt(enc) if isinstance(enc, str) else \
+                (enc if isinstance(enc, dict) else {})
+            real = _deep_url(inner)
+            if real:
+                return {"url": real, "name": target["name"],
+                        "header": {"User-Agent": UA, "Referer": "https://115.com/",
+                                   "Cookie": cookie}}
+            last = "115 未返回直链（%s）" % str(d.get("msg") or d.get("errno") or "响应异常")
+        except RuntimeError as e:
+            last = str(e)
+    raise RuntimeError("115 分享直链失败：%s" % (last or "接口无响应"))
+
+
+def _115_folder(cookie, name):
+    p = {"aid": 1, "cid": 0, "o": "user_ptime", "asc": 0, "offset": 0,
+         "show_dir": 1, "limit": 200, "type": 0, "format": "json"}
+    try:
+        d, _, _, _ = raw_json(_qs("https://webapi.115.com/files", p), "GET", None,
+                              _p115_headers(cookie), timeout=_115_timeout())
+        for it in d.get("data") or []:
+            if isinstance(it, dict) and str(it.get("n") or it.get("name") or "") == name:
+                return str(it.get("cid") or it.get("fid") or "")
+    except Exception:
+        pass
+    return ""
+
+
+def _115_create_folder(cookie, name):
+    body = urllib.parse.urlencode({"cname": name, "pid": 0})
+    hdr = _p115_headers(cookie)
+    hdr["Content-Type"] = "application/x-www-form-urlencoded"
+    try:
+        d, _, _, _ = raw_json("https://webapi.115.com/files/add", "POST", body, hdr,
+                              timeout=_115_timeout(), form=True)
+        data = d.get("data") or {}
+        if isinstance(data, dict):
+            return str(data.get("cid") or data.get("file_id") or
+                       data.get("category_id") or "")
+    except Exception:
+        pass
+    return ""
+
+
+def _115_transfer_resolve(info, fid, acc):
+    """备用路径（转存取链）：列目录 → 转存「最近接收」→ pickcode →
+    chrome/downurl 加密取直链。会往自己的 115 网盘写入一份副本。"""
+    cookie = str(acc.get("cookie") or "")
+    opts = pan_options()
+    savedir = str(opts.get("115SaveDir") or "最近接收")
+    target = _115_pick(_115_files(info, cookie, pro=True), fid)
+    cid = _115_folder(cookie, savedir) or _115_create_folder(cookie, savedir)
+    if not cid:
+        raise RuntimeError("115 无法获取/创建保存目录「%s」" % savedir)
+    body = urllib.parse.urlencode({
+        "share_code": str(info.get("share_id") or ""),
+        "receive_code": str(info.get("pwd") or ""),
+        "file_id": target["fid"], "cid": cid})
+    hdr = _p115_headers(cookie)
+    hdr["Content-Type"] = "application/x-www-form-urlencoded"
+    d, _, _, _ = raw_json("https://proapi.115.com/android/2.0/share/receive",
+                          "POST", body, hdr, timeout=_115_timeout(), form=True)
+    if not d.get("state"):
+        msg = str(d.get("error") or d.get("msg") or "转存失败")
+        if "已存在" not in msg and "重复" not in msg:
+            raise RuntimeError("115 转存失败：%s" % msg)
+    kw = re.sub(r"\.[^.]+$", "", target["name"]).replace("_", " ")[:20]
+    p = {"search_value": kw or target["fid"], "type": 4, "offset": 0,
+         "limit": 50, "date": "", "aid": 1, "cid": 0, "pick_code": "",
+         "source": "", "format": "json"}
+    pc = ""
+    deadline = time.time() + max(5, min(int(opts.get("115TransferTimeout", 20)), 30))
+    while time.time() < deadline and not pc:
+        try:
+            s, _, _, _ = raw_json(_qs("https://webapi.115.com/files/search", p),
+                                  "GET", None, _p115_headers(cookie),
+                                  timeout=_115_timeout())
+            items = s.get("data") or []
+            for it in items:
+                if not isinstance(it, dict):
+                    continue
+                n = str(it.get("n") or it.get("name") or "")
+                if n == target["name"] or (target["name"] and target["name"] in n):
+                    pc = str(it.get("pc") or it.get("pick_code") or
+                             it.get("pickcode") or "")
+                    if pc:
+                        break
+            if not pc:
+                for it in items:
+                    if isinstance(it, dict):
+                        pc = str(it.get("pc") or it.get("pick_code") or
+                                 it.get("pickcode") or "")
+                        if pc:
+                            break
+        except Exception:
+            pass
+        if not pc:
+            time.sleep(0.8)
+    if not pc:
+        raise RuntimeError("115 转存后未找到文件，请稍后重试（或关闭 115 transfer）")
+    body = "data=" + urllib.parse.quote(p115_encrypt({"pickcode": pc}), safe="")
+    hdr = {"Content-Type": "application/x-www-form-urlencoded",
+           "Cookie": cookie, "User-Agent": UA,
+           "Referer": "https://115.com/", "Origin": "https://115.com"}
+    d, _, _, _ = raw_json(
+        "https://proapi.115.com/app/chrome/downurl?t=%d" % int(time.time()),
+        "POST", body, hdr, timeout=_115_timeout(), form=True)
+    enc = d.get("data")
+    inner = p115_decrypt(enc) if isinstance(enc, str) else \
+        (enc if isinstance(enc, dict) else {})
+    real = _deep_url(inner)
+    if not real:
+        raise RuntimeError("115 未返回直链（Cookie 失效 / 风控 / 需会员）")
+    return {"url": real, "name": target["name"],
+            "header": {"User-Agent": UA, "Referer": "https://115.com/",
+                       "Cookie": cookie}}
+
+
+def _115_resolve(info, fid, acc):
+    method = str(pan_options().get("115Method") or "auto").lower()
+    chain = {"share": ["share"], "transfer": ["transfer"],
+             "auto": ["share", "transfer"]}.get(method, ["share", "transfer"])
+    errs = []
+    for way in chain:
+        try:
+            r = _115_share_resolve(info, fid, acc) if way == "share" \
+                else _115_transfer_resolve(info, fid, acc)
+            if r and r.get("url"):
+                return r
+        except Exception as e:
+            errs.append("%s: %s" % (way, e))
+    return {"error": " | ".join(errs)[:220] or "115 无可用直链"}
+
+
+# ---------------------------------------------------------------- 百度网盘
+# pan/drivers/baidu.js：DLNA 签名免转存直链（原包实测可用）+ 转存 filemetas 直链。
+# 匿名 sharedownload 通道原包注释即「成功率低、常触发 -20 风控」，未移植；
+# 百度直链因此要求 Cookie 里至少含 BDUSS。
+BD_DLNA_UA = "netdisk;P2SP;2.2.91.136;android-android;"
+BD_APP_UA = "netdisk;11.30.2;android-android;13;JSbridge4.4.0"
+BD_DEVUID = "73CED981D0F186D12BC18CAE1684FFD5|VSRCQTF6W"
+BD_CHANNEL = "android_12_zhao_bd-netdisk_1024266h"
+BD_VERSION = "11.30.2"
+BD_SALT_A = "ebrcUYiuxaZv2XGu7KIYKxUrqfnOfpDF"
+BD_SALT_B = BD_DEVUID + BD_VERSION + "ae5821440fab5e1a61a025f014bd8972"
+
+
+def _bd_sha1(s):
+    return hashlib.sha1(str(s).encode("utf-8")).hexdigest()
+
+
+def _bd_logid():
+    ms = int(time.time() * 1000)
+    return "%06d00%08d%04d" % (ms % 1000000, ms % 100000000, ms % 10000)
+
+
+def _bd_pub(jar, bdstoken=""):
+    baiduid = str(jar.get("BAIDUID") or jar.get("BAIDUID_BFESS") or "").strip()
+    logid = base64.b64encode(baiduid.encode("utf-8")).decode("ascii") if baiduid else ""
+    return {"app_id": "250528", "channel": "chunlei", "web": "1",
+            "bdstoken": str(bdstoken or ""), "logid": logid,
+            "clienttype": "0", "dp-logid": _bd_logid()}
+
+
+def _bd_surl(info):
+    raw = str(info.get("share_id") or "")
+    # verify 接口的 surl 必须去掉分享码首位 1（带 1 会 errno=105）
+    return raw, re.sub(r"^1", "", raw)
+
+
+def _bd_headers(jar, ua=None, referer="https://pan.baidu.com/"):
+    return {"User-Agent": ua or UA, "Referer": referer,
+            "Cookie": _cookie_header(jar),
+            "Accept": "application/json, text/plain, */*"}
+
+
+def _bd_verify(info, jar, surl_raw, surl, pwd):
+    t = str(int(time.time() * 1000))
+    p = {"surl": surl, "t": t, "channel": "chunlei", "web": "1", "app_id": "250528"}
+    body = urllib.parse.urlencode({"surl": surl, "pwd": pwd, "t": t,
+                                   "channel": "chunlei", "web": "1", "app_id": "250528"})
+    hdr = _bd_headers(jar, UA, "https://pan.baidu.com/s/%s" % surl_raw)
+    hdr["Content-Type"] = "application/x-www-form-urlencoded"
+    d, hd, _, _ = raw_json(_qs("https://pan.baidu.com/share/verify", p),
+                           "POST", body, hdr, timeout=_115_timeout(), form=True)
+    _merge(jar, hd.get("Set-Cookie") or [])
+    if d.get("errno") not in (None, 0, "0"):
+        raise RuntimeError("百度分享校验失败(errno=%s %s)" %
+                           (d.get("errno"), d.get("errmsg") or d.get("show_msg") or ""))
+    return d
+
+
+def _bd_locals(jar, surl_raw):
+    try:
+        d, hd, _, _ = raw_json(
+            "https://pan.baidu.com/share/locals?surl=" + urllib.parse.quote(surl_raw),
+            "GET", None, _bd_headers(jar, UA, "https://pan.baidu.com/s/%s" % surl_raw),
+            timeout=_115_timeout())
+        _merge(jar, hd.get("Set-Cookie") or [])
+        return d.get("data") or {}
+    except Exception:
+        return {}
+
+
+def _bd_ids(d, lo):
+    sid = str(d.get("shareid") or lo.get("shareid") or "")
+    uk = str(d.get("uk") or d.get("share_uk") or lo.get("share_uk") or "")
+    if not sid or not uk:
+        raise RuntimeError("百度 shareid/uk 缺失（提取码不对或 Cookie 失效）")
+    return sid, uk
+
+
+def _bd_list(jar, sid, uk, bdstoken, dirpath="", depth=0):
+    """baidu.js walkShareFiles：根 root=1，子目录 root=0&dir=路径"""
+    out = []
+    for page in range(1, 4):
+        p = {"web": 1, "app_id": 250528, "channel": "chunlei", "clienttype": 0,
+             "desc": 1, "num": 100, "page": page, "order": "time",
+             "root": 1 if not dirpath else 0,
+             "rnd": str(int(time.time() * 1000))[-8:],
+             "shareid": sid, "uk": uk, "bdstoken": str(bdstoken or "")}
+        if dirpath:
+            p["dir"] = dirpath
+        d, _, _, _ = raw_json(_qs("https://pan.baidu.com/share/list", p),
+                              "GET", None, _bd_headers(jar), timeout=_115_timeout())
+        items = d.get("list") or []
+        for f in items:
+            if not isinstance(f, dict):
+                continue
+            if str(f.get("isdir")) == "1":
+                if depth < 2:
+                    out.extend(_bd_list(jar, sid, uk, bdstoken,
+                                        str(f.get("path") or ""), depth + 1))
+            elif f.get("fs_id"):
+                out.append({"fid": str(f["fs_id"]),
+                            "name": str(f.get("server_filename") or "")})
+        if len(items) < 100:
+            break
+    vids = [f for f in out if VIDEO_RE.search(f["name"])]
+    return (vids or out)[:200]
+
+
+def _bd_uid(cookie):
+    url = ("https://mbd.baidu.com/userx/v1/info/get?appname=baiduboxapp"
+           "&fields=%5B%22uid%22%5D&client&clientfrom&lang=zh-cn&tpl&ttt")
+    try:
+        txt, _, _, _ = http_raw(url, "GET", None,
+                                {"User-Agent": UA, "Cookie": cookie},
+                                timeout=_115_timeout())
+        m = re.search(r'"uid"\s*:\s*"?(\d+)"?', txt)
+        return m.group(1) if m else ""
+    except Exception:
+        return ""
+
+
+def _bd_follow(u, ua=BD_APP_UA):
+    """dlink 会 302 到 CDN；读 Location 拿最终直链"""
+    try:
+        _, hd, _, _ = http_raw(u, "GET", None, {"User-Agent": ua},
+                               timeout=_115_timeout(), follow=False)
+        loc = hd.get("Location") or ""
+        if loc.startswith("http"):
+            return loc
+    except Exception:
+        pass
+    return u
+
+
+def _bd_dlna(info, fid, acc, jar, surl_raw, surl, pwd):
+    bduss = str(jar.get("BDUSS") or "")
+    if not bduss:
+        raise RuntimeError("百度 DLNA 直链需要 Cookie 里含 BDUSS")
+    uid = _bd_uid(_cookie_header(jar))
+    if not uid:
+        raise RuntimeError("百度 uid 获取失败（BDUSS 可能已失效）")
+    d = _bd_verify(info, jar, surl_raw, surl, pwd)
+    sid, uk = _bd_ids(d, _bd_locals(jar, surl_raw))
+    randsk_enc = str(d.get("randsk") or "")
+    target = str(fid or "")
+    if not target:
+        files = _bd_list(jar, sid, uk, d.get("bdstoken") or "")
+        if not files:
+            raise RuntimeError("百度分享中未找到视频文件")
+        target = files[0]["fid"]
+    t = str(int(time.time() * 1000))
+    rand = _bd_sha1(_bd_sha1(bduss) + uid + BD_SALT_A + t + BD_SALT_B)
+    p = {"shareid": sid, "uk": uk, "fid": target, "sekey": randsk_enc,
+         "origin": "dlna", "devuid": BD_DEVUID, "clienttype": 1,
+         "channel": BD_CHANNEL, "version": BD_VERSION, "time": t, "rand": rand}
+    r, _, _, _ = raw_json(_qs("https://pan.baidu.com/share/list", p), "GET", None,
+                          _bd_headers(jar, BD_DLNA_UA), timeout=_115_timeout())
+    if str(r.get("errno") or 0) != "0":
+        raise RuntimeError("百度 DLNA errno=%s %s" %
+                           (r.get("errno"), r.get("show_msg") or r.get("errmsg") or ""))
+    dlink = _deep_url(r, ("dlink", "download_url", "downloadurl", "url"))
+    if not dlink:
+        raise RuntimeError("百度 DLNA 未返回直链")
+    name = ""
+    for it in r.get("list") or []:
+        if isinstance(it, dict) and str(it.get("fs_id") or "") == str(target):
+            name = str(it.get("server_filename") or "")
+            break
+    return {"url": _bd_follow(dlink, BD_DLNA_UA), "name": name,
+            "header": {"User-Agent": BD_DLNA_UA}}
+
+
+def _bd_transfer(info, fid, acc, jar, surl_raw, surl, pwd):
+    """DLNA 失败时的备用：转存到 .tvbox_temp（失败回退根目录）→ filemetas 拿 dlink"""
+    d = _bd_verify(info, jar, surl_raw, surl, pwd)
+    sid, uk = _bd_ids(d, _bd_locals(jar, surl_raw))
+    randsk = urllib.parse.unquote(str(d.get("randsk") or ""))
+    pub = _bd_pub(jar, d.get("bdstoken") or "")
+    files = _bd_list(jar, sid, uk, d.get("bdstoken") or "")
+    target = str(fid) if fid else (files[0]["fid"] if files else "")
+    if not target:
+        raise RuntimeError("百度分享中未找到视频文件")
+    p = dict(pub)
+    p.update({"ondup": "newcopy", "async": "1", "shareid": sid,
+              "from": uk, "sekey": randsk})
+    hdr = _bd_headers(jar, UA, "https://pan.baidu.com/s/%s" % surl_raw)
+    hdr["Content-Type"] = "application/x-www-form-urlencoded"
+    r = None
+    for path in ("/.tvbox_temp", "/"):
+        body = urllib.parse.urlencode({"fsidlist": json.dumps([target]), "path": path})
+        r, _, _, _ = raw_json(_qs("https://pan.baidu.com/share/transfer", p),
+                              "POST", body, hdr, timeout=_115_timeout(), form=True)
+        if r and str(r.get("errno") or 0) == "0":
+            break
+    if not r or str(r.get("errno") or 0) != "0":
+        raise RuntimeError("百度转存失败(errno=%s %s)" %
+                           (r.get("errno") if r else "?",
+                            (r.get("show_msg") or r.get("errmsg") or "") if r else ""))
+    lst = (r.get("extra") or {}).get("list") or []
+    to = str(lst[0].get("to") or "") if lst and isinstance(lst[0], dict) else ""
+    if not to:
+        raise RuntimeError("百度转存结果缺少目标路径")
+    q = dict(pub)
+    q.update({"target": json.dumps([to]), "text": "1", "dlink": "1"})
+    m, _, _, _ = raw_json(_qs("https://pan.baidu.com/api/filemetas", q), "GET", None,
+                          _bd_headers(jar), timeout=_115_timeout())
+    il = m.get("info") or []
+    dlink = str(il[0].get("dlink") or "") if il and isinstance(il[0], dict) else ""
+    dlink = dlink or str(m.get("dlink") or "") or \
+        _deep_url(m, ("dlink", "download_url", "url"))
+    if not dlink:
+        raise RuntimeError("百度 filemetas 未返回直链")
+    return {"url": _bd_follow(dlink, BD_APP_UA), "name": "",
+            "header": {"User-Agent": BD_APP_UA, "Cookie": _cookie_header(jar)}}
+
+
+def _bd_resolve(info, fid, acc):
+    opts = pan_options()
+    method = str(opts.get("baiduMethod") or "auto").lower()
+    if method == "dlna":
+        chain = ["dlna"]
+    elif method == "transfer":
+        chain = ["transfer"]
+    else:
+        chain = ["dlna"] + (["transfer"] if opts.get("baiduTransfer", True) else [])
+    jar = _cookie_kv(str(acc.get("cookie") or ""))
+    surl_raw, surl = _bd_surl(info)
+    pwd = str(info.get("pwd") or "")
+    errs = []
+    for way in chain:
+        try:
+            r = _bd_dlna(info, fid, acc, jar, surl_raw, surl, pwd) if way == "dlna" \
+                else _bd_transfer(info, fid, acc, jar, surl_raw, surl, pwd)
+            if r and r.get("url"):
+                return r
+        except Exception as e:
+            errs.append("%s: %s" % (way, e))
+    return {"error": " | ".join(errs)[:220] or "百度无可用直链"}
+
+
+def _bd_list_files(info, acc):
+    jar = _cookie_kv(str(acc.get("cookie") or ""))
+    surl_raw, surl = _bd_surl(info)
+    pwd = str(info.get("pwd") or "")
+    d = _bd_verify(info, jar, surl_raw, surl, pwd)
+    sid, uk = _bd_ids(d, _bd_locals(jar, surl_raw))
+    return _bd_list(jar, sid, uk, d.get("bdstoken") or "")
+
+
 # ---------------------------------------------------------------- 对外统一入口
 def pan_resolve(info, share_url, fid=""):
     """pan/index.js resolveCore：按网盘类型挑账号 → 驱动换直链。失败返回 None 由上层降级。"""
@@ -911,6 +2069,10 @@ def pan_resolve(info, share_url, fid=""):
             return _ali_resolve(info, fid, acc)
         if typ == "123":
             return _123_resolve(info, fid, acc)
+        if typ == "115":
+            return _115_resolve(info, fid, acc)
+        if typ == "baidu":
+            return _bd_resolve(info, fid, acc)
     except Exception as e:
         return {"error": str(e)}
     return None
@@ -919,6 +2081,13 @@ def pan_resolve(info, share_url, fid=""):
 def pan_list_files(info, share_url):
     """pan.list：列分享目录里的视频文件（配合 pan_options.expandShare 展开多集）"""
     typ = str(info.get("type") or "").lower()
+    if typ == "115":
+        # 115 的 share/snap 是公开接口，不需要账号也能展开分集
+        try:
+            return [{"fid": f["fid"], "name": f["name"]}
+                    for f in _115_files(info, "", pro=False)]
+        except Exception:
+            return []
     acc = pick_account(typ)
     if not acc or typ not in SUPPORTED:
         return []
@@ -929,6 +2098,8 @@ def pan_list_files(info, share_url):
             return _ali_resolve(info, "", acc, list_only=True) or []
         if typ == "123":
             return _123_resolve(info, "", acc, list_only=True) or []
+        if typ == "baidu":
+            return _bd_list_files(info, acc)
     except Exception:
         return []
     return []
@@ -1134,6 +2305,7 @@ class Spider(object):
 
     def init(self, extend=""):
         self.ext_raw = extend
+        set_site_ext(extend)
         e = parse_ext(extend)
         key = str(e.get("key") or "")
         site = next((s for s in SITES if s["key"] == key), None)
