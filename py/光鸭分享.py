@@ -339,7 +339,7 @@ class Spider(Spider):
             tail = line[m.end():].strip()
             toks = tail.split()
             code = toks[0] if toks else ""
-            if not code or len(code) > 12 or "/" in code:
+            if not re.fullmatch(r"[A-Za-z0-9_\-]{1,32}", code):
                 code = ""
             su = self._share_url(url)
             items.append({"name": head or "光鸭分享", "share_url": su or url,
@@ -503,8 +503,9 @@ class Spider(Spider):
         except Exception:
             return ""
 
-    def _pan_files(self, su):
-        sid, code = self._sid(su), self._code(su)
+    def _pan_files(self, su, code_hint=""):
+        sid = self._sid(su)
+        code = code_hint or self._code(su)
         if not sid:
             return []
         tok = self._post_json("/userres/v1/get_share_access_token",
@@ -512,11 +513,16 @@ class Spider(Spider):
                               False, self.pan_host + "/s/" + sid).get("data", {}).get("accessToken", "")
         if not tok:
             return []
-        res, stack, seen = [], [""], set()
-        for _ in range(4):
-            if not stack:
-                break
+        res, stack, seen, seen_dirs = [], [""], set(), set()
+        # 合集分享可能含多个子文件夹：最多展开 30 次目录请求（原来只有 4 次）
+        budget = 30
+        while stack and budget > 0:
+            budget -= 1
             pid = stack.pop(0)
+            if pid and pid in seen_dirs:
+                continue
+            if pid:
+                seen_dirs.add(pid)
             data = self._post_json("/userres/v1/get_share_page_files_list",
                                    {"accessToken": tok, "pageSize": 200, "orderBy": 0,
                                     "sortType": 0, "parentId": pid},
@@ -530,7 +536,8 @@ class Spider(Spider):
                     continue
                 seen.add(fid)
                 if rt == 2:
-                    stack.append(fid)
+                    if fid not in seen_dirs:
+                        stack.append(fid)
                 elif rt == 1 and re.search(r"\.(mp4|mkv|avi|mov|wmv|flv|m4v|ts|m2ts|webm|m3u8)$", name, re.I):
                     g = re.search(r"screenshot-thumbnails/([A-Fa-f0-9]{20,})/",
                                   str(it.get("thumbnail", "")) + str(it.get("gcid", "")))
@@ -689,7 +696,7 @@ class Spider(Spider):
                 o = self._b64d(str(vid)[3:])
                 su = o.get("u", "")
                 nm = o.get("n", "") or "光鸭分享"
-                files = self._pan_files(su)
+                files = self._pan_files(su, o.get("c", "") or "")
                 eps = ["选择剧集$noop"]
                 for i, f in enumerate(files):
                     label = (f.get("fileName") or ("资源%d" % (i + 1))).replace("#", "＃").replace("$", "￥")
