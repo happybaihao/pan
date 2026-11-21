@@ -1,9 +1,3 @@
-# ============================================================
-# NIUC 源 v2 —— 内置代理版
-#   采集站点(rulel.com) / 搜索 / 封面：走播放器内置代理(PG)
-#   6盘(grpcuserapi、drive、登录、播放)：一律直连，不走代理
-#   配置里不需要写任何 IP 或端口
-# ============================================================
 import json
 import hashlib
 import time
@@ -20,21 +14,6 @@ try:
 except ImportError:
     requests = None
 
-# ---------- 播放器基类：内置代理 getProxyUrl() 由它提供 ----------
-try:
-    import os as _os
-    import sys as _sys
-    try:
-        _here = _os.path.dirname(_os.path.abspath(__file__))
-    except Exception:
-        _here = ""
-    for _p in (_here, _os.path.join(_here, "..") if _here else ""):
-        if _p and _p not in _sys.path:
-            _sys.path.append(_p)
-    from base.spider import Spider as _BaseSpider
-except Exception:
-    _BaseSpider = object
-
 try:
     from concurrent.futures import (ThreadPoolExecutor,
         wait as _cf_wait,
@@ -43,282 +22,6 @@ except ImportError:
     ThreadPoolExecutor = None
     _cf_wait = None
     FIRST_COMPLETED = None
-
-# ---------- 内置代理（PG）----------
-# 不填任何 IP / 端口。由播放器内核（PG.jar）注入 getProxyUrl()，
-# 脚本直接拿这条内置通道出网，出口由 App 自己的网络设置决定。
-#   采集站点(rulel.com)：走内置代理
-#   6盘(grpcuserapi / drive)：一律直连，不走代理
-PG_PROXY = {
-    "url": "",
-    "enable": True,
-    "ready": False,
-    "mode": "",
-    # 本机常见代理端口（Clash / v2rayN / PG 内核等），探测时并发实测出网
-    "ports": (
-        2080, 7890, 7891, 7897, 7899, 10809, 10808, 1087, 1086,
-        10172, 20172, 3128, 1080, 8080, 8888, 9090,
-        9978, 9979, 10798, 18080,
-    ),
-    "probed": False,
-}
-
-
-def _pg_set(value):
-    v = str(value or "").strip()
-    if not v:
-        return ""
-    if "://" not in v:
-        v = "http://" + v
-    PG_PROXY["url"] = v
-    PG_PROXY["ready"] = True
-    return v
-
-
-def _pg_url():
-    return PG_PROXY["url"] or ""
-
-
-def _pg_detect(obj=None):
-    """取 App 内置代理地址：先问 App 注入的方法，再兜底探本地端口。"""
-    if not PG_PROXY["enable"]:
-        return ""
-    if PG_PROXY["url"]:
-        return PG_PROXY["url"]
-
-    # 1) 播放器注入的 getProxyUrl / 同类方法
-    owners = []
-    if obj is not None:
-        owners.append(obj)
-        try:
-            owners.append(type(obj))
-        except Exception:
-            pass
-    for owner in owners:
-        for name in ("getProxyUrl", "getProxyAddress", "getProxy"):
-            fn = getattr(owner, name, None)
-            if not callable(fn):
-                continue
-            try:
-                u = _pg_set(fn())
-            except TypeError:
-                continue
-            except Exception:
-                continue
-            if u:
-                return u
-
-    # 2) 兜底：并发探本机代理端口，实测能不能真的出网
-    if PG_PROXY["probed"]:
-        return ""
-    PG_PROXY["probed"] = True
-    return _pg_probe()
-
-
-def _pg_probe_url():
-    """探测目标：拿真实采集接口试，能拉到它的才算可用通道。"""
-    g = globals()
-    base = str(g.get("API") or "")
-    if base:
-        return base.rstrip("/") + "/posts?per_page=1"
-    host = str(g.get("HOST") or "")
-    return host or "https://www.google.com/generate_204"
-
-
-def _pg_probe_one(target, base, mode, timeout):
-    """把某个候选地址按指定用法试一次，成功返回地址。"""
-    try:
-        head = {"User-Agent": "Mozilla/5.0", "Accept": "*/*"}
-        if mode == "http":
-            r = requests.get(target, timeout=timeout, headers=head,
-                proxies={"http": base, "https": base})
-        else:
-            sep = "&" if "?" in base else "?"
-            pre = "&type=text&url=" if mode == "relay" else "&url="
-            q = base + sep + pre.lstrip("&") + urllib.parse.quote(target, safe="")
-            r = requests.get(q, timeout=timeout, headers=head)
-    except Exception:
-        return ""
-    if r.status_code != 200:
-        return ""
-    try:
-        txt = r.text or ""
-    except Exception:
-        return ""
-    if len(txt) < 40:
-        return ""
-    if txt.lstrip()[:1] not in ("{", "["):
-        return ""
-    return base
-
-
-def _pg_probe(ports=None, timeout=1.8):
-    """并发扫本机端口：先按标准 HTTP 代理试，再按播器转发接口试。"""
-    if requests is None or ThreadPoolExecutor is None or _cf_wait is None:
-        return ""
-    target = _pg_probe_url()
-    if not target:
-        return ""
-    try:
-        ports = [int(p) for p in (ports or PG_PROXY["ports"])]
-    except (TypeError, ValueError):
-        ports = [int(p) for p in PG_PROXY["ports"]]
-
-    for mode in ("http", "relay", "app"):
-        bases = []
-        for p in ports:
-            b = "http://127.0.0.1:%d" % p
-            if mode == "relay":
-                b += "/proxy?do=py"
-            elif mode == "app":
-                b += "/proxy"
-            bases.append(b)
-        ex = ThreadPoolExecutor(max_workers=12)
-        futs = {}
-        try:
-            for b in bases:
-                futs[ex.submit(_pg_probe_one, target, b, mode, timeout)] = b
-            pending = set(futs.keys())
-            while pending:
-                done, pending = _cf_wait(pending,
-                    return_when=FIRST_COMPLETED)
-                for f in done:
-                    try:
-                        hit = f.result()
-                    except Exception:
-                        hit = ""
-                    if hit:
-                        PG_PROXY["mode"] = mode
-                        return _pg_set(hit)
-        except Exception:
-            pass
-        finally:
-            ex.shutdown(wait=False)
-    return ""
-
-
-def _pg_app(base, url, timeout):
-    """播放器内置 URL 转发：由 App 自己出网抓取（它的网络设置说了算）。"""
-    try:
-        up = urllib.parse.urlsplit(base)
-        if not up.scheme or not up.netloc:
-            return None
-        root = "%s://%s%s" % (up.scheme, up.netloc, up.path or "/proxy")
-        purl = root + "?url=" + urllib.parse.quote(url, safe="")
-        r = requests.get(purl, timeout=timeout)
-    except Exception:
-        return None
-    if r.status_code != 200:
-        return None
-    try:
-        r.encoding = "utf-8"
-    except Exception:
-        pass
-    return r.text or None
-
-
-def _pg_relay(base, url, timeout, kind="text"):
-    """内置转发接口：/proxy?do=py&type=xxx&url=目标"""
-    sep = "&" if "?" in base else "?"
-    purl = "%s%stype=%s&url=%s" % (
-        base, sep, kind, urllib.parse.quote(url, safe=""))
-    try:
-        r = requests.get(purl, timeout=timeout)
-    except Exception:
-        return None
-    if r.status_code != 200:
-        return None
-    try:
-        r.encoding = "utf-8"
-    except Exception:
-        pass
-    return r.text or None
-
-
-def _pg_http(base, url, timeout):
-    """内置代理是标准 HTTP 代理端口时，直接把请求交给它出网。"""
-    try:
-        up = urllib.parse.urlsplit(base)
-        if not up.scheme or not up.netloc:
-            return None
-        root = "%s://%s" % (up.scheme, up.netloc)
-        r = requests.get(url, headers=_headers(),
-            timeout=min(timeout, 8),
-            proxies={"http": root, "https": root})
-    except Exception:
-        return None
-    if r.status_code != 200:
-        return None
-    try:
-        r.encoding = "utf-8"
-    except Exception:
-        pass
-    return r.text or None
-
-
-def _pg_fetch(url, timeout=20, kind="text"):
-    """经内置代理取内容；不可用时返回 None 交给直连兜底。"""
-    base = _pg_url()
-    if not base or not url or requests is None:
-        return None
-    rounds = [PG_PROXY.get("mode") or ""]
-    if rounds[0]:
-        rounds.append("")
-    for mode in rounds:
-        steps = (
-            ("app", lambda: _pg_app(base, url, timeout)),
-            ("relay", lambda: _pg_relay(base, url, timeout, kind)),
-            ("http", lambda: _pg_http(base, url, timeout)),
-        )
-        for name, fn in steps:
-            if mode and mode != name:
-                continue
-            txt = fn()
-            if txt is not None:
-                PG_PROXY["mode"] = name
-                return txt
-    return None
-
-
-def _proxy_map():
-    # 6盘固定直连：这里永远不返回代理
-    return None
-
-
-def _apply_proxy_ext(ext):
-    """只认内置代理相关配置；ext 里老的 "proxy" 字段一律忽略。"""
-    try:
-        if not isinstance(ext, dict):
-            if isinstance(ext, str) and ext.strip().startswith("{"):
-                ext = json.loads(ext)
-            else:
-                return
-        for _k in ("pg_proxy", "pgProxy", "innerProxy", "inner_proxy"):
-            if ext.get(_k):
-                _pg_set(ext.get(_k))
-                return
-        v = ext.get("pg_enable")
-        if v is not None:
-            PG_PROXY["enable"] = str(v).lower() not in ("0", "false", "no", "off")
-        ports = ext.get("proxy_ports") or ext.get("pg_ports")
-        if ports:
-            if isinstance(ports, (list, tuple)):
-                ps = ports
-            else:
-                ps = re.split(r"[,\s;]+", str(ports))
-            clean = []
-            for p in ps:
-                try:
-                    n = int(str(p).strip())
-                except (TypeError, ValueError):
-                    continue
-                if 1 <= n <= 65535:
-                    clean.append(n)
-            if clean:
-                PG_PROXY["ports"] = tuple(clean)
-    except Exception:
-        pass
-
 
 PAN6_USER = ""#6盘账号
 PAN6_PASS = ""#6盘密码
@@ -615,7 +318,6 @@ class Pan6Spider:
                 extend = {}
         if not isinstance(extend, dict):
             extend = {}
-        _apply_proxy_ext(extend)
         pan6 = extend.get("pan6") if isinstance(extend.get("pan6"), dict) else {}
         self.pan6_user = (
             _to_text(extend.get("pan6User") or extend.get("pan6_user")
@@ -929,12 +631,6 @@ class Pan6Spider:
             self.session.headers.update(_PAN6_SESSION_HEADERS)
             self.s = self.session
             self.sess = self.session
-        # 6盘不走任何代理：清掉会话代理与环境变量代理
-        try:
-            self.session.trust_env = False
-            self.session.proxies.clear()
-        except Exception:
-            pass
         path = "/" + str(method or "").lstrip("/")
         tok = token if token is not None else (self.access_token or "")
         ts = str(int(time.time() * 1000))
@@ -948,12 +644,8 @@ class Pan6Spider:
         last = None
         for i in range(max(1, attempts)):
             try:
-                try:
-                    r = self.session.post(PAN6_API_BASE + path, headers=headers,
-                        data=_p6_frame(msg), timeout=timeout, proxies={})
-                except TypeError:
-                    r = self.session.post(PAN6_API_BASE + path, headers=headers,
-                        data=_p6_frame(msg), timeout=timeout)
+                r = self.session.post(PAN6_API_BASE + path, headers=headers,
+                    data=_p6_frame(msg), timeout=timeout)
                 body, trailers = _p6_parse_grpc_web(r.content or b"")
                 status = (trailers.get("grpc-status")
                     or r.headers.get("grpc-status")
@@ -1751,7 +1443,7 @@ PER_PAGE = 12
 
 CAT_IDS = str(CAT_ID)
 
-PIC_PROXY = {"mode": "pg"}
+PIC_PROXY = {"mode": "wsrv"}
 
 MAGNET_RE = re.compile(r"magnet:\?xt=urn:btih:[A-Za-z0-9]+(?:&[^\s\"'<>）)】]*)?")
 
@@ -1764,8 +1456,7 @@ def _headers():
         "Referer": HOST + "/",
     }
 
-def _direct_get(url, timeout=20, retry=2):
-    """直连取内容（不经过内置代理，避免递归）。"""
+def http_get(url, timeout=20, retry=2):
     last = None
     for i in range(retry + 1):
         try:
@@ -1781,14 +1472,6 @@ def _direct_get(url, timeout=20, retry=2):
             if i < retry:
                 time.sleep(0.8 * (i + 1))
     raise RuntimeError("请求失败: %s (%s)" % (url, last))
-
-
-def http_get(url, timeout=20, retry=2):
-    """采集站点请求：先走 App 内置代理，拿不到再直连兜底。"""
-    txt = _pg_fetch(url, timeout=timeout, kind="text")
-    if txt:
-        return txt
-    return _direct_get(url, timeout=timeout, retry=retry)
 
 def api(path, **params):
     q = urllib.parse.urlencode(params, doseq=True)
@@ -1812,15 +1495,9 @@ def fix_url(url, host=HOST):
 def _proxy_pic(url):
     if not url:
         return ""
-    mode = PIC_PROXY.get("mode", "pg")
+    mode = PIC_PROXY.get("mode", "wsrv")
     if mode == "origin":
         return url
-    if mode == "pg":
-        base = _pg_url()
-        # 标准代理端口没法拼成图片 URL，那种情况走中转折图
-        if base and PG_PROXY.get("mode") != "http":
-            sep = "&" if "?" in base else "?"
-            return base + sep + "type=img&url=" + urllib.parse.quote(url, safe="")
     if mode == "local":
         port = PIC_PROXY.get("port", 9978)
         return "http://127.0.0.1:%s/proxy?url=%s" % (port, urllib.parse.quote(url, safe=""))
@@ -2012,14 +1689,10 @@ def _normalize_param(param):
         param = {}
     return param
 
-class Spider(_BaseSpider):
+class Spider:
     _P6_SEARCH_WAIT = 2.0
 
     def __init__(self):
-        try:
-            _BaseSpider.__init__(self)
-        except Exception:
-            pass
         self.p6 = Pan6Spider()
         self.ua = UA
         self.timeout = 20
@@ -2049,14 +1722,8 @@ class Spider(_BaseSpider):
         except Exception:
             pass
         ext = _normalize_extend(extend)
-        _apply_proxy_ext(ext)
-        # 内置代理：先拿 App 注入的地址，没有就探本地端口
-        try:
-            _pg_detect(self)
-        except Exception:
-            pass
         mode = ext.get("pic_mode")
-        if mode in ("pg", "wsrv", "origin", "local"):
+        if mode in ("wsrv", "origin", "local"):
             PIC_PROXY["mode"] = mode
         port = ext.get("pic_proxy_port") or ext.get("proxy_port")
         if port:
@@ -2225,22 +1892,7 @@ class Spider(_BaseSpider):
                 param = {}
         if not isinstance(param, dict):
             param = {}
-        ptype = str(param.get('type') or '').strip().lower()
         url = param.get('url') or ''
-        # 文本类：采集页 / 接口 JSON，由本代理直取后回传
-        if ptype in ('text', 'json', 'html'):
-            if not url or not url.startswith('http'):
-                return [404, 'text/plain', b'Not Found', {}]
-            try:
-                body = _direct_get(url, timeout=self.timeout, retry=1)
-            except Exception as e:
-                return [502, 'text/plain',
-                    ('proxy error: %s' % e).encode('utf-8'), {}]
-            head = body.lstrip()[:1]
-            mime = ('application/json; charset=utf-8' if head in ('{', '[')
-                else 'text/html; charset=utf-8')
-            return [200, mime, body.encode('utf-8'),
-                {'Access-Control-Allow-Origin': '*'}]
         if '@' in url:
             url = url.split('@', 1)[0]
         if not url or not url.startswith('http'):
