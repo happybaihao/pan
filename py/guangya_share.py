@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import os
 import re, json, base64, sys, time
 import requests
 from urllib.parse import quote, urljoin, urlparse, parse_qs
@@ -30,6 +31,8 @@ class Spider(Spider):
         self.cookie = ""
         self.pan_auth = ""           # 光鸭网盘 access_token（或整段 "Bearer xxx"）
         self.pan_device_id = ""      # 光鸭网盘 X-Device-Id（jar 里是扫码生成的设备ID）
+        self.pan_refresh = ""        # 光鸭网盘 refresh_token（access_token 过期用它续）
+        self.pan_token_file = ""     # 续期后的新 token 落盘位置
         self.comment = "感谢分享资源"
         self.debug = False
         self.auto_comment = False  # 是否允许自动发评论解锁（默认关，需显式开启）
@@ -72,6 +75,10 @@ class Spider(Spider):
                 self.cookie = c.get("cookie", "") or c.get("site_cookie", "") or ""
                 self.pan_auth = c.get("pan_auth", "") or c.get("auth", "") or ""
                 self.pan_device_id = c.get("pan_device_id", "") or c.get("device_id", "") or ""
+                self.pan_refresh = (c.get("pan_refresh_token", "")
+                                    or c.get("refresh_token", "")
+                                    or c.get("pan_refresh", "") or "")
+                self.pan_token_file = c.get("pan_token_file", "") or ""
                 self.comment = c.get("comment", "") or self.comment
                 if c.get("ua"):
                     self.ua = c.get("ua")
@@ -84,6 +91,13 @@ class Spider(Spider):
                 self.use_member = str(c.get("use_member", "1")) != "0"
             except Exception:
                 self.cookie = extend
+
+        # 扫码登录会给 access_token + refresh_token；access_token 会过期，
+        # 有 refresh_token 才能自动续期，否则过期就得重新扫码。
+        if not self.pan_token_file or not os.path.isfile(self.pan_token_file):
+            self._pan_load()
+        elif self._pan_load():
+            pass
 
         self.hdr = {"User-Agent": self.ua, "Accept": "application/json, */*",
                     "Accept-Language": "zh-CN,zh;q=0.9"}
@@ -172,19 +186,134 @@ class Spider(Spider):
             h["Authorization"] = tok if tok.lower().startswith(("bearer ", "basic ")) else "Bearer " + tok
         return h
 
+    # ---------- 登录态续期：access_token 会过期，refresh_token 负责续 ----------
+    GY_CLIENT_ID = "aMe-8VSlkrbQXpUR"
+
+    def _pan_token_paths(self):
+        out = []
+        if self.pan_token_file:
+            out.append(self.pan_token_file)
+        out.extend(["/sdcard/Download/guangya_token.json",
+                    "/sdcard/guangya_token.json",
+                    "/storage/emulated/0/Download/guangya_token.json"])
+        try:
+            out.append(os.path.join(os.getcwd(), "guangya_token.json"))
+        except Exception:
+            pass
+        return out
+
+    def _pan_load(self):
+        """读续期落盘的新 token（扫码/续期后存下来的那份，比 ext 里填的新）。"""
+        for p in self._pan_token_paths():
+            try:
+                if not os.path.isfile(p):
+                    continue
+                with open(p, "r", encoding="utf-8") as f:
+                    d = json.load(f)
+                if not isinstance(d, dict):
+                    continue
+                if d.get("access_token"):
+                    self.pan_auth = d["access_token"]
+                if d.get("refresh_token"):
+                    self.pan_refresh = d["refresh_token"]
+                if d.get("device_id") and not self.pan_device_id:
+                    self.pan_device_id = d["device_id"]
+                if self.pan_auth or self.pan_refresh:
+                    self.pan_token_file = p
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def _pan_save(self):
+        if not (self.pan_auth or self.pan_refresh):
+            return ""
+        data = {"access_token": self.pan_auth, "refresh_token": self.pan_refresh,
+                "device_id": self.pan_device_id, "ts": int(time.time())}
+        for p in self._pan_token_paths():
+            try:
+                d = os.path.dirname(p)
+                if d and not os.path.isdir(d):
+                    continue
+                with open(p, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False)
+                self.pan_token_file = p
+                return p
+            except Exception:
+                continue
+        return ""
+
+    def _pan_refresh_token(self):
+        """用 refresh_token 换新的 access_token（POST account.guangyapan.com/v1/auth/token）。
+        实测：端点同时支持 device_code 换 token 和 refresh_token 续期，
+        参数 grant_type=refresh_token。"""
+        if not self.pan_refresh:
+            return ""
+        h = {"User-Agent": self.ua, "Content-Type": "application/json;charset=UTF-8",
+             "Accept": "application/json, text/plain, */*",
+             "Origin": "https://www.guangyapan.com",
+             "Referer": "https://www.guangyapan.com/",
+             "X-Client-Id": self.GY_CLIENT_ID,
+             "client-id": self.GY_CLIENT_ID}
+        if self.pan_device_id:
+            h["X-Device-Id"] = self.pan_device_id
+        try:
+            r = self.session.post("https://account.guangyapan.com/v1/auth/token",
+                                  headers=h, data=json.dumps({
+                                      "client_id": self.GY_CLIENT_ID,
+                                      "grant_type": "refresh_token",
+                                      "refresh_token": self.pan_refresh}),
+                                  timeout=20, verify=False)
+            j = r.json()
+        except Exception as e:
+            _log(self.debug, "光鸭续期异常:", e)
+            return ""
+        _log(self.debug, "光鸭续期 ->", str(j)[:200])
+        d = j.get("data") if isinstance(j.get("data"), dict) else j
+        at = d.get("access_token") or d.get("accessToken") or ""
+        rt = d.get("refresh_token") or d.get("refreshToken") or ""
+        if not at:
+            return ""
+        self.pan_auth = at
+        if rt:
+            self.pan_refresh = rt
+        self._pan_save()
+        return at
+
+    def _pan_need_refresh(self, r, j):
+        try:
+            code = int(getattr(r, "status_code", 0) or 0)
+        except Exception:
+            code = 0
+        if code in (401, 403):
+            return True
+        s = str(j)[:400].lower()
+        if "token" in s and ("expire" in s or "invalid" in s or "unauthor" in s
+                             or "未登录" in s or "过期" in s):
+            return True
+        return False
+
     # ============ 网盘直连模式（mode=netdisk，绕开站点 WAF/评论墙）============
     def _pan(self, path, data, auth=True):
-        """调用光鸭网盘 API，参数对齐 vox.jar 实证。"""
-        try:
-            url = path if path.startswith("http") else self.pan_api + path
-            r = self.session.post(url, headers=self._pan_headers(auth),
-                                  data=json.dumps(data, ensure_ascii=False), timeout=20)
-            j = r.json()
-            _log(self.debug, "_pan", path, "->", str(j)[:200])
-            return j
-        except Exception as e:
-            _log(self.debug, "_pan 异常:", e)
-            return {}
+        """调用光鸭网盘 API，参数对齐 vox.jar 实证。
+        带 auth 时若返回未登录/过期，会自动用 refresh_token 续期并重试一次。"""
+        url = path if path.startswith("http") else self.pan_api + path
+        for attempt in (0, 1):
+            try:
+                r = self.session.post(url, headers=self._pan_headers(auth),
+                                      data=json.dumps(data, ensure_ascii=False),
+                                      timeout=20, verify=False)
+                j = r.json()
+                _log(self.debug, "_pan", path, "->", str(j)[:200])
+                if (auth and attempt == 0 and (not self.pan_auth
+                                               or self._pan_need_refresh(r, j))):
+                    if self._pan_refresh_token():
+                        continue
+                return j
+            except Exception as e:
+                _log(self.debug, "_pan 异常:", e)
+                return {}
+        return {}
 
     def _pan_authed(self):
         return bool(self.pan_auth)

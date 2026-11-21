@@ -1,4 +1,5 @@
 import json
+import os
 import hashlib
 import time
 import threading
@@ -1763,7 +1764,9 @@ except Exception:
 
 # 没填代理时自动探测这些本地端口（jar 内置代理 / 常见代理软件）
 PKP_PROXY_AUTOS = ("127.0.0.1:10172", "127.0.0.1:7890",
-    "127.0.0.1:7891", "127.0.0.1:1080", "127.0.0.1:8080")
+    "127.0.0.1:7897", "127.0.0.1:7891", "127.0.0.1:1080",
+    "127.0.0.1:10808", "127.0.0.1:10809", "127.0.0.1:2080",
+    "127.0.0.1:8080")
 
 
 def _pkp_split_addr(addr):
@@ -1843,6 +1846,167 @@ def _pkp_socks5(sk, host, port, user="", pwd=""):
         sk.recv(16)
     sk.recv(2)
     return True
+
+
+def _pkp_sk_line(sk, marker=b"\r\n", limit=2048):
+    buf = b""
+    while marker not in buf:
+        try:
+            ch = sk.recv(512)
+        except Exception:
+            break
+        if not ch:
+            break
+        buf += ch
+        if len(buf) > limit:
+            break
+    return buf
+
+
+def _pkp_probe_tunnel(addr, host, port=443, kind="http", timeout=6,
+                      path="/"):
+    """★真通性检验：建隧道 -> 真 TLS 握手 -> 真发一条 HTTP 请求。
+    只看 CONNECT 返回 200 不够（有的本地代理端口通、收下 CONNECT 就断），
+    必须走完 TLS 并拿到 HTTP 状态行才算这条代理真能用。"""
+    if addr:
+        h, p = _pkp_split_addr(addr)
+        if not h or not p:
+            return False, "地址不合法"
+        dial = (h, p)
+    else:
+        dial = (host, port)
+    try:
+        sk = _pkp_socket.create_connection(dial, 3.0)
+    except Exception as e:
+        return False, "端口不通(%s)" % type(e).__name__
+    sk.settimeout(timeout)
+    s2 = None
+    try:
+        if addr and kind == "http":
+            _pkp_http_connect(sk, host, port)
+        elif addr and kind == "socks5":
+            _pkp_socks5(sk, host, port)
+        if port == 443:
+            ctx = _pkp_ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = _pkp_ssl.CERT_NONE
+            s2 = ctx.wrap_socket(sk, server_hostname=host)
+        else:
+            s2 = sk
+        req = ("GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: okhttp/4.12.0\r\n"
+            "Accept: */*\r\nAccept-Encoding: identity\r\n"
+            "Connection: close\r\n\r\n" % (path, host))
+        s2.sendall(req.encode("latin1"))
+        data = b""
+        while len(data) < 4096:
+            try:
+                ch = s2.recv(2048)
+            except Exception:
+                break
+            if not ch:
+                break
+            data += ch
+        if not data:
+            return False, "隧道建了但没回数据"
+        line = data.split(b"\r\n", 1)[0].decode("latin1", "ignore").strip()
+        return True, line[:60] or "有响应"
+    except Exception as e:
+        return False, "%s:%s" % (type(e).__name__, str(e)[:36])
+    finally:
+        for x in (s2, sk):
+            try:
+                if x is not None:
+                    x.close()
+            except Exception:
+                pass
+
+
+def _pkp_probe_forward(addr, url, timeout=5):
+    """按『普通 HTTP 正向代理』试：直接向代理发绝对 URL 的 GET。
+    老式本地代理（有的 jar 内置代理就这么实现）只认这种，不认 CONNECT。"""
+    h, p = _pkp_split_addr(addr)
+    if not h or not p:
+        return False, "地址不合法"
+    try:
+        sk = _pkp_socket.create_connection((h, p), 3.0)
+    except Exception as e:
+        return False, "端口不通(%s)" % type(e).__name__
+    sk.settimeout(timeout)
+    try:
+        sp = urllib.parse.urlsplit(url)
+        req = ("GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: okhttp/4.12.0\r\n"
+            "Accept: */*\r\nConnection: close\r\n\r\n" % (url, sp.netloc))
+        sk.sendall(req.encode("latin1"))
+        data = b""
+        while len(data) < 2048:
+            try:
+                ch = sk.recv(1024)
+            except Exception:
+                break
+            if not ch:
+                break
+            data += ch
+        if not data:
+            return False, "没回数据"
+        line = data.split(b"\r\n", 1)[0].decode("latin1", "ignore").strip()
+        code = line.split(" ")[1] if len(line.split(" ")) > 1 else ""
+        # 假代理会把 CONNECT 那句 "200 Connection established" 原样回给你，
+        # 这种不算正向转发成功
+        ok = (code in ("200", "204", "301", "302", "304", "400", "403", "404")
+            and "connection established" not in line.lower())
+        return ok, line[:60]
+    except Exception as e:
+        return False, "%s:%s" % (type(e).__name__, str(e)[:30])
+    finally:
+        try:
+            sk.close()
+        except Exception:
+            pass
+
+
+def _pkp_probe_pathfwd(addr, target, timeout=5):
+    """按『路径式转发』试：GET http://127.0.0.1:10172/<目标URL>。
+    有些本地服务把代理做成了 /http://xxx 这种转发接口。"""
+    h, p = _pkp_split_addr(addr)
+    if not h or not p:
+        return False, "地址不合法"
+    out = []
+    for path in ("/" + target, "/proxy?url=" + urllib.parse.quote(target, ""),
+                 "/?url=" + urllib.parse.quote(target, "")):
+        try:
+            sk = _pkp_socket.create_connection((h, p), 2.5)
+        except Exception as e:
+            return False, "端口不通(%s)" % type(e).__name__
+        sk.settimeout(timeout)
+        try:
+            req = ("GET %s HTTP/1.1\r\nHost: %s:%d\r\nUser-Agent: okhttp/4.12.0"
+                "\r\nAccept: */*\r\nConnection: close\r\n\r\n"
+                % (path, h, p))
+            sk.sendall(req.encode("latin1"))
+            data = b""
+            while len(data) < 1024:
+                try:
+                    ch = sk.recv(512)
+                except Exception:
+                    break
+                if not ch:
+                    break
+                data += ch
+            if data:
+                line = data.split(b"\r\n", 1)[0].decode("latin1",
+                    "ignore").strip()
+                code = line.split(" ")[1] if len(line.split(" ")) > 1 else ""
+                if (code in ("200", "301", "302")
+                        and "connection established" not in line.lower()):
+                    return True, (path[:16] + " -> " + line[:40])
+        except Exception:
+            pass
+        finally:
+            try:
+                sk.close()
+            except Exception:
+                pass
+    return False, "路径式转发无响应"
 
 
 def _pkp_dechunk(body):
@@ -2029,6 +2193,8 @@ class PikPakSpider:
         self.force_tunnel = False
         self.last_diag = []
         self.proxy_ok = None
+        self.token_file = ""
+        self.use_ext_token = False
         self.play_mode = "auto"
         self.relay_max_mb = PKP_RELAY_MAX_MB
         self.page_size = PKP_PAGE_SIZE
@@ -2132,12 +2298,15 @@ class PikPakSpider:
         self.allow_direct = _to_text(pick("pikpakFallbackDirect",
             "fallback_direct")).lower() not in ("0", "off", "false", "no")
         self.chan = None      # 已验证能用的通道 (kind, addr)
-        self.diag_on = _to_text(pick("pikpakDiag", "diag")).lower() in (
-            "1", "true", "on", "yes")
+        # 默认就显示「PikPak 连接诊断」分类，出问题时点进去能看到每条通道的实测结果
+        self.diag_on = _to_text(pick("pikpakDiag", "diag")).lower() not in (
+            "0", "off", "false", "no")
         # 强制走隧道（代理只支持 CONNECT、或不认绝对 URL 转发时打开）
         self.force_tunnel = _to_text(pick("pikpakForceTunnel",
             "force_tunnel")).lower() in ("1", "true", "on", "yes")
         self.last_diag = []
+        self.dead_rt = ""       # 上次 refresh_token 失效的原因（诊断用）
+        self.bad_chan = {}      # 通道黑名单: (kind,addr) -> 失败时间，10 分钟内跳过
 
         mode = _to_text(pick("pikpakPlayMode", "play_mode")).lower()
         if mode in ("auto", "direct", "proxy", "relay"):
@@ -2160,6 +2329,15 @@ class PikPakSpider:
             self.enable = bool(extend.get("pikpakEnable"))
         if "pikpakSearch" in extend:
             self.enable_search = bool(extend.get("pikpakSearch"))
+        # refresh_token 是一次性轮换的：刷新出来的新值必须落盘，
+        # 否则下次启动还用 ext 里那串旧的，必然掉登录。
+        self.token_file = _to_text(pick("pikpakTokenFile", "token_file"))
+        self.use_ext_token = _to_text(pick("pikpakUseExtToken",
+            "use_ext_token")).lower() in ("1", "true", "on", "yes")
+        if not self.use_ext_token:
+            saved = self._load_token()
+            if saved.get("refresh_token"):
+                self.refresh_token = _to_text(saved.get("refresh_token"))
         if self.device_id == "":
             self.device_id = _pkp_md5("zaka-pikpak|" + (self.username
                 or self.refresh_token[:32] or "device"))
@@ -2563,11 +2741,17 @@ class PikPakSpider:
 
     def _chan_candidates(self):
         out = []
-        if self.chan:
+        now = time.time()
+
+        def _bad(k, a):
+            t = self.bad_chan.get((k, a))
+            return bool(t) and now - t < 600
+
+        if self.chan and not _bad(*self.chan):
             out.append(self.chan)
         for addr in self.proxy_addrs:
             for kind in ("http", "socks5"):
-                if (kind, addr) not in out:
+                if (kind, addr) not in out and not _bad(kind, addr):
                     out.append((kind, addr))
         if self.allow_direct:
             out.append(("direct", ""))
@@ -2584,21 +2768,28 @@ class PikPakSpider:
                 if self.chan != (kind, addr):
                     self.chan = (kind, addr)
                     self.chan_ts = time.time()
+                self.bad_chan.pop((kind, addr), None)
                 return st, h, b
             except Exception as e:
                 errs.append("%s%s:%s" % (kind, ("@" + addr) if addr else "",
                     str(e)[:36]))
                 if self.chan == (kind, addr):
                     self.chan = None
+                # 代理类通道失败就冷却 10 分钟，避免每次点列表都先撞一遍超时
+                if kind != "direct":
+                    self.bad_chan[(kind, addr)] = time.time()
         raise RuntimeError("通道全不通(%s)" % "; ".join(errs[:4]))
 
     def diag(self):
-        """诊断：端口通不通、代理协议对不对、能不能直连"""
+        """诊断：端口通不通、代理到底能不能真转发、能不能直连。
+        2026-11 改：只看 CONNECT 返回 200 会误判（本地端口收下 CONNECT 就断），
+        现在每条通道都做一次真实 TLS + HTTP 请求，拿到状态行才算通。"""
         out = []
         self.last_diag = out
         if _pkp_socket is None:
             out.append("当前环境不支持 socket 直连")
             return out
+        t0 = time.time()
         for addr in self.proxy_addrs:
             h, p = _pkp_split_addr(addr)
             if not h or not p:
@@ -2611,25 +2802,36 @@ class PikPakSpider:
             except Exception as e:
                 out.append("%s 端口不通(%s)" % (addr, type(e).__name__))
                 continue
-            for kind in ("http", "socks5"):
-                try:
-                    sk = _pkp_socket.create_connection((h, p), 2.0)
-                    sk.settimeout(6)
-                    if kind == "http":
-                        _pkp_http_connect(sk, "user.mypikpak.net", 443)
-                    else:
-                        _pkp_socks5(sk, "user.mypikpak.net", 443)
-                    sk.close()
-                    out.append("  %s 隧道可用" % kind)
-                except Exception as e:
-                    out.append("  %s 隧道失败(%s)" % (kind, str(e)[:40]))
-        try:
-            sk = _pkp_socket.create_connection(
-                ("user.mypikpak.net", 443), 5)
-            sk.close()
-            out.append("直连 user.mypikpak.net 通")
-        except Exception as e:
-            out.append("直连 user.mypikpak.net 不通(%s)" % type(e).__name__)
+            ok, msg = _pkp_probe_tunnel(addr, "user.mypikpak.net", 443, "http")
+            out.append("  HTTP隧道%s %s" % ("✅" if ok else "❌", msg))
+            if ok:
+                self.chan = ("http", addr)
+            else:
+                ok2, msg2 = _pkp_probe_tunnel(addr,
+                    "user.mypikpak.net", 443, "socks5")
+                out.append("  SOCKS5%s %s" % ("✅" if ok2 else "❌", msg2))
+                if ok2:
+                    self.chan = ("socks5", addr)
+                if time.time() - t0 < 14:
+                    ok3, msg3 = _pkp_probe_forward(addr,
+                        "http://user.mypikpak.net/")
+                    out.append("  正向转发%s %s" % ("有响应" if ok3 else "无响应",
+                        msg3))
+                    if time.time() - t0 < 16:
+                        ok4, msg4 = _pkp_probe_pathfwd(addr,
+                            "http://user.mypikpak.net/")
+                        out.append("  路径转发%s %s" % ("有响应" if ok4
+                            else "无响应", msg4))
+            if time.time() - t0 > 22:
+                out.append("（探测超时，已跳过剩余地址）")
+                break
+        okd, msgd = _pkp_probe_tunnel("", "user.mypikpak.net", 443, "direct")
+        out.append("直连%s %s" % ("✅" if okd else "❌", msgd))
+        out.append("token落盘：%s" % (self.token_file or "未写入(首次刷新后自动存)"))
+        if self.dead_rt:
+            out.append("上次刷新失败：%s" % self.dead_rt[:50])
+        if not okd:
+            out.append("→ 直连不通时 PikPak 必须靠能真转发的代理")
         return out
 
     def _http(self, method, url, params=None, body=None, headers=None,
@@ -2773,12 +2975,19 @@ class PikPakSpider:
 
     def _err(self, e):
         if isinstance(e, PkpVerifyRequired):
-            return "需要人机验证"
+            return ("PikPak 要求人机验证（这个出口 IP 被风控）。"
+                "换一个出口代理再试，或直接用 refresh_token")
         if isinstance(e, RuntimeError):
             msg = str(e)
-            if "session lock" in msg.lower():
+            low = msg.lower()
+            if "session lock" in low:
                 return ("refresh_token 无效或已过期，请在浏览器里重新取一个"
                     "（%s）" % msg[:60])
+            if "refresh 失败" in msg:
+                return ("旧 refresh_token 已作废，账密登录也没成功：%s"
+                    % msg[:130])
+            if "没有可用凭据" in msg:
+                return "ext 里没填账号密码，也没填 refresh_token"
         if isinstance(e, PkpHttpStatus):
             low = (e.text or "").lower()
             if "domain name is invalid" in low:
@@ -2813,10 +3022,18 @@ class PikPakSpider:
             {"client_id": self.client_id}, body,
             {"User-Agent": self.ua, "X-Device-ID": self.device_id},
             timeout=self.timeout)
+        desc = _to_text(data.get("error_description"))
+        code = _safe_int(data.get("error_code"), 0)
+        if code == 10 or "too frequent" in desc.lower():
+            raise RuntimeError("登录太频繁被限流（%s）；等 20-30 分钟，"
+                "或换一个出口代理再试" % desc[:60])
         url = _to_text(data.get("url"))
         if url:
             raise PkpVerifyRequired(url)
         self.captcha_token = _to_text(data.get("captcha_token"))
+        if not self.captcha_token:
+            raise RuntimeError("验证码接口没给令牌（%s）"
+                % (desc or str(data)[:80]))
         self.captcha_ts = time.time()
         return self.captcha_token
 
@@ -2850,6 +3067,7 @@ class PikPakSpider:
         self.token_ts = time.time()
         if not self.access_token:
             raise RuntimeError("刷新令牌没有返回 access_token")
+        self._save_token()
         return self.access_token
 
     def _login(self):
@@ -2882,16 +3100,86 @@ class PikPakSpider:
         self.token_ts = time.time()
         if not self.access_token:
             raise RuntimeError("登录没有返回 access_token")
+        self._save_token()
         return self.access_token
+
+    # ---------- token 落盘 ----------
+
+    def _token_candidates(self):
+        out = []
+        if self.token_file:
+            out.append(self.token_file)
+        out.extend(["/sdcard/Download/pikpak_token.json",
+            "/sdcard/pikpak_token.json",
+            "/storage/emulated/0/Download/pikpak_token.json"])
+        try:
+            out.append(os.path.join(os.getcwd(), "pikpak_token.json"))
+        except Exception:
+            pass
+        try:
+            out.append(os.path.join(os.path.expanduser("~"),
+                "pikpak_token.json"))
+        except Exception:
+            pass
+        return out
+
+    def _load_token(self):
+        for p in self._token_candidates():
+            try:
+                if not os.path.isfile(p):
+                    continue
+                with open(p, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, dict) and _to_text(
+                        data.get("refresh_token")):
+                    self.token_file = p
+                    return data
+            except Exception:
+                continue
+        return {}
+
+    def _save_token(self):
+        if not self.refresh_token:
+            return ""
+        data = {"refresh_token": self.refresh_token,
+            "user": self.username, "ts": int(time.time())}
+        for p in self._token_candidates():
+            try:
+                d = os.path.dirname(p)
+                if d and not os.path.isdir(d):
+                    continue
+                with open(p, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False)
+                self.token_file = p
+                return p
+            except Exception:
+                continue
+        return ""
 
     def _ensure_token(self, force=False):
         if self.access_token and not force and time.time() \
                 - self.token_ts < PKP_TOKEN_TTL:
             return self.access_token
+        last = None
         if self.refresh_token:
-            return self._refresh(force=force)
+            try:
+                return self._refresh(force=force)
+            except Exception as e:
+                last = e
+                # refresh_token 是一次性轮换的：只要刷失败，多半已经作废，
+                # 留着它只会一直卡在同一处，后面有账密就直接改走登录
+                self.dead_rt = str(e)[:80]
+                if not (self.username and self.password):
+                    raise
+                self.refresh_token = ""
         if self.username and self.password:
-            return self._login()
+            try:
+                return self._login()
+            except Exception as e:
+                if last is not None:
+                    raise RuntimeError("refresh 失败(%s) / 登录失败(%s)"
+                        % (str(last)[:50], str(e)[:70]))
+                raise
         if self.access_token:
             return self.access_token
         raise RuntimeError(self.hint())
