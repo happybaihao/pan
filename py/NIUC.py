@@ -1,5 +1,10 @@
+# ============================================================
+# NIUC 源 v2 —— 内置代理版
+#   采集站点(rulel.com) / 搜索 / 封面：走播放器内置代理(PG)
+#   6盘(grpcuserapi、drive、登录、播放)：一律直连，不走代理
+#   配置里不需要写任何 IP 或端口
+# ============================================================
 import json
-import os
 import hashlib
 import time
 import threading
@@ -15,6 +20,21 @@ try:
 except ImportError:
     requests = None
 
+# ---------- 播放器基类：内置代理 getProxyUrl() 由它提供 ----------
+try:
+    import os as _os
+    import sys as _sys
+    try:
+        _here = _os.path.dirname(_os.path.abspath(__file__))
+    except Exception:
+        _here = ""
+    for _p in (_here, _os.path.join(_here, "..") if _here else ""):
+        if _p and _p not in _sys.path:
+            _sys.path.append(_p)
+    from base.spider import Spider as _BaseSpider
+except Exception:
+    _BaseSpider = object
+
 try:
     from concurrent.futures import (ThreadPoolExecutor,
         wait as _cf_wait,
@@ -23,6 +43,282 @@ except ImportError:
     ThreadPoolExecutor = None
     _cf_wait = None
     FIRST_COMPLETED = None
+
+# ---------- 内置代理（PG）----------
+# 不填任何 IP / 端口。由播放器内核（PG.jar）注入 getProxyUrl()，
+# 脚本直接拿这条内置通道出网，出口由 App 自己的网络设置决定。
+#   采集站点(rulel.com)：走内置代理
+#   6盘(grpcuserapi / drive)：一律直连，不走代理
+PG_PROXY = {
+    "url": "",
+    "enable": True,
+    "ready": False,
+    "mode": "",
+    # 本机常见代理端口（Clash / v2rayN / PG 内核等），探测时并发实测出网
+    "ports": (
+        2080, 7890, 7891, 7897, 7899, 10809, 10808, 1087, 1086,
+        10172, 20172, 3128, 1080, 8080, 8888, 9090,
+        9978, 9979, 10798, 18080,
+    ),
+    "probed": False,
+}
+
+
+def _pg_set(value):
+    v = str(value or "").strip()
+    if not v:
+        return ""
+    if "://" not in v:
+        v = "http://" + v
+    PG_PROXY["url"] = v
+    PG_PROXY["ready"] = True
+    return v
+
+
+def _pg_url():
+    return PG_PROXY["url"] or ""
+
+
+def _pg_detect(obj=None):
+    """取 App 内置代理地址：先问 App 注入的方法，再兜底探本地端口。"""
+    if not PG_PROXY["enable"]:
+        return ""
+    if PG_PROXY["url"]:
+        return PG_PROXY["url"]
+
+    # 1) 播放器注入的 getProxyUrl / 同类方法
+    owners = []
+    if obj is not None:
+        owners.append(obj)
+        try:
+            owners.append(type(obj))
+        except Exception:
+            pass
+    for owner in owners:
+        for name in ("getProxyUrl", "getProxyAddress", "getProxy"):
+            fn = getattr(owner, name, None)
+            if not callable(fn):
+                continue
+            try:
+                u = _pg_set(fn())
+            except TypeError:
+                continue
+            except Exception:
+                continue
+            if u:
+                return u
+
+    # 2) 兜底：并发探本机代理端口，实测能不能真的出网
+    if PG_PROXY["probed"]:
+        return ""
+    PG_PROXY["probed"] = True
+    return _pg_probe()
+
+
+def _pg_probe_url():
+    """探测目标：拿真实采集接口试，能拉到它的才算可用通道。"""
+    g = globals()
+    base = str(g.get("API") or "")
+    if base:
+        return base.rstrip("/") + "/posts?per_page=1"
+    host = str(g.get("HOST") or "")
+    return host or "https://www.google.com/generate_204"
+
+
+def _pg_probe_one(target, base, mode, timeout):
+    """把某个候选地址按指定用法试一次，成功返回地址。"""
+    try:
+        head = {"User-Agent": "Mozilla/5.0", "Accept": "*/*"}
+        if mode == "http":
+            r = requests.get(target, timeout=timeout, headers=head,
+                proxies={"http": base, "https": base})
+        else:
+            sep = "&" if "?" in base else "?"
+            pre = "&type=text&url=" if mode == "relay" else "&url="
+            q = base + sep + pre.lstrip("&") + urllib.parse.quote(target, safe="")
+            r = requests.get(q, timeout=timeout, headers=head)
+    except Exception:
+        return ""
+    if r.status_code != 200:
+        return ""
+    try:
+        txt = r.text or ""
+    except Exception:
+        return ""
+    if len(txt) < 40:
+        return ""
+    if txt.lstrip()[:1] not in ("{", "["):
+        return ""
+    return base
+
+
+def _pg_probe(ports=None, timeout=1.8):
+    """并发扫本机端口：先按标准 HTTP 代理试，再按播器转发接口试。"""
+    if requests is None or ThreadPoolExecutor is None or _cf_wait is None:
+        return ""
+    target = _pg_probe_url()
+    if not target:
+        return ""
+    try:
+        ports = [int(p) for p in (ports or PG_PROXY["ports"])]
+    except (TypeError, ValueError):
+        ports = [int(p) for p in PG_PROXY["ports"]]
+
+    for mode in ("http", "relay", "app"):
+        bases = []
+        for p in ports:
+            b = "http://127.0.0.1:%d" % p
+            if mode == "relay":
+                b += "/proxy?do=py"
+            elif mode == "app":
+                b += "/proxy"
+            bases.append(b)
+        ex = ThreadPoolExecutor(max_workers=12)
+        futs = {}
+        try:
+            for b in bases:
+                futs[ex.submit(_pg_probe_one, target, b, mode, timeout)] = b
+            pending = set(futs.keys())
+            while pending:
+                done, pending = _cf_wait(pending,
+                    return_when=FIRST_COMPLETED)
+                for f in done:
+                    try:
+                        hit = f.result()
+                    except Exception:
+                        hit = ""
+                    if hit:
+                        PG_PROXY["mode"] = mode
+                        return _pg_set(hit)
+        except Exception:
+            pass
+        finally:
+            ex.shutdown(wait=False)
+    return ""
+
+
+def _pg_app(base, url, timeout):
+    """播放器内置 URL 转发：由 App 自己出网抓取（它的网络设置说了算）。"""
+    try:
+        up = urllib.parse.urlsplit(base)
+        if not up.scheme or not up.netloc:
+            return None
+        root = "%s://%s%s" % (up.scheme, up.netloc, up.path or "/proxy")
+        purl = root + "?url=" + urllib.parse.quote(url, safe="")
+        r = requests.get(purl, timeout=timeout)
+    except Exception:
+        return None
+    if r.status_code != 200:
+        return None
+    try:
+        r.encoding = "utf-8"
+    except Exception:
+        pass
+    return r.text or None
+
+
+def _pg_relay(base, url, timeout, kind="text"):
+    """内置转发接口：/proxy?do=py&type=xxx&url=目标"""
+    sep = "&" if "?" in base else "?"
+    purl = "%s%stype=%s&url=%s" % (
+        base, sep, kind, urllib.parse.quote(url, safe=""))
+    try:
+        r = requests.get(purl, timeout=timeout)
+    except Exception:
+        return None
+    if r.status_code != 200:
+        return None
+    try:
+        r.encoding = "utf-8"
+    except Exception:
+        pass
+    return r.text or None
+
+
+def _pg_http(base, url, timeout):
+    """内置代理是标准 HTTP 代理端口时，直接把请求交给它出网。"""
+    try:
+        up = urllib.parse.urlsplit(base)
+        if not up.scheme or not up.netloc:
+            return None
+        root = "%s://%s" % (up.scheme, up.netloc)
+        r = requests.get(url, headers=_headers(),
+            timeout=min(timeout, 8),
+            proxies={"http": root, "https": root})
+    except Exception:
+        return None
+    if r.status_code != 200:
+        return None
+    try:
+        r.encoding = "utf-8"
+    except Exception:
+        pass
+    return r.text or None
+
+
+def _pg_fetch(url, timeout=20, kind="text"):
+    """经内置代理取内容；不可用时返回 None 交给直连兜底。"""
+    base = _pg_url()
+    if not base or not url or requests is None:
+        return None
+    rounds = [PG_PROXY.get("mode") or ""]
+    if rounds[0]:
+        rounds.append("")
+    for mode in rounds:
+        steps = (
+            ("app", lambda: _pg_app(base, url, timeout)),
+            ("relay", lambda: _pg_relay(base, url, timeout, kind)),
+            ("http", lambda: _pg_http(base, url, timeout)),
+        )
+        for name, fn in steps:
+            if mode and mode != name:
+                continue
+            txt = fn()
+            if txt is not None:
+                PG_PROXY["mode"] = name
+                return txt
+    return None
+
+
+def _proxy_map():
+    # 6盘固定直连：这里永远不返回代理
+    return None
+
+
+def _apply_proxy_ext(ext):
+    """只认内置代理相关配置；ext 里老的 "proxy" 字段一律忽略。"""
+    try:
+        if not isinstance(ext, dict):
+            if isinstance(ext, str) and ext.strip().startswith("{"):
+                ext = json.loads(ext)
+            else:
+                return
+        for _k in ("pg_proxy", "pgProxy", "innerProxy", "inner_proxy"):
+            if ext.get(_k):
+                _pg_set(ext.get(_k))
+                return
+        v = ext.get("pg_enable")
+        if v is not None:
+            PG_PROXY["enable"] = str(v).lower() not in ("0", "false", "no", "off")
+        ports = ext.get("proxy_ports") or ext.get("pg_ports")
+        if ports:
+            if isinstance(ports, (list, tuple)):
+                ps = ports
+            else:
+                ps = re.split(r"[,\s;]+", str(ports))
+            clean = []
+            for p in ps:
+                try:
+                    n = int(str(p).strip())
+                except (TypeError, ValueError):
+                    continue
+                if 1 <= n <= 65535:
+                    clean.append(n)
+            if clean:
+                PG_PROXY["ports"] = tuple(clean)
+    except Exception:
+        pass
+
 
 PAN6_USER = ""#6盘账号
 PAN6_PASS = ""#6盘密码
@@ -319,6 +615,7 @@ class Pan6Spider:
                 extend = {}
         if not isinstance(extend, dict):
             extend = {}
+        _apply_proxy_ext(extend)
         pan6 = extend.get("pan6") if isinstance(extend.get("pan6"), dict) else {}
         self.pan6_user = (
             _to_text(extend.get("pan6User") or extend.get("pan6_user")
@@ -632,6 +929,12 @@ class Pan6Spider:
             self.session.headers.update(_PAN6_SESSION_HEADERS)
             self.s = self.session
             self.sess = self.session
+        # 6盘不走任何代理：清掉会话代理与环境变量代理
+        try:
+            self.session.trust_env = False
+            self.session.proxies.clear()
+        except Exception:
+            pass
         path = "/" + str(method or "").lstrip("/")
         tok = token if token is not None else (self.access_token or "")
         ts = str(int(time.time() * 1000))
@@ -645,8 +948,12 @@ class Pan6Spider:
         last = None
         for i in range(max(1, attempts)):
             try:
-                r = self.session.post(PAN6_API_BASE + path, headers=headers,
-                    data=_p6_frame(msg), timeout=timeout)
+                try:
+                    r = self.session.post(PAN6_API_BASE + path, headers=headers,
+                        data=_p6_frame(msg), timeout=timeout, proxies={})
+                except TypeError:
+                    r = self.session.post(PAN6_API_BASE + path, headers=headers,
+                        data=_p6_frame(msg), timeout=timeout)
                 body, trailers = _p6_parse_grpc_web(r.content or b"")
                 status = (trailers.get("grpc-status")
                     or r.headers.get("grpc-status")
@@ -1444,7 +1751,7 @@ PER_PAGE = 12
 
 CAT_IDS = str(CAT_ID)
 
-PIC_PROXY = {"mode": "wsrv"}
+PIC_PROXY = {"mode": "pg"}
 
 MAGNET_RE = re.compile(r"magnet:\?xt=urn:btih:[A-Za-z0-9]+(?:&[^\s\"'<>）)】]*)?")
 
@@ -1457,7 +1764,8 @@ def _headers():
         "Referer": HOST + "/",
     }
 
-def http_get(url, timeout=20, retry=2):
+def _direct_get(url, timeout=20, retry=2):
+    """直连取内容（不经过内置代理，避免递归）。"""
     last = None
     for i in range(retry + 1):
         try:
@@ -1473,6 +1781,14 @@ def http_get(url, timeout=20, retry=2):
             if i < retry:
                 time.sleep(0.8 * (i + 1))
     raise RuntimeError("请求失败: %s (%s)" % (url, last))
+
+
+def http_get(url, timeout=20, retry=2):
+    """采集站点请求：先走 App 内置代理，拿不到再直连兜底。"""
+    txt = _pg_fetch(url, timeout=timeout, kind="text")
+    if txt:
+        return txt
+    return _direct_get(url, timeout=timeout, retry=retry)
 
 def api(path, **params):
     q = urllib.parse.urlencode(params, doseq=True)
@@ -1496,9 +1812,15 @@ def fix_url(url, host=HOST):
 def _proxy_pic(url):
     if not url:
         return ""
-    mode = PIC_PROXY.get("mode", "wsrv")
+    mode = PIC_PROXY.get("mode", "pg")
     if mode == "origin":
         return url
+    if mode == "pg":
+        base = _pg_url()
+        # 标准代理端口没法拼成图片 URL，那种情况走中转折图
+        if base and PG_PROXY.get("mode") != "http":
+            sep = "&" if "?" in base else "?"
+            return base + sep + "type=img&url=" + urllib.parse.quote(url, safe="")
     if mode == "local":
         port = PIC_PROXY.get("port", 9978)
         return "http://127.0.0.1:%s/proxy?url=%s" % (port, urllib.parse.quote(url, safe=""))
@@ -1690,1583 +2012,15 @@ def _normalize_param(param):
         param = {}
     return param
 
-# ===================== PikPak =====================
-
-PKP_BROWSE_PREFIX = "pkp:"
-PKP_FILE_PREFIX = "pkpf:"
-PKP_PROXY_QUERY = "pkp"
-
-PKP_DEFAULT_PROXY = "127.0.0.1:10172"
-PKP_DEFAULT_DOMAIN = "mypikpak.net"
-
-PKP_TOKEN_TTL = 6000
-PKP_LIST_TTL = 45
-PKP_LINK_TTL = 900
-PKP_FAIL_TTL = 20
-PKP_PAGE_SIZE = 60
-PKP_SEARCH_LIMIT = 60
-PKP_RELAY_MAX_MB = 512
-
-PKP_WEB_CID = "YUMx5nI8ZU8Ap8pm"
-PKP_WEB_SEC = "dbw2OtmVEeuUvIptb1Coyg"
-PKP_WEB_VER = "2.0.0"
-PKP_WEB_PKG = "mypikpak.com"
-PKP_WEB_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36")
-
-PKP_AND_CID = "YNxT9w7GMdWvEOKa"
-PKP_AND_SEC = "dbw2OtmVEeuUvIptb1Coyg"
-PKP_AND_VER = "1.53.2"
-PKP_AND_PKG = "com.pikcloud.pikpak"
-
-PKP_PC_CID = "YvtoWO6GNHiuCl7x"
-PKP_PC_SEC = "1NIH5R1IEe2pAxZE3hv3uA"
-PKP_PC_VER = "undefined"
-PKP_PC_PKG = "mypikpak.com"
-
-PKP_ALGS_WEB = ("C9qPpZLN8ucRTaTiUMWYS9cQvWOE", "+r6CQVxjzJV6LCV", "F",
-    "pFJRC", "9WXYIDGrwTCz2OiVlgZa90qpECPD6olt", "/750aCr4lm/Sly/c",
-    "RB+DT/gZCrbV", "", "CyLsf7hdkIRxRm215hl", "7xHvLi2tOYP0Y92b",
-    "ZGTXXxu8E/MIWaEDB+Sm/", "1UI3",
-    "E7fP5Pfijd+7K+t6Tg/NhuLq0eEUVChpJSkrKxpO",
-    "ihtqpG6FMt65+Xk+tWUH2", "NhXXU9rg4XXdzo7u5o")
-
-PKP_ALGS_AND = ("SOP04dGzk0TNO7t7t9ekDbAmx+eq0OI1ovEx",
-    "nVBjhYiND4hZ2NCGyV5beamIr7k6ifAsAbl",
-    "Ddjpt5B/Cit6EDq2a6cXgxY9lkEIOw4yC1GDF28KrA",
-    "VVCogcmSNIVvgV6U+AochorydiSymi68YVNGiz",
-    "u5ujk5sM62gpJOsB/1Gu/zsfgfZO", "dXYIiBOAHZgzSruaQ2Nhrqc2im",
-    "z5jUTBSIpBN9g4qSJGlidNAutX6", "KJE2oveZ34du/g1tiimm")
-
-PKP_ALGS_PC = ("KHBJ07an7ROXDoK7Db", "G6n399rSWkl7WcQmw5rpQInurc1DkLmLJqE",
-    "JZD1A3M4x+jBFN62hkr7VDhkkZxb9g3rWqRZqFAAb",
-    "fQnw/AmSlbbI91Ik15gpddGgyU7U", "/Dv9JdPYSj3sHiWjouR95NTQff",
-    "yGx2zuTjbWENZqecNI+edrQgqmZKP", "ljrbSzdHLwbqcRn",
-    "lSHAsqCkGDGxQqqwrVu", "TsWXI81fD1", "vk7hBjawK/rOSrSWajtbMk95nfgf3")
-
-PKP_VIDEO_MIME = ("video/", "application/vnd.apple.mpegurl")
-
-
-try:
-    import socks as _pkp_socks  # noqa: F401
-    _PKP_HAS_SOCKS = True
-except Exception:
-    _PKP_HAS_SOCKS = False
-
-try:
-    import socket as _pkp_socket
-    import ssl as _pkp_ssl
-    import zlib as _pkp_zlib
-except Exception:
-    _pkp_socket = None
-    _pkp_ssl = None
-    _pkp_zlib = None
-
-# 没填代理时自动探测这些本地端口（jar 内置代理 / 常见代理软件）
-PKP_PROXY_AUTOS = ("127.0.0.1:10172", "127.0.0.1:7890",
-    "127.0.0.1:7897", "127.0.0.1:7891", "127.0.0.1:1080",
-    "127.0.0.1:10808", "127.0.0.1:10809", "127.0.0.1:2080",
-    "127.0.0.1:8080")
-
-
-def _pkp_split_addr(addr):
-    """'127.0.0.1:10172' / 'http://1.2.3.4:8080' -> (host, port)"""
-    a = re.sub(r"^[a-zA-Z0-9]+://", "", _to_text(addr)).strip().strip("/")
-    if not a:
-        return ("", 0)
-    if a.count(":") == 1:
-        h, p = a.split(":")
-        try:
-            return (h.strip() or "127.0.0.1", int(p))
-        except Exception:
-            return (h.strip(), 0)
-    return (a, 0)
-
-
-def _pkp_read_until(sk, marker, limit=8192):
-    buf = b""
-    while marker not in buf:
-        try:
-            chunk = sk.recv(2048)
-        except Exception:
-            break
-        if not chunk:
-            break
-        buf += chunk
-        if len(buf) > limit:
-            break
-    return buf
-
-
-def _pkp_http_connect(sk, host, port):
-    """标准 HTTP 代理 CONNECT 隧道（https 走这条）"""
-    req = ("CONNECT %s:%d HTTP/1.1\r\nHost: %s:%d\r\n"
-        "Proxy-Connection: keep-alive\r\nUser-Agent: okhttp/4.12.0\r\n\r\n"
-        % (host, port, host, port))
-    sk.sendall(req.encode("latin1"))
-    head = _pkp_read_until(sk, b"\r\n\r\n")
-    line = head.split(b"\r\n", 1)[0].decode("latin1", "ignore")
-    parts = line.split(" ")
-    if len(parts) >= 2 and parts[1] == "200":
-        return True
-    raise RuntimeError("隧道被拒:%s" % line[:50])
-
-
-def _pkp_socks5(sk, host, port, user="", pwd=""):
-    """纯 socket 版 SOCKS5，壳里没装 PySocks 也能用"""
-    sk.sendall(b"\x05\x02\x00\x02" if user else b"\x05\x01\x00")
-    rep = sk.recv(2)
-    if len(rep) < 2 or rep[0] != 0x05:
-        raise RuntimeError("SOCKS5无响应")
-    if rep[1] == 0x02:
-        u = user.encode("utf-8")
-        p = pwd.encode("utf-8")
-        sk.sendall(b"\x01" + bytes([len(u)]) + u + bytes([len(p)]) + p)
-        r = sk.recv(2)
-        if len(r) < 2 or r[1] != 0:
-            raise RuntimeError("SOCKS5认证失败")
-    elif rep[1] != 0x00:
-        raise RuntimeError("SOCKS5不接受无认证(0x%02x)" % rep[1])
-    hb = host.encode("idna")
-    sk.sendall(b"\x05\x01\x00\x03" + bytes([len(hb)]) + hb
-        + struct.pack(">H", int(port)))
-    rep = sk.recv(4)
-    if len(rep) < 4:
-        raise RuntimeError("SOCKS5连接无响应")
-    if rep[1] != 0x00:
-        raise RuntimeError("SOCKS5连接失败(code=%d)" % rep[1])
-    atyp = rep[3]
-    if atyp == 1:
-        sk.recv(4)
-    elif atyp == 3:
-        n = sk.recv(1)
-        if n:
-            sk.recv(n[0])
-    elif atyp == 4:
-        sk.recv(16)
-    sk.recv(2)
-    return True
-
-
-def _pkp_sk_line(sk, marker=b"\r\n", limit=2048):
-    buf = b""
-    while marker not in buf:
-        try:
-            ch = sk.recv(512)
-        except Exception:
-            break
-        if not ch:
-            break
-        buf += ch
-        if len(buf) > limit:
-            break
-    return buf
-
-
-def _pkp_probe_tunnel(addr, host, port=443, kind="http", timeout=6,
-                      path="/"):
-    """★真通性检验：建隧道 -> 真 TLS 握手 -> 真发一条 HTTP 请求。
-    只看 CONNECT 返回 200 不够（有的本地代理端口通、收下 CONNECT 就断），
-    必须走完 TLS 并拿到 HTTP 状态行才算这条代理真能用。"""
-    if addr:
-        h, p = _pkp_split_addr(addr)
-        if not h or not p:
-            return False, "地址不合法"
-        dial = (h, p)
-    else:
-        dial = (host, port)
-    try:
-        sk = _pkp_socket.create_connection(dial, 3.0)
-    except Exception as e:
-        return False, "端口不通(%s)" % type(e).__name__
-    sk.settimeout(timeout)
-    s2 = None
-    try:
-        if addr and kind == "http":
-            _pkp_http_connect(sk, host, port)
-        elif addr and kind == "socks5":
-            _pkp_socks5(sk, host, port)
-        if port == 443:
-            ctx = _pkp_ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = _pkp_ssl.CERT_NONE
-            s2 = ctx.wrap_socket(sk, server_hostname=host)
-        else:
-            s2 = sk
-        req = ("GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: okhttp/4.12.0\r\n"
-            "Accept: */*\r\nAccept-Encoding: identity\r\n"
-            "Connection: close\r\n\r\n" % (path, host))
-        s2.sendall(req.encode("latin1"))
-        data = b""
-        while len(data) < 4096:
-            try:
-                ch = s2.recv(2048)
-            except Exception:
-                break
-            if not ch:
-                break
-            data += ch
-        if not data:
-            return False, "隧道建了但没回数据"
-        line = data.split(b"\r\n", 1)[0].decode("latin1", "ignore").strip()
-        return True, line[:60] or "有响应"
-    except Exception as e:
-        return False, "%s:%s" % (type(e).__name__, str(e)[:36])
-    finally:
-        for x in (s2, sk):
-            try:
-                if x is not None:
-                    x.close()
-            except Exception:
-                pass
-
-
-def _pkp_probe_forward(addr, url, timeout=5):
-    """按『普通 HTTP 正向代理』试：直接向代理发绝对 URL 的 GET。
-    老式本地代理（有的 jar 内置代理就这么实现）只认这种，不认 CONNECT。"""
-    h, p = _pkp_split_addr(addr)
-    if not h or not p:
-        return False, "地址不合法"
-    try:
-        sk = _pkp_socket.create_connection((h, p), 3.0)
-    except Exception as e:
-        return False, "端口不通(%s)" % type(e).__name__
-    sk.settimeout(timeout)
-    try:
-        sp = urllib.parse.urlsplit(url)
-        req = ("GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: okhttp/4.12.0\r\n"
-            "Accept: */*\r\nConnection: close\r\n\r\n" % (url, sp.netloc))
-        sk.sendall(req.encode("latin1"))
-        data = b""
-        while len(data) < 2048:
-            try:
-                ch = sk.recv(1024)
-            except Exception:
-                break
-            if not ch:
-                break
-            data += ch
-        if not data:
-            return False, "没回数据"
-        line = data.split(b"\r\n", 1)[0].decode("latin1", "ignore").strip()
-        code = line.split(" ")[1] if len(line.split(" ")) > 1 else ""
-        # 假代理会把 CONNECT 那句 "200 Connection established" 原样回给你，
-        # 这种不算正向转发成功
-        ok = (code in ("200", "204", "301", "302", "304", "400", "403", "404")
-            and "connection established" not in line.lower())
-        return ok, line[:60]
-    except Exception as e:
-        return False, "%s:%s" % (type(e).__name__, str(e)[:30])
-    finally:
-        try:
-            sk.close()
-        except Exception:
-            pass
-
-
-def _pkp_probe_pathfwd(addr, target, timeout=5):
-    """按『路径式转发』试：GET http://127.0.0.1:10172/<目标URL>。
-    有些本地服务把代理做成了 /http://xxx 这种转发接口。"""
-    h, p = _pkp_split_addr(addr)
-    if not h or not p:
-        return False, "地址不合法"
-    out = []
-    for path in ("/" + target, "/proxy?url=" + urllib.parse.quote(target, ""),
-                 "/?url=" + urllib.parse.quote(target, "")):
-        try:
-            sk = _pkp_socket.create_connection((h, p), 2.5)
-        except Exception as e:
-            return False, "端口不通(%s)" % type(e).__name__
-        sk.settimeout(timeout)
-        try:
-            req = ("GET %s HTTP/1.1\r\nHost: %s:%d\r\nUser-Agent: okhttp/4.12.0"
-                "\r\nAccept: */*\r\nConnection: close\r\n\r\n"
-                % (path, h, p))
-            sk.sendall(req.encode("latin1"))
-            data = b""
-            while len(data) < 1024:
-                try:
-                    ch = sk.recv(512)
-                except Exception:
-                    break
-                if not ch:
-                    break
-                data += ch
-            if data:
-                line = data.split(b"\r\n", 1)[0].decode("latin1",
-                    "ignore").strip()
-                code = line.split(" ")[1] if len(line.split(" ")) > 1 else ""
-                if (code in ("200", "301", "302")
-                        and "connection established" not in line.lower()):
-                    return True, (path[:16] + " -> " + line[:40])
-        except Exception:
-            pass
-        finally:
-            try:
-                sk.close()
-            except Exception:
-                pass
-    return False, "路径式转发无响应"
-
-
-def _pkp_dechunk(body):
-    out = b""
-    i = 0
-    while True:
-        j = body.find(b"\r\n", i)
-        if j < 0:
-            break
-        try:
-            n = int((body[i:j].split(b";")[0].strip() or b"0"), 16)
-        except Exception:
-            break
-        if n <= 0:
-            break
-        out += body[j + 2:j + 2 + n]
-        i = j + 2 + n + 2
-    return out
-
-
-def _pkp_parse_resp(data):
-    head, _sep, body = data.partition(b"\r\n\r\n")
-    lines = head.split(b"\r\n")
-    status = 0
-    try:
-        status = int(lines[0].split(b" ")[1])
-    except Exception:
-        status = 0
-    hdrs = {}
-    for ln in lines[1:]:
-        if b":" in ln:
-            k, v = ln.split(b":", 1)
-            hdrs[k.decode("latin1").strip().lower()] = \
-                v.decode("latin1").strip()
-    if "chunked" in hdrs.get("transfer-encoding", "").lower():
-        body = _pkp_dechunk(body)
-    if "gzip" in hdrs.get("content-encoding", "").lower() and _pkp_zlib:
-        try:
-            body = _pkp_zlib.decompress(body, 16 + _pkp_zlib.MAX_WBITS)
-        except Exception:
-            pass
-    return status, hdrs, body
-
-
-def _pkp_sk_http(method, url, headers=None, body=None, timeout=20,
-                 proxy="", kind="direct", max_bytes=0):
-    """不依赖 requests 的 HTTP(S) 客户端，支持 direct / http 隧道 / socks5。
-    kind: direct | http | socks5"""
-    if _pkp_socket is None:
-        raise RuntimeError("当前环境不支持 socket")
-    sp = urllib.parse.urlsplit(url)
-    scheme = (sp.scheme or "http").lower()
-    host = sp.hostname or ""
-    port = sp.port or (443 if scheme == "https" else 80)
-    path = sp.path or "/"
-    if sp.query:
-        path += "?" + sp.query
-    if not host:
-        raise RuntimeError("URL 无效")
-
-    if proxy:
-        ph, pp = _pkp_split_addr(proxy)
-        if not ph or not pp:
-            raise RuntimeError("代理地址不对")
-        sk = _pkp_socket.create_connection((ph, pp), timeout)
-    else:
-        sk = _pkp_socket.create_connection((host, port), timeout)
-    sk.settimeout(timeout)
-    try:
-        if proxy and kind in ("http", "https"):
-            _pkp_http_connect(sk, host, port)
-        elif proxy and kind in ("socks5", "socks5h"):
-            _pkp_socks5(sk, host, port)
-        if scheme == "https":
-            ctx = _pkp_ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = _pkp_ssl.CERT_NONE
-            sk = ctx.wrap_socket(sk, server_hostname=host)
-
-        hdrs = {
-            "Host": host if port in (80, 443) else "%s:%d" % (host, port),
-            "Connection": "close",
-            "Accept-Encoding": "identity",
-        }
-        if body is not None:
-            hdrs["Content-Length"] = str(len(body))
-        hdrs.update(headers or {})
-        lines = ["%s %s HTTP/1.1" % (method, path)]
-        for k, v in hdrs.items():
-            if v is None:
-                continue
-            lines.append("%s: %s" % (k, v))
-        req = ("\r\n".join(lines) + "\r\n\r\n").encode("utf-8")
-        sk.sendall(req + (body or b""))
-
-        data = b""
-        while True:
-            try:
-                chunk = sk.recv(65536)
-            except Exception:
-                break
-            if not chunk:
-                break
-            data += chunk
-            if max_bytes and len(data) >= max_bytes + 512:
-                break
-        status, h, b = _pkp_parse_resp(data)
-        if max_bytes:
-            b = b[:max_bytes]
-        return status, h, b
-    finally:
-        try:
-            sk.close()
-        except Exception:
-            pass
-
-
-class PkpHttpStatus(Exception):
-    def __init__(self, code, text):
-        Exception.__init__(self, "HTTP %s" % code)
-        self.code = code
-        self.text = text
-
-
-class PkpVerifyRequired(Exception):
-    def __init__(self, url):
-        Exception.__init__(self, url)
-        self.url = url
-
-
-def _pkp_md5(s):
-    return hashlib.md5(str(s or "").encode("utf-8")).hexdigest()
-
-
-def _pkp_sha1(s):
-    return hashlib.sha1(str(s or "").encode("utf-8")).hexdigest()
-
-
-def _pkp_day(s):
-    s = _to_text(s)
-    if not s:
-        return ""
-    return s[:10]
-
-
-def _pkp_join_size(v):
-    try:
-        return _format_size(int(str(v or "0")))
-    except Exception:
-        return _to_text(v)
-
-
-class PikPakSpider:
-    """PikPak 网盘：浏览 / 详情 / 搜索 / 播放，全部支持走本地代理。"""
-
-    def __init__(self):
-        self.refresh_token = ""
-        self.access_token = ""
-        self.username = ""
-        self.password = ""
-        self.user_id = ""
-        self.captcha_token = ""
-        self.captcha_ts = 0.0
-        self.token_ts = 0.0
-        self.device_id = ""
-        self.client_id = PKP_WEB_CID
-        self.client_secret = PKP_WEB_SEC
-        self.client_version = PKP_WEB_VER
-        self.package_name = PKP_WEB_PKG
-        self.algorithms = PKP_ALGS_WEB
-        self.ua = PKP_WEB_UA
-        self.domain = PKP_DEFAULT_DOMAIN
-        self.user_base = ""
-        self.drive_base = ""
-        self.proxy = PKP_DEFAULT_PROXY
-        self.proxy_type = "auto"
-        self.proxy_addrs = list(PKP_PROXY_AUTOS)
-        self.proxy_user = ""
-        self.proxy_pass = ""
-        self.allow_direct = True
-        self.chan = None
-        self.chan_ts = 0.0
-        self.diag_on = False
-        self.force_tunnel = False
-        self.last_diag = []
-        self.proxy_ok = None
-        self.token_file = ""
-        self.use_ext_token = False
-        self.play_mode = "auto"
-        self.relay_max_mb = PKP_RELAY_MAX_MB
-        self.page_size = PKP_PAGE_SIZE
-        self.share_root = ""
-        self.enable = True
-        self.enable_search = True
-        self.timeout = 20
-        self.last_error = ""
-        self._list_cache = {}
-        self._probe_cache = {}
-        self._link_cache = {}
-        self._fail = {}
-        self._lock = threading.RLock()
-
-    # ---------- 对外接口 ----------
-
-    def getName(self):
-        return "PikPak"
-
-    def getDependence(self):
-        return []
-
-    def init(self, extend=""):
-        if isinstance(extend, str) and extend.strip().startswith("{"):
-            try:
-                extend = json.loads(extend)
-            except Exception:
-                extend = {}
-        if not isinstance(extend, dict):
-            extend = {}
-        cfg = extend.get("pikpak")
-        if not isinstance(cfg, dict):
-            cfg = {}
-
-        def pick(*keys):
-            for k in keys:
-                v = extend.get(k)
-                if v not in (None, ""):
-                    return v
-                v = cfg.get(k)
-                if v not in (None, ""):
-                    return v
-            return ""
-
-        self.refresh_token = _to_text(pick("pikpakRefreshToken", "pikpakToken",
-            "pikpakRefresh", "refresh_token"))
-        self.username = _to_text(pick("pikpakUser", "pikpakUsername",
-            "pikpakAccount", "username"))
-        self.password = _to_text(pick("pikpakPass", "pikpakPassword",
-            "password"))
-        self.access_token = _to_text(pick("pikpakAccessToken", "access_token"))
-        self.device_id = _to_text(pick("pikpakDeviceId", "device_id"))
-        self.user_id = _to_text(pick("pikpakUserId", "user_id"))
-        self.share_root = _to_text(pick("pikpakRootId", "pikpakRoot",
-            "root_id"))
-
-        platform = _to_text(pick("pikpakPlatform", "platform")).lower()
-        if platform == "android":
-            self.client_id = PKP_AND_CID
-            self.client_secret = PKP_AND_SEC
-            self.client_version = PKP_AND_VER
-            self.package_name = PKP_AND_PKG
-            self.algorithms = PKP_ALGS_AND
-        elif platform == "pc":
-            self.client_id = PKP_PC_CID
-            self.client_secret = PKP_PC_SEC
-            self.client_version = PKP_PC_VER
-            self.package_name = PKP_PC_PKG
-            self.algorithms = PKP_ALGS_PC
-
-        dom = _to_text(pick("pikpakDomain", "pikpakApiDomain", "api_domain"))
-        if dom:
-            self.domain = re.sub(r"^https?://", "", dom).strip("/")
-        self.user_base = _to_text(pick("pikpakUserBase", "user_base"))
-        self.drive_base = _to_text(pick("pikpakDriveBase", "drive_base"))
-        if not self.user_base:
-            self.user_base = "https://user." + self.domain
-        if not self.drive_base:
-            self.drive_base = "https://api-drive." + self.domain
-        self.user_base = self.user_base.rstrip("/")
-        self.drive_base = self.drive_base.rstrip("/")
-
-        raw_proxy = _to_text(pick("pikpakProxy", "proxy")).strip()
-        ptype = _to_text(pick("pikpakProxyType", "proxy_type")).lower()
-        if ptype in ("http", "socks5", "socks5h", "socks4", "none", "off"):
-            self.proxy_type = ptype
-        self.proxy_user = _to_text(pick("pikpakProxyUser", "proxy_user"))
-        self.proxy_pass = _to_text(pick("pikpakProxyPass", "proxy_pass"))
-        low_proxy = raw_proxy.lower()
-        if self.proxy_type in ("none", "off") or low_proxy in (
-                "off", "none", "no", "0", "false"):
-            self.proxy_addrs = []
-        elif raw_proxy and low_proxy not in ("auto", "default"):
-            # 支持逗号/分号/空格分隔多个地址，按顺序试
-            self.proxy_addrs = [x for x in re.split(r"[,;\s]+", raw_proxy) if x]
-        else:
-            # 没填：自动探测常见本地端口（10172 = jar 内置代理）
-            self.proxy_addrs = list(PKP_PROXY_AUTOS)
-        self.proxy = self.proxy_addrs[0] if self.proxy_addrs else ""
-        # 代理全挂时是否回退直连（默认开，否则一次失败就整个网盘空白）
-        self.allow_direct = _to_text(pick("pikpakFallbackDirect",
-            "fallback_direct")).lower() not in ("0", "off", "false", "no")
-        self.chan = None      # 已验证能用的通道 (kind, addr)
-        # 默认就显示「PikPak 连接诊断」分类，出问题时点进去能看到每条通道的实测结果
-        self.diag_on = _to_text(pick("pikpakDiag", "diag")).lower() not in (
-            "0", "off", "false", "no")
-        # 强制走隧道（代理只支持 CONNECT、或不认绝对 URL 转发时打开）
-        self.force_tunnel = _to_text(pick("pikpakForceTunnel",
-            "force_tunnel")).lower() in ("1", "true", "on", "yes")
-        self.last_diag = []
-        self.dead_rt = ""       # 上次 refresh_token 失效的原因（诊断用）
-        self.bad_chan = {}      # 通道黑名单: (kind,addr) -> 失败时间，10 分钟内跳过
-
-        mode = _to_text(pick("pikpakPlayMode", "play_mode")).lower()
-        if mode in ("auto", "direct", "proxy", "relay"):
-            self.play_mode = "proxy" if mode == "relay" else mode
-
-        for key, attr, lo, hi in (
-            ("pikpakRelayMaxMB", "relay_max_mb", 0, 8192),
-            ("pikpakPageSize", "page_size", 10, 200),
-            ("pikpakTimeout", "timeout", 5, 120),
-        ):
-            val = extend.get(key, cfg.get(key))
-            if val in (None, ""):
-                continue
-            try:
-                setattr(self, attr, max(lo, min(hi, int(val))))
-            except Exception:
-                pass
-
-        if "pikpakEnable" in extend:
-            self.enable = bool(extend.get("pikpakEnable"))
-        if "pikpakSearch" in extend:
-            self.enable_search = bool(extend.get("pikpakSearch"))
-        # refresh_token 是一次性轮换的：刷新出来的新值必须落盘，
-        # 否则下次启动还用 ext 里那串旧的，必然掉登录。
-        self.token_file = _to_text(pick("pikpakTokenFile", "token_file"))
-        self.use_ext_token = _to_text(pick("pikpakUseExtToken",
-            "use_ext_token")).lower() in ("1", "true", "on", "yes")
-        if not self.use_ext_token:
-            saved = self._load_token()
-            if saved.get("refresh_token"):
-                self.refresh_token = _to_text(saved.get("refresh_token"))
-        if self.device_id == "":
-            self.device_id = _pkp_md5("zaka-pikpak|" + (self.username
-                or self.refresh_token[:32] or "device"))
-        return None
-
-    def ready(self):
-        if not self.enable:
-            return False
-        return bool(self.refresh_token or (self.username and self.password)
-            or self.access_token)
-
-    def hint(self):
-        if not self.enable:
-            return "PikPak 已关闭（ext 里设置 pikpakEnable:false 关闭的）"
-        return ("PikPak 未配置账号：ext 里填 pikpakRefreshToken"
-            "（浏览器登录 mypikpak.com 后从 cookie 里取 refresh_token）")
-
-    # ---------- 分类 / 列表 ----------
-
-    def homeContent(self, filter=None):
-        cls = [{"type_id": PKP_BROWSE_PREFIX + "root",
-            "type_name": "PikPak 全部文件"}]
-        if self.diag_on:
-            cls.append({"type_id": PKP_BROWSE_PREFIX + "diag",
-                "type_name": "PikPak 连接诊断"})
-        return {"class": cls, "filters": {}}
-
-    def homeVideoContent(self):
-        return {"list": []}
-
-    def categoryContent(self, tid, pg=1, filter=None, extend=None):
-        page = max(1, _safe_int(pg, 1))
-        head = _to_text(tid)
-        if head == PKP_BROWSE_PREFIX + "diag":
-            rows = self.diag() or ["无诊断信息"]
-            out = [{"vod_id": "pkp:diag:%d" % i,
-                    "vod_name": "%02d. %s" % (i + 1, t),
-                    "vod_remarks": "诊断", "ratio": 1.33}
-                for i, t in enumerate(rows)]
-            return {"list": out, "page": 1, "pagecount": 1,
-                "limit": len(out), "total": len(out)}
-        if not self.ready():
-            return {"list": [], "page": page, "pagecount": 1,
-                "limit": self.page_size, "total": 0, "msg": self.hint()}
-        parent = ""
-        if head.startswith(PKP_BROWSE_PREFIX):
-            parent = head[len(PKP_BROWSE_PREFIX):].strip()
-        if parent in ("root", "/"):
-            parent = self.share_root
-        try:
-            items = self._list_all(parent)
-        except PkpVerifyRequired as e:
-            return {"list": [], "page": page, "pagecount": 1,
-                "limit": self.page_size, "total": 0,
-                "msg": "PikPak 需要人机验证：%s" % e.url}
-        except Exception as e:
-            return {"list": [], "page": page, "pagecount": 1,
-                "limit": self.page_size, "total": 0,
-                "msg": "PikPak 取列表失败：%s" % self._err(e)}
-        out = []
-        for it in items:
-            vod = self._to_vod(it)
-            if vod:
-                out.append(vod)
-        start = (page - 1) * self.page_size
-        page_items = out[start:start + self.page_size]
-        total = len(out)
-        return {"list": page_items, "page": page,
-            "pagecount": max(1, (total + self.page_size - 1) // self.page_size),
-            "limit": self.page_size, "total": total}
-
-    def detailContent(self, ids):
-        vid = str(ids[0]) if isinstance(ids, (list, tuple)) and ids \
-            else str(ids or "")
-        if vid.startswith(PKP_FILE_PREFIX):
-            fid = vid[len(PKP_FILE_PREFIX):].strip()
-            try:
-                item = self._file(fid)
-            except Exception as e:
-                return {"list": [{"vod_id": vid, "vod_name": "PikPak 文件",
-                    "vod_content": "取文件信息失败：%s" % self._err(e)}]}
-            name = item.get("name") or "PikPak 文件"
-            size = _pkp_join_size(item.get("size"))
-            return {"list": [{
-                "vod_id": vid, "vod_name": name, "vod_pic": VIDEO_PIC,
-                "vod_content": "PikPak：%s\n大小：%s\n修改：%s"
-                    % (name, size, _pkp_day(item.get("modified_time"))
-                        or "-"),
-                "vod_play_from": "PikPak",
-                "vod_play_url": "%s$%s" % (self._safe_label(name),
-                    PKP_FILE_PREFIX + fid),
-            }]}
-        if vid.startswith(PKP_BROWSE_PREFIX):
-            fid = vid[len(PKP_BROWSE_PREFIX):].strip()
-            if fid == "root":
-                fid = self.share_root
-            if not self.ready():
-                return {"list": [{"vod_id": vid, "vod_name": "PikPak",
-                    "vod_content": self.hint()}]}
-            try:
-                items = self._list_all(fid)
-            except Exception as e:
-                return {"list": [{"vod_id": vid, "vod_name": "PikPak 目录",
-                    "vod_content": "取目录失败：%s" % self._err(e)}]}
-            name = self._folder_name(fid)
-            eps = []
-            used = set()
-            for it in items:
-                if it.get("kind") == "drive#folder":
-                    continue
-                if not self._is_video(it):
-                    continue
-                label = self._safe_label(it.get("name") or "文件", used)
-                eps.append("%s$%s%s" % (label, PKP_FILE_PREFIX,
-                    it.get("id") or ""))
-            return {"list": [{
-                "vod_id": vid, "vod_name": name, "vod_pic": FOLDER_PIC,
-                "vod_content": "PikPak 目录（%d 个可播放文件）" % len(eps),
-                "vod_play_from": "PikPak" if eps else "",
-                "vod_play_url": "#".join(eps),
-            }]}
-        return {"list": []}
-
-    def searchContent(self, key, quick=False, pg="1"):
-        keyword = _to_text(key)
-        page = max(1, _safe_int(pg, 1))
-        if not keyword or not self.ready() or not self.enable_search:
-            return {"list": [], "page": page, "pagecount": 1,
-                "limit": PKP_SEARCH_LIMIT, "total": 0}
-        try:
-            data = self._search(keyword)
-        except Exception:
-            return {"list": [], "page": page, "pagecount": 1,
-                "limit": PKP_SEARCH_LIMIT, "total": 0}
-        out = []
-        for it in data:
-            vod = self._to_vod(it)
-            if vod:
-                out.append(vod)
-            if len(out) >= PKP_SEARCH_LIMIT:
-                break
-        return {"list": out, "page": page,
-            "pagecount": page + 1 if len(out) >= PKP_SEARCH_LIMIT else page,
-            "limit": PKP_SEARCH_LIMIT, "total": len(out)}
-
-    # ---------- 播放 ----------
-
-    def playerContent(self, flag, ids, vipFlags=None):
-        vid = str(ids[0]) if isinstance(ids, (list, tuple)) and ids \
-            else str(ids or "")
-        if not vid.startswith(PKP_FILE_PREFIX):
-            return {"parse": 0, "jx": 0, "url": "", "header": {},
-                "msg": "不支持的播放参数"}
-        if not self.ready():
-            return {"parse": 0, "jx": 0, "url": "", "header": {},
-                "msg": self.hint()}
-        fid = vid[len(PKP_FILE_PREFIX):].strip()
-        now = time.time()
-        hit = self._link_cache.get(fid)
-        if hit and now - hit.get("ts", 0) < PKP_LINK_TTL:
-            return self._play_result(hit.get("url"), hit.get("size") or 0)
-        fail = self._fail.get(fid)
-        if fail and now - fail.get("ts", 0) < PKP_FAIL_TTL:
-            return {"parse": 0, "jx": 0, "url": "", "header": {},
-                "msg": "PikPak 取链失败：%s" % fail.get("err")}
-        try:
-            item = self._file(fid)
-            url = self._media_url(item)
-        except PkpVerifyRequired as e:
-            return {"parse": 0, "jx": 0, "url": "", "header": {},
-                "msg": "PikPak 需要人机验证：%s" % e.url}
-        except Exception as e:
-            self._fail[fid] = {"ts": now, "err": self._err(e)}
-            return {"parse": 0, "jx": 0, "url": "", "header": {},
-                "msg": "PikPak 取链失败：%s" % self._err(e)}
-        if not url:
-            self._fail[fid] = {"ts": now, "err": "没有可用的直链（会员/转码限制）"}
-            return {"parse": 0, "jx": 0, "url": "", "header": {},
-                "msg": "PikPak 没有可用的直链（有些文件需要会员或正在转码）"}
-        size = 0
-        try:
-            size = int(str(item.get("size") or "0"))
-        except Exception:
-            size = 0
-        self._link_cache[fid] = {"ts": now, "url": url, "size": size}
-        return self._play_result(url, size)
-
-    def _play_result(self, url, size):
-        header = {"User-Agent": self.ua, "Referer": "https://mypikpak.com/"}
-        mode = self.play_mode
-        if mode == "proxy":
-            return self._relay_result(url, size, "PikPak 代理播放")
-        if mode == "direct":
-            return {"parse": 0, "jx": 0, "url": url, "header": header}
-        direct_ok = self._probe(url, False)
-        if direct_ok:
-            return {"parse": 0, "jx": 0, "url": url, "header": header}
-        if self.proxy and self._probe(url, True):
-            limit = self.relay_max_mb * 1024 * 1024
-            if limit and size and size > limit:
-                return {"parse": 0, "jx": 0, "url": url, "header": header,
-                    "msg": "直连不通、文件过大（%s）不走中转，已在播放器里直接播"
-                        % _pkp_join_size(size)}
-            return self._relay_result(url, size, "PikPak 经代理中转播放")
-        return {"parse": 0, "jx": 0, "url": url, "header": header}
-
-    def _relay_result(self, url, size, note):
-        payload = json.dumps({"u": url, "h": {
-            "User-Agent": self.ua,
-            "Referer": "https://mypikpak.com/",
-        }}, ensure_ascii=False)
-        token = base64.urlsafe_b64encode(payload.encode("utf-8")).decode("ascii")
-        token = token.replace("=", "")
-        relay = "http://127.0.0.1:9978/proxy?do=py&%s=%s" % (
-            PKP_PROXY_QUERY, token)
-        return {"parse": 0, "jx": 0, "url": relay,
-            "header": {"User-Agent": self.ua},
-            "msg": note + ("（%s）" % _pkp_join_size(size) if size else "")}
-
-    def relay(self, token, param=None):
-        param = param if isinstance(param, dict) else {}
-        try:
-            pad = "=" * (-len(token) % 4)
-            info = json.loads(base64.urlsafe_b64decode(
-                (token + pad).encode("ascii")).decode("utf-8"))
-        except Exception:
-            return [400, "text/plain", b"bad relay token", {}]
-        url = info.get("u") or ""
-        if not url.startswith("http"):
-            return [400, "text/plain", b"bad url", {}]
-        headers = dict(info.get("h") or {})
-        rng = param.get("range") or param.get("Range") or ""
-        if rng:
-            headers["Range"] = rng
-        max_bytes = self.relay_max_mb * 1024 * 1024
-        try:
-            status, mime, body, extra = self._raw_get(url, headers,
-                proxy=True, timeout=max(15, self.timeout),
-                max_bytes=max_bytes or 0)
-        except Exception:
-            return [502, "text/plain", b"pikpak relay error", {}]
-        hdrs = {"Access-Control-Allow-Origin": "*",
-            "Accept-Ranges": "bytes"}
-        for k in ("Content-Range", "Content-Length"):
-            if extra.get(k):
-                hdrs[k] = extra.get(k)
-        return [status, mime or "video/mp4", body, hdrs]
-
-    # ---------- 内部：数据 ----------
-
-    def _to_vod(self, item):
-        fid = _to_text(item.get("id"))
-        name = _to_text(item.get("name"))
-        if not fid or not name:
-            return None
-        if item.get("kind") == "drive#folder":
-            return {"vod_id": PKP_BROWSE_PREFIX + fid, "vod_name": name,
-                "vod_pic": FOLDER_PIC, "vod_remarks": "目录",
-                "vod_tag": "folder", "ratio": 1.33}
-        if not self._is_video(item):
-            return None
-        return {"vod_id": PKP_FILE_PREFIX + fid, "vod_name": name,
-            "vod_pic": VIDEO_PIC,
-            "vod_remarks": _pkp_join_size(item.get("size")),
-            "vod_time": _pkp_day(item.get("modified_time")), "ratio": 1.33}
-
-    def _folder_name(self, fid):
-        if not fid:
-            return "PikPak 全部文件"
-        try:
-            info = self._file(fid)
-            return _to_text(info.get("name")) or "PikPak 目录"
-        except Exception:
-            return "PikPak 目录"
-
-    def _is_video(self, item):
-        mime = _to_text(item.get("mime_type")).lower()
-        for prefix in PKP_VIDEO_MIME:
-            if mime.startswith(prefix):
-                return True
-        name = _to_text(item.get("name")).lower()
-        return name.endswith(VIDEO_EXTS)
-
-    def _media_url(self, item):
-        url = ""
-        medias = item.get("medias") or []
-        if isinstance(medias, list):
-            for m in medias:
-                link = (m or {}).get("link") or {}
-                u = _to_text(link.get("url"))
-                if u:
-                    url = u
-                    break
-        if not url:
-            url = _to_text(item.get("web_content_link"))
-        return url
-
-    def _safe_label(self, name, used=None):
-        raw = _to_text(name)
-        safe = "".join(" " if c in "$#&?=:|\\/\n\r\t" else c for c in raw)
-        safe = " ".join(safe.split())[:60]
-        if not safe:
-            safe = "PikPak 文件"
-        if used is None:
-            return safe
-        if safe not in used:
-            used.add(safe)
-            return safe
-        n = 2
-        while True:
-            cand = "%s (%d)" % (safe, n)
-            if cand not in used:
-                used.add(cand)
-                return cand
-            n += 1
-
-    def _list_all(self, parent_id):
-        key = parent_id or "root"
-        hit = self._list_cache.get(key)
-        now = time.time()
-        if hit and now - hit[0] < PKP_LIST_TTL:
-            return hit[1]
-        items = []
-        token = ""
-        pages = 0
-        while pages < 10:
-            data = self._files(parent_id, token, self.page_size)
-            chunk = data.get("files") or []
-            items.extend(chunk)
-            token = _to_text(data.get("next_page_token"))
-            pages += 1
-            if not token or len(items) >= 300:
-                break
-        self._list_cache[key] = (now, items)
-        return items
-
-    def _search(self, keyword):
-        items = []
-        try:
-            data = self._files("", "", PKP_SEARCH_LIMIT, q=keyword)
-            items = data.get("files") or []
-        except Exception:
-            items = []
-        if not items:
-            items = self._walk_search(keyword, self.share_root or "", 0)
-        return items
-
-    def _walk_search(self, keyword, parent, depth):
-        if depth > 4:
-            return []
-        out = []
-        try:
-            items = self._list_all(parent)
-        except Exception:
-            return out
-        low = keyword.lower()
-        for it in items:
-            if it.get("kind") == "drive#folder":
-                out.extend(self._walk_search(keyword, it.get("id") or "",
-                    depth + 1))
-            elif low in _to_text(it.get("name")).lower():
-                out.append(it)
-            if len(out) >= PKP_SEARCH_LIMIT:
-                break
-        return out
-
-    # ---------- 内部：HTTP ----------
-
-    def _normalize_proxy(self, proxy):
-        proxy = _to_text(proxy)
-        if not proxy or proxy.lower() in ("off", "none", "0", "false"):
-            return ""
-        if "://" not in proxy:
-            proxy = "http://" + proxy.lstrip("/")
-        return proxy.rstrip("/")
-
-    def _proxy_candidates(self):
-        """requests 用的代理串列表，末尾保留直连兜底"""
-        out = []
-        for addr in self.proxy_addrs:
-            base = re.sub(r"^[a-z0-9]+://", "", _to_text(addr)).strip("/")
-            if not base:
-                continue
-            if self.proxy_type in ("socks5", "socks5h"):
-                out.extend(["socks5h://" + base, "socks5://" + base])
-            elif self.proxy_type == "socks4":
-                out.append("socks4://" + base)
-            elif self.proxy_type == "http":
-                out.append("http://" + base)
-            else:
-                out.append("http://" + base)
-                if _PKP_HAS_SOCKS:
-                    out.append("socks5h://" + base)
-        if self.proxy_ok in out:
-            out = [self.proxy_ok] + [x for x in out if x != self.proxy_ok]
-        if self.allow_direct:
-            out.append("")
-        return out or [""]
-
-    # ---------- 纯 socket 通道（不依赖 requests / PySocks）----------
-
-    def _chan_candidates(self):
-        out = []
-        now = time.time()
-
-        def _bad(k, a):
-            t = self.bad_chan.get((k, a))
-            return bool(t) and now - t < 600
-
-        if self.chan and not _bad(*self.chan):
-            out.append(self.chan)
-        for addr in self.proxy_addrs:
-            for kind in ("http", "socks5"):
-                if (kind, addr) not in out and not _bad(kind, addr):
-                    out.append((kind, addr))
-        if self.allow_direct:
-            out.append(("direct", ""))
-        return out
-
-    def _sock_request(self, method, url, headers=None, body=None,
-                      timeout=None, max_bytes=0):
-        errs = []
-        for kind, addr in self._chan_candidates():
-            try:
-                st, h, b = _pkp_sk_http(method, url, headers, body,
-                    timeout or self.timeout,
-                    addr if kind != "direct" else "", kind, max_bytes)
-                if self.chan != (kind, addr):
-                    self.chan = (kind, addr)
-                    self.chan_ts = time.time()
-                self.bad_chan.pop((kind, addr), None)
-                return st, h, b
-            except Exception as e:
-                errs.append("%s%s:%s" % (kind, ("@" + addr) if addr else "",
-                    str(e)[:36]))
-                if self.chan == (kind, addr):
-                    self.chan = None
-                # 代理类通道失败就冷却 10 分钟，避免每次点列表都先撞一遍超时
-                if kind != "direct":
-                    self.bad_chan[(kind, addr)] = time.time()
-        raise RuntimeError("通道全不通(%s)" % "; ".join(errs[:4]))
-
-    def diag(self):
-        """诊断：端口通不通、代理到底能不能真转发、能不能直连。
-        2026-11 改：只看 CONNECT 返回 200 会误判（本地端口收下 CONNECT 就断），
-        现在每条通道都做一次真实 TLS + HTTP 请求，拿到状态行才算通。"""
-        out = []
-        self.last_diag = out
-        if _pkp_socket is None:
-            out.append("当前环境不支持 socket 直连")
-            return out
-        t0 = time.time()
-        for addr in self.proxy_addrs:
-            h, p = _pkp_split_addr(addr)
-            if not h or not p:
-                out.append("%s 地址不合法" % addr)
-                continue
-            try:
-                sk = _pkp_socket.create_connection((h, p), 2.0)
-                sk.close()
-                out.append("%s 端口通" % addr)
-            except Exception as e:
-                out.append("%s 端口不通(%s)" % (addr, type(e).__name__))
-                continue
-            ok, msg = _pkp_probe_tunnel(addr, "user.mypikpak.net", 443, "http")
-            out.append("  HTTP隧道%s %s" % ("✅" if ok else "❌", msg))
-            if ok:
-                self.chan = ("http", addr)
-            else:
-                ok2, msg2 = _pkp_probe_tunnel(addr,
-                    "user.mypikpak.net", 443, "socks5")
-                out.append("  SOCKS5%s %s" % ("✅" if ok2 else "❌", msg2))
-                if ok2:
-                    self.chan = ("socks5", addr)
-                if time.time() - t0 < 14:
-                    ok3, msg3 = _pkp_probe_forward(addr,
-                        "http://user.mypikpak.net/")
-                    out.append("  正向转发%s %s" % ("有响应" if ok3 else "无响应",
-                        msg3))
-                    if time.time() - t0 < 16:
-                        ok4, msg4 = _pkp_probe_pathfwd(addr,
-                            "http://user.mypikpak.net/")
-                        out.append("  路径转发%s %s" % ("有响应" if ok4
-                            else "无响应", msg4))
-            if time.time() - t0 > 22:
-                out.append("（探测超时，已跳过剩余地址）")
-                break
-        okd, msgd = _pkp_probe_tunnel("", "user.mypikpak.net", 443, "direct")
-        out.append("直连%s %s" % ("✅" if okd else "❌", msgd))
-        out.append("token落盘：%s" % (self.token_file or "未写入(首次刷新后自动存)"))
-        if self.dead_rt:
-            out.append("上次刷新失败：%s" % self.dead_rt[:50])
-        if not okd:
-            out.append("→ 直连不通时 PikPak 必须靠能真转发的代理")
-        return out
-
-    def _http(self, method, url, params=None, body=None, headers=None,
-              auth=True, timeout=None):
-        if params:
-            pairs = []
-            for k, v in params.items():
-                if v is None:
-                    continue
-                pairs.append((k, str(v)))
-            qs = urllib.parse.urlencode(pairs)
-            url = url + ("&" if "?" in url else "?") + qs
-        raw = None
-        if body is not None:
-            raw = json.dumps(body, ensure_ascii=False).encode("utf-8")
-        hdrs = {"Content-Type": "application/json",
-            "Accept": "application/json, text/plain, */*"}
-        hdrs.update(headers or {})
-        errors = []
-        for proxy in self._proxy_candidates():
-            try:
-                text = self._do_request(method, url, raw, hdrs, proxy,
-                    timeout or self.timeout)
-                if proxy:
-                    self.proxy_ok = proxy
-                try:
-                    return json.loads(text)
-                except Exception:
-                    raise RuntimeError("返回不是 JSON：%s" % text[:120])
-            except PkpHttpStatus:
-                raise
-            except Exception as e:
-                errors.append((proxy, e))
-                continue
-        if errors:
-            prox_fail = [e for p, e in errors if p]
-            direct_fail = [e for p, e in errors if not p]
-            detail = str(errors[-1][1])[:80]
-            if self.diag_on:
-                detail += " | " + "; ".join(self.diag()[:3])
-            if self.proxy_addrs and prox_fail and not direct_fail:
-                raise RuntimeError("代理 %s 连不上（%s）" % (
-                    re.sub(r"^[a-z0-9]+://", "", self.proxy_addrs[0]),
-                    detail))
-            raise RuntimeError("取数据失败（%s）" % detail)
-        raise RuntimeError("请求失败")
-
-    def _do_request(self, method, url, raw, hdrs, proxy, timeout):
-        last = None
-        if requests is not None and not self.force_tunnel:
-            try:
-                kwargs = {"headers": hdrs, "timeout": timeout}
-                if raw is not None:
-                    kwargs["data"] = raw
-                if proxy:
-                    kwargs["proxies"] = {"http": proxy, "https": proxy}
-                r = requests.request(method, url, **kwargs)
-                text = r.text if hasattr(r, "text") else r.content.decode(
-                    "utf-8", "ignore")
-                if getattr(r, "status_code", 200) >= 400:
-                    try:
-                        json.loads(text)
-                    except Exception:
-                        raise PkpHttpStatus(r.status_code, text[:120])
-                return text
-            except PkpHttpStatus:
-                raise
-            except Exception as e:
-                last = e
-        # 兜底：纯 socket 通道（http 隧道 / socks5 / 直连 逐个试）
-        try:
-            st, _h, b = self._sock_request(method, url, hdrs, raw, timeout)
-            text = b.decode("utf-8", "ignore")
-            if st >= 400:
-                try:
-                    json.loads(text)
-                except Exception:
-                    raise PkpHttpStatus(st, text[:120])
-            return text
-        except PkpHttpStatus:
-            raise
-        except Exception as e:
-            if last is None:
-                raise
-            raise RuntimeError("%s / %s" % (str(last)[:60], str(e)[:90]))
-
-    def _raw_get(self, url, headers, proxy=False, timeout=15, max_bytes=0,
-                 need_meta=False):
-        hdrs = dict(headers or {})
-        if requests is not None:
-            try:
-                kwargs = {"headers": hdrs, "timeout": timeout, "stream": True}
-                if proxy and self.proxy_addrs:
-                    px = self._proxy_candidates()
-                    if px and px[0]:
-                        kwargs["proxies"] = {"http": px[0], "https": px[0]}
-                r = requests.get(url, **kwargs)
-                body = b""
-                if max_bytes:
-                    for chunk in r.iter_content(65536):
-                        body += chunk
-                        if len(body) >= max_bytes:
-                            body = body[:max_bytes]
-                            break
-                else:
-                    body = r.content
-                return (r.status_code, r.headers.get("Content-Type") or "",
-                    body, {"Content-Range": r.headers.get("Content-Range") or "",
-                        "Content-Length": r.headers.get("Content-Length") or ""})
-            except Exception:
-                pass
-        st, h, b = self._sock_request("GET", url, hdrs, None, timeout,
-            max_bytes)
-        return (st, h.get("content-type", ""), b,
-            {"Content-Range": h.get("content-range", ""),
-                "Content-Length": h.get("content-length", "")})
-
-    def _probe(self, url, use_proxy):
-        if use_proxy and not self.proxy:
-            return False
-        host = urllib.parse.urlsplit(url).netloc.lower()
-        key = "proxy:%s" % host if use_proxy else "direct:%s" % host
-        now = time.time()
-        hit = self._probe_cache.get(key)
-        if hit and now - hit[0] < 600:
-            return hit[1]
-        ok = self._probe_real(url, use_proxy)
-        self._probe_cache[key] = (now, ok)
-        return ok
-
-    def _probe_real(self, url, use_proxy):
-        try:
-            status, _mime, _body, _extra = self._raw_get(url,
-                {"Range": "bytes=0-1", "User-Agent": self.ua},
-                proxy=use_proxy, timeout=5, max_bytes=2, need_meta=True)
-            return status in (200, 206, 416)
-        except Exception:
-            return False
-
-    # ---------- 内部：认证 ----------
-
-    def _err(self, e):
-        if isinstance(e, PkpVerifyRequired):
-            return ("PikPak 要求人机验证（这个出口 IP 被风控）。"
-                "换一个出口代理再试，或直接用 refresh_token")
-        if isinstance(e, RuntimeError):
-            msg = str(e)
-            low = msg.lower()
-            if "session lock" in low:
-                return ("refresh_token 无效或已过期，请在浏览器里重新取一个"
-                    "（%s）" % msg[:60])
-            if "refresh 失败" in msg:
-                return ("旧 refresh_token 已作废，账密登录也没成功：%s"
-                    % msg[:130])
-            if "没有可用凭据" in msg:
-                return "ext 里没填账号密码，也没填 refresh_token"
-        if isinstance(e, PkpHttpStatus):
-            low = (e.text or "").lower()
-            if "domain name is invalid" in low:
-                return "接口域名不可用（%s）" % e.text[:60]
-            if e.code in (502, 503, 504):
-                return "服务端返回 %s，可能是网络或区域限制，建议开启代理" % e.code
-            if e.code in (401, 403):
-                return "服务端拒绝（%s），登录状态可能失效或当前网络被限制" % e.code
-            return "服务端返回 HTTP %s（%s）" % (e.code, e.text[:80])
-        return str(e)[:160]
-
-    def _sign(self):
-        ts = str(int(time.time() * 1000))
-        s = "%s%s%s%s%s" % (self.client_id, self.client_version,
-            self.package_name, self.device_id, ts)
-        for alg in self.algorithms:
-            s = hashlib.md5((s + alg).encode("utf-8")).hexdigest()
-        return ts, "1." + s
-
-    def _captcha(self, action, meta=None):
-        ts, sign = self._sign()
-        m = dict(meta or {})
-        m["client_version"] = self.client_version
-        m["package_name"] = self.package_name
-        m["timestamp"] = ts
-        m["captcha_sign"] = sign
-        body = {"action": action, "captcha_token": "",
-            "client_id": self.client_id, "device_id": self.device_id,
-            "meta": m,
-            "redirect_uri": "xlaccsdk01://xbase.cloud/callback?state=harbor"}
-        data = self._http("POST", self.user_base + "/v1/shield/captcha/init",
-            {"client_id": self.client_id}, body,
-            {"User-Agent": self.ua, "X-Device-ID": self.device_id},
-            timeout=self.timeout)
-        desc = _to_text(data.get("error_description"))
-        code = _safe_int(data.get("error_code"), 0)
-        if code == 10 or "too frequent" in desc.lower():
-            raise RuntimeError("登录太频繁被限流（%s）；等 20-30 分钟，"
-                "或换一个出口代理再试" % desc[:60])
-        url = _to_text(data.get("url"))
-        if url:
-            raise PkpVerifyRequired(url)
-        self.captcha_token = _to_text(data.get("captcha_token"))
-        if not self.captcha_token:
-            raise RuntimeError("验证码接口没给令牌（%s）"
-                % (desc or str(data)[:80]))
-        self.captcha_ts = time.time()
-        return self.captcha_token
-
-    def _ensure_captcha(self, action, force=False):
-        if self.captcha_token and not force and time.time() \
-                - self.captcha_ts < 240:
-            return self.captcha_token
-        return self._captcha(action)
-
-    def _refresh(self, force=False):
-        if not self.refresh_token:
-            raise RuntimeError("没有 refresh_token")
-        body = {"client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "grant_type": "refresh_token",
-            "refresh_token": self.refresh_token}
-        data = self._http("POST", self.user_base + "/v1/auth/token",
-            {"client_id": self.client_id}, body, {"User-Agent": ""},
-            timeout=self.timeout)
-        code = _safe_int(data.get("error_code"), 0)
-        if code:
-            raise RuntimeError(data.get("error_description")
-                or data.get("error") or ("刷新令牌失败 %s" % code))
-        self.access_token = _to_text(data.get("access_token"))
-        new_rt = _to_text(data.get("refresh_token"))
-        if new_rt:
-            self.refresh_token = new_rt
-        sid = _to_text(data.get("sub"))
-        if sid:
-            self.user_id = sid
-        self.token_ts = time.time()
-        if not self.access_token:
-            raise RuntimeError("刷新令牌没有返回 access_token")
-        self._save_token()
-        return self.access_token
-
-    def _login(self):
-        if not (self.username and self.password):
-            raise RuntimeError("没有可用凭据")
-        meta = {}
-        if re.match(r"^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$",
-                self.username):
-            meta["email"] = self.username
-        elif 11 <= len(self.username) <= 18:
-            meta["phone_number"] = self.username
-        else:
-            meta["username"] = self.username
-        action = "POST:/v1/auth/signin"
-        token = self._captcha(action, meta)
-        body = {"captcha_token": token, "client_id": self.client_id,
-            "client_secret": self.client_secret, "username": self.username,
-            "password": self.password}
-        data = self._http("POST", self.user_base + "/v1/auth/signin",
-            {"client_id": self.client_id}, body, {"User-Agent": self.ua},
-            timeout=self.timeout)
-        code = _safe_int(data.get("error_code"), 0)
-        if code:
-            raise RuntimeError(data.get("error_description")
-                or data.get("error") or ("登录失败 %s" % code))
-        self.access_token = _to_text(data.get("access_token"))
-        self.refresh_token = _to_text(data.get("refresh_token")) \
-            or self.refresh_token
-        self.user_id = _to_text(data.get("sub")) or self.user_id
-        self.token_ts = time.time()
-        if not self.access_token:
-            raise RuntimeError("登录没有返回 access_token")
-        self._save_token()
-        return self.access_token
-
-    # ---------- token 落盘 ----------
-
-    def _token_candidates(self):
-        out = []
-        if self.token_file:
-            out.append(self.token_file)
-        out.extend(["/sdcard/Download/pikpak_token.json",
-            "/sdcard/pikpak_token.json",
-            "/storage/emulated/0/Download/pikpak_token.json"])
-        try:
-            out.append(os.path.join(os.getcwd(), "pikpak_token.json"))
-        except Exception:
-            pass
-        try:
-            out.append(os.path.join(os.path.expanduser("~"),
-                "pikpak_token.json"))
-        except Exception:
-            pass
-        return out
-
-    def _load_token(self):
-        for p in self._token_candidates():
-            try:
-                if not os.path.isfile(p):
-                    continue
-                with open(p, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                if isinstance(data, dict) and _to_text(
-                        data.get("refresh_token")):
-                    self.token_file = p
-                    return data
-            except Exception:
-                continue
-        return {}
-
-    def _save_token(self):
-        if not self.refresh_token:
-            return ""
-        data = {"refresh_token": self.refresh_token,
-            "user": self.username, "ts": int(time.time())}
-        for p in self._token_candidates():
-            try:
-                d = os.path.dirname(p)
-                if d and not os.path.isdir(d):
-                    continue
-                with open(p, "w", encoding="utf-8") as f:
-                    json.dump(data, f, ensure_ascii=False)
-                self.token_file = p
-                return p
-            except Exception:
-                continue
-        return ""
-
-    def _ensure_token(self, force=False):
-        if self.access_token and not force and time.time() \
-                - self.token_ts < PKP_TOKEN_TTL:
-            return self.access_token
-        last = None
-        if self.refresh_token:
-            try:
-                return self._refresh(force=force)
-            except Exception as e:
-                last = e
-                # refresh_token 是一次性轮换的：只要刷失败，多半已经作废，
-                # 留着它只会一直卡在同一处，后面有账密就直接改走登录
-                self.dead_rt = str(e)[:80]
-                if not (self.username and self.password):
-                    raise
-                self.refresh_token = ""
-        if self.username and self.password:
-            try:
-                return self._login()
-            except Exception as e:
-                if last is not None:
-                    raise RuntimeError("refresh 失败(%s) / 登录失败(%s)"
-                        % (str(last)[:50], str(e)[:70]))
-                raise
-        if self.access_token:
-            return self.access_token
-        raise RuntimeError(self.hint())
-
-    def _api(self, method, path, params=None, body=None, retry=2,
-             base=None, action=None):
-        base = base or self.drive_base
-        url = base + path
-        last = None
-        for attempt in range(retry + 1):
-            act = action or ("%s:%s" % (method, path))
-            self._ensure_token()
-            if not self.captcha_token:
-                self._ensure_captcha(act)
-            headers = {"User-Agent": self.ua,
-                "X-Device-ID": self.device_id,
-                "X-Captcha-Token": self.captcha_token,
-                "Referer": "https://mypikpak.com/"}
-            if self.access_token:
-                headers["Authorization"] = "Bearer " + self.access_token
-            try:
-                data = self._http(method, url, params, body, headers,
-                    timeout=self.timeout)
-            except Exception as e:
-                last = e
-                continue
-            code = _safe_int(data.get("error_code"), 0)
-            err = _to_text(data.get("error"))
-            if code in (16, 4121, 4122) or err == "unauthenticated":
-                if attempt >= retry:
-                    raise RuntimeError("登录状态失效，请更新 refresh_token")
-                self.access_token = ""
-                try:
-                    self._refresh(force=True)
-                except Exception as e:
-                    last = e
-                    if self.username and self.password:
-                        self._login()
-                    else:
-                        raise
-                continue
-            if code == 9 or err in ("captcha_invalid", "captcha_required"):
-                if attempt >= retry:
-                    raise RuntimeError(data.get("error_description")
-                        or "验证码校验失败")
-                self._ensure_captcha(act, force=True)
-                continue
-            if code:
-                raise RuntimeError("%s（错误码 %s）" % (
-                    data.get("error_description") or err or "接口报错", code))
-            return data
-        raise last if last else RuntimeError("请求失败")
-
-    def _files(self, parent_id="", page_token="", limit=100, q=None,
-               order=None):
-        params = {"parent_id": parent_id or "",
-            "thumbnail_size": "SIZE_LARGE", "with_audit": "true",
-            "limit": str(limit),
-            "filters": '{"phase":{"eq":"PHASE_TYPE_COMPLETE"},'
-                '"trashed":{"eq":false}}'}
-        if page_token:
-            params["page_token"] = page_token
-        if q:
-            params["q"] = q
-        if order:
-            params["order"] = order
-        return self._api("GET", "/drive/v1/files", params)
-
-    def _file(self, fid):
-        params = {"_magic": "2021", "usage": "CACHE",
-            "thumbnail_size": "SIZE_LARGE"}
-        return self._api("GET", "/drive/v1/files/" + urllib.parse.quote(fid),
-            params)
-
-    def destroy(self):
-        self._probe_cache.clear()
-        self._list_cache.clear()
-        self._link_cache.clear()
-        self._fail.clear()
-
-
-class Spider:
+class Spider(_BaseSpider):
     _P6_SEARCH_WAIT = 2.0
 
     def __init__(self):
+        try:
+            _BaseSpider.__init__(self)
+        except Exception:
+            pass
         self.p6 = Pan6Spider()
-        self.pkp = PikPakSpider()
         self.ua = UA
         self.timeout = 20
         self.site_referer = HOST + "/"
@@ -3294,13 +2048,15 @@ class Spider:
             self.p6.init(extend)
         except Exception:
             pass
+        ext = _normalize_extend(extend)
+        _apply_proxy_ext(ext)
+        # 内置代理：先拿 App 注入的地址，没有就探本地端口
         try:
-            self.pkp.init(extend)
+            _pg_detect(self)
         except Exception:
             pass
-        ext = _normalize_extend(extend)
         mode = ext.get("pic_mode")
-        if mode in ("wsrv", "origin", "local"):
+        if mode in ("pg", "wsrv", "origin", "local"):
             PIC_PROXY["mode"] = mode
         port = ext.get("pic_proxy_port") or ext.get("proxy_port")
         if port:
@@ -3314,12 +2070,6 @@ class Spider:
         classes = [{"type_id": str(c["type_id"]), "type_name": c["type_name"]}
             for c in CATE]
         classes.append({"type_id": "root", "type_name": "6盘"})
-        if self.pkp.enable:
-            classes.append({"type_id": PKP_BROWSE_PREFIX + "root",
-                "type_name": "PikPak"})
-            if getattr(self.pkp, "diag_on", False):
-                classes.append({"type_id": PKP_BROWSE_PREFIX + "diag",
-                    "type_name": "PikPak 连接诊断"})
         return {"class": classes, "filters": {}}
 
     def homeVideoContent(self):
@@ -3330,12 +2080,6 @@ class Spider:
         if head == "root" or head.startswith(PAN6_BROWSE_PREFIX) \
                 or head.startswith(PAN6_FILE_PREFIX):
             return self.p6.categoryContent(tid, pg, filter, extend)
-        if head.startswith(PKP_BROWSE_PREFIX) or head.startswith(PKP_FILE_PREFIX):
-            try:
-                return self.pkp.categoryContent(tid, pg, filter, extend)
-            except Exception as e:
-                return {"list": [], "page": 1, "pagecount": 1,
-                    "limit": 0, "total": 0, "msg": str(e)[:120]}
         try:
             page = int(pg)
         except (TypeError, ValueError):
@@ -3356,12 +2100,6 @@ class Spider:
                 return self.p6.detailContent(ids)
             except Exception:
                 return {"list": []}
-        if vid.startswith(PKP_FILE_PREFIX) or vid.startswith(PKP_BROWSE_PREFIX):
-            try:
-                return self.pkp.detailContent(ids)
-            except Exception as e:
-                return {"list": [{"vod_id": vid, "vod_name": "PikPak",
-                    "vod_content": str(e)[:160]}]}
         try:
             arr = detail_data(vid)
             if arr:
@@ -3423,7 +2161,6 @@ class Spider:
             except Exception:
                 pass
             self._append_p6_search(result, seen, key)
-            self._append_pkp_search(result, seen, key)
         return {"list": result, "page": 1, "pagecount": 1,
             "limit": len(result) or 24, "total": len(result)}
 
@@ -3433,32 +2170,6 @@ class Spider:
         def run():
             try:
                 box.append(self.p6.searchContent(key, False, 1))
-            except Exception:
-                box.append(None)
-
-        try:
-            th = threading.Thread(target=run, daemon=True)
-            th.start()
-            th.join(self._P6_SEARCH_WAIT)
-        except Exception:
-            return
-        r = box[0] if box else None
-        if not isinstance(r, dict):
-            return
-        for v in (r.get('list') or []):
-            vid = v.get('vod_id') or ''
-            if vid and vid not in seen:
-                seen.add(vid)
-                result.append(v)
-
-    def _append_pkp_search(self, result, seen, key):
-        if not self.pkp.enable_search or not self.pkp.ready():
-            return
-        box = []
-
-        def run():
-            try:
-                box.append(self.pkp.searchContent(key, False, 1))
             except Exception:
                 box.append(None)
 
@@ -3489,9 +2200,6 @@ class Spider:
                 or pid.startswith('pan6off:')):
                 return self.p6.playerContent(flag, ids, vipFlags)
 
-            if pid.startswith(PKP_FILE_PREFIX):
-                return self.pkp.playerContent(flag, ids, vipFlags)
-
             if pid.startswith('magnet:'):
                 return {'parse': 0, 'jx': 0, 'playUrl': '',
                     'url': pid, 'header': header}
@@ -3517,13 +2225,22 @@ class Spider:
                 param = {}
         if not isinstance(param, dict):
             param = {}
-        relay = param.get(PKP_PROXY_QUERY) or param.get('pkp_url') or ''
-        if relay:
-            try:
-                return self.pkp.relay(str(relay), param)
-            except Exception:
-                return [502, 'text/plain', b'relay error', {}]
+        ptype = str(param.get('type') or '').strip().lower()
         url = param.get('url') or ''
+        # 文本类：采集页 / 接口 JSON，由本代理直取后回传
+        if ptype in ('text', 'json', 'html'):
+            if not url or not url.startswith('http'):
+                return [404, 'text/plain', b'Not Found', {}]
+            try:
+                body = _direct_get(url, timeout=self.timeout, retry=1)
+            except Exception as e:
+                return [502, 'text/plain',
+                    ('proxy error: %s' % e).encode('utf-8'), {}]
+            head = body.lstrip()[:1]
+            mime = ('application/json; charset=utf-8' if head in ('{', '[')
+                else 'text/html; charset=utf-8')
+            return [200, mime, body.encode('utf-8'),
+                {'Access-Control-Allow-Origin': '*'}]
         if '@' in url:
             url = url.split('@', 1)[0]
         if not url or not url.startswith('http'):
@@ -3586,10 +2303,6 @@ class Spider:
         self._home_videos_cache = None
         try:
             self.p6.destroy()
-        except Exception:
-            pass
-        try:
-            self.pkp.destroy()
         except Exception:
             pass
         return None
