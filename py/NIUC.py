@@ -1,4 +1,5 @@
 import json
+import os
 import hashlib
 import time
 import threading
@@ -23,8 +24,8 @@ except ImportError:
     _cf_wait = None
     FIRST_COMPLETED = None
 
-PAN6_USER = ""#6盘账号
-PAN6_PASS = ""#6盘密码
+PAN6_USER = ""
+PAN6_PASS = ""
 PAN6_TOKEN = ""
 PAN6_REFRESH = ""
 
@@ -1443,7 +1444,34 @@ PER_PAGE = 12
 
 CAT_IDS = str(CAT_ID)
 
-PIC_PROXY = {"mode": "wsrv"}
+# 图片处理模式：
+#   origin = 直连图床（最快最稳，自动给 TVBox 附上 Referer/UA，推荐）
+#   wsrv   = 走 wsrv.nl 等图床代理（跨境备用，慢且有限流）
+#   local  = 走插件 localProxy 本地代理
+PIC_PROXY = {
+    "mode": "origin",
+    "port": 9978,
+    "mirrors": ("https://wsrv.nl/", "https://images.weserv.nl/"),
+    "fallback": "https://img.icons8.com/color/48/video.png",
+}
+
+# 列表 API 缓存（秒）：翻页/切分类时避免重复请求 WordPress API
+LIST_CACHE_TTL = 600
+_api_cache = {}
+_api_cache_max = 200
+
+# 批量拉取：一次请求拿 N 页的量，本地切片分页。
+# API 服务端单次响应要 1.5~3.5s，批量后翻 N 页只需 1 次网络请求，其余瞬时完成。
+# WordPress 的 per_page 上限是 100，即最多 8 页一批。
+BATCH_PAGES = 8
+BATCH_SIZE = min(PER_PAGE * BATCH_PAGES, 100)   # 100 条 = 8 页
+PREFETCH_BATCHES = 2                             # 后台并发预取后续批次数
+# 磁盘缓存目录：TVBox 每次翻页可能是全新进程，纯内存缓存会丢，需落盘跨进程共享
+DISK_CACHE_DIR = os.path.join("/tmp", "niuc_wp_cache")
+DISK_CACHE_TTL = 3600
+# 同 URL 并发请求合并：预取与用户操作撞车时只发一次网络请求
+_inflight_lock = threading.Lock()
+_inflight = {}   # url -> threading.Event
 
 MAGNET_RE = re.compile(r"magnet:\?xt=urn:btih:[A-Za-z0-9]+(?:&[^\s\"'<>）)】]*)?")
 
@@ -1456,12 +1484,28 @@ def _headers():
         "Referer": HOST + "/",
     }
 
+_http_session = None
+
+def _get_session():
+    global _http_session
+    if requests is None:
+        return None
+    if _http_session is None:
+        try:
+            _http_session = requests.Session()
+            _http_session.headers.update(_headers())
+        except Exception:
+            pass
+    return _http_session
+
 def http_get(url, timeout=20, retry=2):
     last = None
     for i in range(retry + 1):
         try:
-            if requests is not None:
-                r = requests.get(url, headers=_headers(), timeout=timeout)
+            sess = _get_session()
+            if sess is not None:
+                # 会话复用连接，省掉每次 TCP+TLS 握手
+                r = sess.get(url, timeout=timeout)
                 r.encoding = "utf-8"
                 return r.text
             req = urllib.request.Request(url, headers=_headers())
@@ -1473,14 +1517,96 @@ def http_get(url, timeout=20, retry=2):
                 time.sleep(0.8 * (i + 1))
     raise RuntimeError("请求失败: %s (%s)" % (url, last))
 
+def _disk_cache_path(url):
+    try:
+        key = hashlib.md5(url.encode("utf-8")).hexdigest()
+        return os.path.join(DISK_CACHE_DIR, key + ".json")
+    except Exception:
+        return None
+
+def _disk_cache_get(url, ttl):
+    path = _disk_cache_path(url)
+    if not path:
+        return None
+    try:
+        if time.time() - os.path.getmtime(path) > ttl:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+            return None
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+def _disk_cache_put(url, data):
+    path = _disk_cache_path(url)
+    if not path:
+        return
+    try:
+        if not os.path.isdir(DISK_CACHE_DIR):
+            os.makedirs(DISK_CACHE_DIR, exist_ok=True)
+        tmp = path + ".%d.tmp" % os.getpid()
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.remove(path + ".%d.tmp" % os.getpid())
+        except OSError:
+            pass
+
+def _api_fetch(url):
+    """真正发起网络请求并写缓存。"""
+    data = json.loads(http_get(url, timeout=20, retry=1))
+    if len(_api_cache) >= _api_cache_max:
+        _api_cache.clear()
+    _api_cache[url] = (time.time(), data)
+    _disk_cache_put(url, data)
+    return data
+
 def api(path, **params):
     q = urllib.parse.urlencode(params, doseq=True)
     url = "%s/%s?%s" % (API, path.lstrip("/"), q)
-    return json.loads(http_get(url))
+    # 三级缓存：内存 -> 磁盘(跨进程) -> 网络
+    now = time.time()
+    hit = _api_cache.get(url)
+    if hit and now - hit[0] < LIST_CACHE_TTL:
+        return hit[1]
+    hit = _disk_cache_get(url, DISK_CACHE_TTL)
+    if hit is not None:
+        _api_cache[url] = (now, hit)
+        return hit
+
+    # single-flight：同一 URL 已有线程在拉，等它完成，不重复发请求
+    with _inflight_lock:
+        ev = _inflight.get(url)
+        if ev is not None:
+            waiter = ev
+        else:
+            waiter = None
+            ev = threading.Event()
+            _inflight[url] = ev
+    if waiter is not None:
+        waiter.wait(30)
+        hit = _api_cache.get(url)
+        if hit:
+            return hit[1]
+        # 等待超时或失败，自己再拉一次
+        return _api_fetch(url)
+    try:
+        return _api_fetch(url)
+    finally:
+        with _inflight_lock:
+            _inflight.pop(url, None)
+            ev.set()
 
 def _posts(params):
     params.setdefault("per_page", PER_PAGE)
-    params.setdefault("_embed", "wp:featuredmedia")
+    # featuredmedia 全站为空、图片都在正文，只取必要字段：
+    # 去掉 embed/excerpt 让响应体缩小约 30%，服务端更快
+    params.setdefault("_fields", "id,title,content,date")
     return api("posts", **params)
 
 def fix_url(url, host=HOST):
@@ -1492,21 +1618,41 @@ def fix_url(url, host=HOST):
         return url
     return urllib.parse.urljoin(host.rstrip("/") + "/", url)
 
-def _proxy_pic(url):
-    if not url:
-        return ""
-    mode = PIC_PROXY.get("mode", "wsrv")
-    if mode == "origin":
+def _pic_with_headers(url):
+    """给图片 URL 追加 TVBox 可识别的请求头：url@Referer=xxx@User-Agent=xxx
+    这样客户端直连图床时也能带上来源，绕开防盗链，无需第三方图床代理。"""
+    if not url or "@Referer=" in url or "@User-Agent=" in url:
         return url
-    if mode == "local":
-        port = PIC_PROXY.get("port", 9978)
-        return "http://127.0.0.1:%s/proxy?url=%s" % (port, urllib.parse.quote(url, safe=""))
-
     try:
-        host_path = re.sub(r"^https?://", "", url)
-        return "https://wsrv.nl/?url=" + urllib.parse.quote(host_path, safe="/?&=%-._~:")
+        ref = urllib.parse.quote(HOST + "/", safe=":/")
+        ua = urllib.parse.quote(UA, safe="")
+        return "%s@Referer=%s@User-Agent=%s" % (url, ref, ua)
     except Exception:
         return url
+
+def _proxy_pic(url):
+    if not url:
+        return PIC_PROXY.get("fallback") or ""
+    mode = PIC_PROXY.get("mode", "origin")
+    if mode == "origin":
+        # 直连 + 携带请求头：最快、最稳，不受 wsrv.nl 限流影响
+        return _pic_with_headers(fix_url(url))
+    if mode == "local":
+        port = PIC_PROXY.get("port", 9978)
+        return "http://127.0.0.1:%s/proxy?url=%s" % (
+            port, urllib.parse.quote(url, safe=""))
+    # wsrv：多镜像轮换分流 + 完整 URL 编码（原图带查询参数也不会串参数）
+    try:
+        mirrors = PIC_PROXY.get("mirrors") or ("https://wsrv.nl/",)
+        idx = int(hashlib.md5(url.encode("utf-8")).hexdigest(), 16) % len(mirrors)
+        base = mirrors[idx].rstrip("/") + "/?url="
+        target = base + urllib.parse.quote(url, safe="")
+        fallback = PIC_PROXY.get("fallback") or ""
+        if fallback:
+            target += "&default=" + urllib.parse.quote(fallback, safe="")
+        return _pic_with_headers(target)
+    except Exception:
+        return _pic_with_headers(fix_url(url))
 
 def clean_text(html):
     if not html:
@@ -1518,16 +1664,32 @@ def clean_text(html):
     lines = [re.sub(r"[ \t\u3000]+", " ", ln).strip() for ln in t.splitlines()]
     return "\n".join([ln for ln in lines if ln])
 
+_IMG_SRC_RES = (
+    re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.I),
+    re.compile(r'<img[^>]+data-(?:original|src|lazy-src|lazyload)=["\']([^"\']+)["\']', re.I),
+)
+
 def pick_pic(post):
     emb = post.get("_embedded") or {}
     media = emb.get("wp:featuredmedia") or []
     if media and isinstance(media, list):
-        src = (media[0] or {}).get("source_url")
-        if src:
-            return fix_url(src)
-    body = (post.get("content") or {}).get("rendered", "")
-    m = re.search(r'<img[^>]+src="([^"]+)"', body)
-    return fix_url(m.group(1)) if m else ""
+        m0 = media[0]
+        if isinstance(m0, dict):
+            src = m0.get("source_url") or ""
+            # featuredmedia 无图时会返回 {"code": "..."} 错误对象，需排除
+            if src and "code" not in m0 and not src.lower().startswith("data:"):
+                return fix_url(src)
+    body = (post.get("content") or {}).get("rendered", "") or ""
+    for rx in _IMG_SRC_RES:
+        for m in rx.finditer(body):
+            src = fix_url(m.group(1))
+            low = src.lower()
+            if not src or low.startswith("data:") or "gravatar" in low:
+                continue
+            if low.endswith((".gif", ".svg", ".ico")):
+                continue
+            return src
+    return ""
 
 def pick_remarks(post):
     body = clean_text((post.get("content") or {}).get("rendered", ""))
@@ -1585,12 +1747,52 @@ def build_detail(post):
     vod["vod_play_note"] = "注意：磁力需要系统里有 BT 下载器（迅雷/qBittorrent 一类），App 本身不下 BT"
     return vod
 
+_warmup_done = set()
+
+def warmup_all():
+    """后台预热全部热门分类的首批 + 主类前几批，把网络等待藏在用户看首页的时间里。
+    仅执行一次，失败不影响主流程。"""
+    try:
+        if not getattr(warmup_all, "ran", False):
+            warmup_all.ran = True
+        else:
+            return
+    except Exception:
+        return
+
+    def _job(tid, batches):
+        for b in batches:
+            try:
+                _fetch_batch(tid, b)
+            except Exception:
+                pass
+
+    jobs = []
+    # 主类预热前 1+PREFETCH_BATCHES 批
+    jobs.append((CAT_ID, list(range(0, 1 + max(1, PREFETCH_BATCHES)))))
+    # 各子分类预热首批
+    for tid in TAG_IDS:
+        jobs.append((tid, [0]))
+    if ThreadPoolExecutor is None:
+        for tid, batches in jobs:
+            threading.Thread(target=_job, args=(tid, batches), daemon=True).start()
+        return
+    ex = ThreadPoolExecutor(max_workers=min(len(jobs), 8))
+    for tid, batches in jobs:
+        ex.submit(_job, tid, batches)
+    threading.Thread(target=lambda: ex.shutdown(wait=True), daemon=True).start()
+
 def home_list():
     out, seen = [], set()
     try:
-        posts = _posts({"categories": CAT_ID, "page": 1, "per_page": PER_PAGE})
+        # 复用分类第一批缓存：主页与切分类共享同一批数据，避免各等一次网络请求
+        posts = _fetch_batch(CAT_ID, 0)[:PER_PAGE]
+        _prefetch_next(CAT_ID, 1)
     except Exception:
-        return out
+        try:
+            posts = _posts({"categories": CAT_ID, "page": 1, "per_page": PER_PAGE})
+        except Exception:
+            return out
     for p in posts:
         pid = p.get("id")
         if pid in seen:
@@ -1599,31 +1801,93 @@ def home_list():
         out.append(post_to_vod(p))
     return out
 
-def category_data(tid, page=1, extend=None, filter=None):
+def _cat_params(tid, batch_idx, per_page):
     try:
         tid_int = int(tid)
     except (TypeError, ValueError):
         tid_int = CAT_ID
     if tid_int in TAG_IDS:
-        params = {"categories": CAT_ID, "tags": tid_int, "page": page}
+        params = {"categories": CAT_ID, "tags": tid_int}
     else:
-        params = {"categories": tid_int, "page": page}
-    posts = _posts(params)
+        params = {"categories": tid_int}
+    # WordPress 的 page 是按 per_page 分块的，批次序号即 API 的 page
+    params["page"] = batch_idx + 1
+    params["per_page"] = per_page
+    return params
+
+def _fetch_batch(tid, batch_idx):
+    """取整批（默认96条=8页）。带缓存，翻同批内的页零网络请求。"""
+    return _posts(_cat_params(tid, batch_idx, BATCH_SIZE))
+
+def category_data(tid, page=1, extend=None, filter=None, prefetch=True):
+    try:
+        page = int(page)
+    except (TypeError, ValueError):
+        page = 1
+    page = max(1, page)
+    batch_idx, sub = divmod(page - 1, BATCH_PAGES)   # 第几批、批内第几页
+    posts = _fetch_batch(tid, batch_idx)
+
+    start = sub * PER_PAGE
+    chunk = posts[start:start + PER_PAGE]
 
     lst, seen = [], set()
-    for p in posts:
+    for p in chunk:
         pid = p.get("id")
         if pid in seen:
             continue
         seen.add(pid)
         lst.append(post_to_vod(p))
-    return {
+
+    # 页数：本批未满说明到尾了，可精确计算；满批则预留后续批次空间
+    n = len(posts)
+    batch_start = batch_idx * BATCH_PAGES + 1
+    if n >= BATCH_SIZE:
+        pagecount = page + BATCH_PAGES
+    else:
+        pages_in_batch = (n + PER_PAGE - 1) // PER_PAGE
+        pagecount = batch_start + pages_in_batch - 1
+    result = {
         "page": page,
-        "pagecount": page + 1 if len(posts) >= PER_PAGE else page,
+        "pagecount": max(pagecount, page),
         "limit": PER_PAGE,
         "total": 0,
         "list": lst,
     }
+    if prefetch and n >= BATCH_SIZE:
+        _prefetch_next(tid, batch_idx + 1)
+    return result
+
+def _prefetch_next(tid, next_batch_idx):
+    """后台并发预热后续批次：一次等待就把接下来 N 批数据备好。
+    TVBox 每次翻页可能是全新进程，预取结果写入磁盘缓存跨进程共享。"""
+    try:
+        pending = []
+        for b in range(next_batch_idx, next_batch_idx + max(1, PREFETCH_BATCHES)):
+            params = _cat_params(tid, b, BATCH_SIZE)
+            q = urllib.parse.urlencode(params, doseq=True)
+            url = "%s/posts?%s" % (API, q)
+            if _disk_cache_get(url, DISK_CACHE_TTL) is None:
+                pending.append(b)
+        if not pending:
+            return
+        # 并发拉取，避免串行叠加每批 1.5~3.5s 的延迟
+        def _warm(b):
+            try:
+                _fetch_batch(tid, b)
+            except Exception:
+                pass
+        if ThreadPoolExecutor is not None:
+            workers = min(len(pending), 6)
+            ex = ThreadPoolExecutor(max_workers=workers)
+            for b in pending:
+                ex.submit(_warm, b)
+            threading.Thread(target=lambda: (ex.shutdown(wait=True)), daemon=True).start()
+        else:
+            for b in pending:
+                threading.Thread(target=_warm, args=(b,), daemon=True).start()
+    except Exception:
+        pass
 
 def detail_data(vid):
     vid = str(vid or "")
@@ -1717,6 +1981,7 @@ class Spider:
         return []
 
     def init(self, extend=""):
+        global LIST_CACHE_TTL
         try:
             self.p6.init(extend)
         except Exception:
@@ -1731,12 +1996,42 @@ class Spider:
                 PIC_PROXY["port"] = int(port)
             except (TypeError, ValueError):
                 pass
+        mirrors = ext.get("pic_mirrors")
+        if isinstance(mirrors, str) and mirrors.strip():
+            picked = tuple(m.strip() for m in mirrors.split(",") if m.strip())
+            if picked:
+                PIC_PROXY["mirrors"] = picked
+        ttl = ext.get("list_cache_ttl")
+        if ttl is not None:
+            try:
+                LIST_CACHE_TTL = max(0, min(86400, int(ttl)))
+            except (TypeError, ValueError):
+                pass
+        dttl = ext.get("disk_cache_ttl")
+        if dttl is not None:
+            try:
+                global DISK_CACHE_TTL
+                DISK_CACHE_TTL = max(0, min(604800, int(dttl)))
+            except (TypeError, ValueError):
+                pass
+        pf = ext.get("prefetch_batches")
+        if pf is not None:
+            try:
+                global PREFETCH_BATCHES
+                PREFETCH_BATCHES = max(0, min(8, int(pf)))
+            except (TypeError, ValueError):
+                pass
         return None
 
     def homeContent(self, filter=None):
         classes = [{"type_id": str(c["type_id"]), "type_name": c["type_name"]}
             for c in CATE]
         classes.append({"type_id": "root", "type_name": "6盘"})
+        # 后台预热：用户看首页/选分类的这段时间提前拉好数据，点进去秒开
+        try:
+            threading.Thread(target=warmup_all, daemon=True).start()
+        except Exception:
+            pass
         return {"class": classes, "filters": {}}
 
     def homeVideoContent(self):
@@ -1953,6 +2248,7 @@ class Spider:
         self._entity_stop = True
         self._entity_event.set()
         self._home_videos_cache = None
+        _api_cache.clear()
         try:
             self.p6.destroy()
         except Exception:
