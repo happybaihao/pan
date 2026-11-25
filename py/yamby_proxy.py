@@ -12,6 +12,7 @@ import sys
 import json
 import time
 import hashlib
+import threading
 from uuid import uuid4
 import requests
 from urllib.parse import quote, urljoin
@@ -25,6 +26,10 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 # 模块级缓存：同一进程内复用 token，避免每次调用都重新登录
 _CACHE = {}
 _TOKEN_TTL = 6 * 3600
+
+# 播放地址缓存：同一集反复播（换线路、拖进度、暂停继续）不再重复解析
+_PLAY_CACHE = {}
+_PLAY_TTL = 1800
 
 _VIDEO_EXT = ('mp4', 'mkv', 'avi', 'ts', 'm2ts', 'mov', 'flv', 'wmv', 'webm',
               'rmvb', 'rm', 'mpg', 'mpeg', 'm4v', '3gp', 'iso', 'ass', 'srt')
@@ -67,13 +72,25 @@ class Spider(BaseSpider):
         # imageKey: 封面地址带上 api_key，服务器禁止匿名取图时也能显示
         self.imageKey = bool(cfg.get('imageKey', True))
 
-        # ---- strm / 远程源 ----
-        # strmMode: auto = 自动（能直出就给 Emby 地址，要跳转就取到真实直链）
-        #           emby = 只给 Emby 的 stream 地址（让播放器自己跟 302）
-        #           direct = 优先给 strm 文件里写的那个远程地址
-        self.strmMode = str(cfg.get('strmMode', 'auto') or 'auto').strip().lower()
-        if self.strmMode not in ('auto', 'emby', 'direct'):
-            self.strmMode = 'auto'
+        # ---- 播放线路（v3 新增）----
+        # playMode: emby = 播放器请求 Emby 的 stream 接口，由服务器 302 到网盘 CDN
+        #                  （和 Emby 官方客户端 / SenPlayer 完全同一条路，兼容性最好，默认）
+        #           cdn  = 脚本先把 302 跟到底，把网盘 CDN 直链直接交给播放器
+        #                  （少一跳，但超长带编码的 CDN 地址部分播放器啃不动，会卡住）
+        #           auto = 两条各拉一点数据实测，挑快的交给播放器
+        self.playMode = str(cfg.get('playMode', '') or '').strip().lower()
+        if self.playMode not in ('emby', 'cdn', 'auto'):
+            # 兼容旧配置里的 strmMode
+            sm = str(cfg.get('strmMode', '') or '').strip().lower()
+            self.playMode = {'direct': 'cdn', 'emby': 'emby', 'auto': 'emby'}.get(sm, 'emby')
+
+        # prewarm: 给直链做一次小流量预热，播放器接上去时 CDN 边缘已经在回源，起播更快
+        self.prewarm = bool(cfg.get('prewarm', True))
+        # lineSwitch: 详情页给两条线路（直连 / 高速），播不动可以一键切
+        self.lineSwitch = bool(cfg.get('lineSwitch', True))
+
+        # 旧字段继续保留，供 _build_play_url 内部复用
+        self.strmMode = self.playMode
         # strmResolve: auto 模式下，Emby 地址不通时是否继续解析 strm 里的远程地址
         self.strmResolve = bool(cfg.get('strmResolve', True))
         # strmProbe: 对 strm 做可用性探测（关闭可省 1-3 秒，但失败时不会自动回退）
@@ -465,6 +482,7 @@ class Spider(BaseSpider):
                 if not sources:
                     sources = [{}]
 
+                lines_e, lines_c = [], []
                 for idx, s in enumerate(sources):
                     label = s.get('Name') or ('源%d' % (idx + 1))
                     if self._is_remote(s):
@@ -472,12 +490,14 @@ class Spider(BaseSpider):
                     label = label.replace('#', '-').replace('$', '|')
                     sid = str(s.get('Id') or '')
                     self._remember(did, s)
-                    play_from.append('EMBY-%s' % label)
-                    play_url.append('播放$%s' % (did + ('_' + sid if sid else '')))
+                    pid_base = did + ('_' + sid if sid else '')
+                    lines_e.append('%s$%s_e' % (label, pid_base))
+                    lines_c.append('%s$%s_c' % (label, pid_base))
+
+                play_from, play_url = self._lines(play_from, play_url, lines_e, lines_c, 'EMBY')
             else:
                 # 剧集 / 季
-                play_from.append('EMBY-剧集')
-                eps = []
+                eps_e, eps_c = [], []
                 rs = self._rq('GET', '/emby/Shows/%s/Seasons' % did, token=token,
                               params={'UserId': uid})
                 seasons = []
@@ -514,10 +534,14 @@ class Spider(BaseSpider):
                         eid = ep.get('Id', '')
                         if not eid:
                             continue
-                        eps.append('%s$%s' % (label, eid + ('_' + source_id if source_id else '')))
-                if eps:
-                    play_url.append('#'.join(eps))
+                        pid_base = eid + ('_' + source_id if source_id else '')
+                        eps_e.append('%s$%s_e' % (label, pid_base))
+                        eps_c.append('%s$%s_c' % (label, pid_base))
+
+                if eps_e:
+                    play_from, play_url = self._lines(play_from, play_url, eps_e, eps_c, 'EMBY-剧集')
                 else:
+                    play_from.append('EMBY-剧集')
                     play_url.append('')
 
             vod['vod_play_from'] = '$$$'.join(play_from)
@@ -527,11 +551,35 @@ class Spider(BaseSpider):
             return {'list': []}
 
     # ---------------- 播放 ----------------
+    def _lines(self, play_from, play_url, lines_e, lines_c, tag):
+        """把一个条目的播放地址拆成两条线路：
+           -直连 = 走 Emby 的 stream 接口（和 SenPlayer / 官方客户端同一条路）
+           -高速 = 脚本跟完 302，把网盘 CDN 直链直接给播放器
+        """
+        if not lines_e:
+            play_from.append(tag)
+            play_url.append('')
+            return play_from, play_url
+        if self.lineSwitch:
+            play_from.append(tag + '-直连')
+            play_url.append('#'.join(lines_e))
+            play_from.append(tag + '-高速')
+            play_url.append('#'.join(lines_c))
+        else:
+            play_from.append(tag)
+            play_url.append('#'.join(lines_c if self.playMode == 'cdn' else lines_e))
+        return play_from, play_url
+
     def playerContent(self, flag, pid, vipFlags):
         try:
             pid = str(pid)
-            item_id = pid.split('_', 1)[0]
-            source_id = pid.split('_', 1)[1] if '_' in pid else ''
+            mode = ''
+            body = pid
+            if '_' in body:
+                head, tail = body.rsplit('_', 1)
+                if tail in ('e', 'c'):
+                    mode, body = tail, head
+            item_id, _, source_id = body.partition('_')
 
             info = self.getAccessToken()
             if not info:
@@ -541,7 +589,7 @@ class Spider(BaseSpider):
             uid = info['User']['Id']
 
             src = self._lookup_source(item_id, source_id, uid, token)
-            url = self._build_play_url(item_id, source_id, uid, token, src)
+            url, kind = self._build_play_url(item_id, source_id, uid, token, src, mode)
 
             if not url:
                 return {'url': '', 'msg': '无可用播放地址'}
@@ -550,63 +598,167 @@ class Spider(BaseSpider):
                 url = '%s?url=%s&thread=%d' % (self.threadBase.rstrip('/'),
                                                quote(url, safe=''), self.thread)
 
-            return {'url': url, 'header': dict(self.header), 'parse': 0}
+            hdr = dict(self.header)
+            if kind == 'emby':
+                # 这条地址要回 Emby 服务器，token 走请求头（URL 里带 token 会被 nginx 拦）
+                hdr['X-Emby-Token'] = token
+            return {'url': url, 'header': hdr, 'parse': 0}
         except Exception as e:
             return {'url': '', 'msg': '播放解析异常: %s' % str(e)}
 
-    def _build_play_url(self, item_id, source_id, uid, token, src):
-        """普通文件走老路；strm / 远程源走专用通路"""
+    def _build_play_url(self, item_id, source_id, uid, token, src, mode=''):
+        """返回 (播放地址, 类型)。类型：emby = 回 Emby 服务器；cdn = 网盘直链"""
+        if mode not in ('e', 'c', 'a'):
+            mode = {'cdn': 'c', 'emby': 'e', 'auto': 'a'}.get(self.playMode, 'e')
+
         emby_url = self._stream_url(item_id, source_id, token)
-        src = src or {}
-        remote = str(src.get('Path') or '').strip()
-        is_remote = self._is_remote(src)
 
-        # ---------- 普通本地文件 ----------
-        if not is_remote:
-            if self.silentPlay:
-                if not self.probe or self._probe(emby_url, token):
-                    return emby_url
-                return self._pb_play_url(item_id, source_id, uid, token) or emby_url
-            return self._pb_play_url(item_id, source_id, uid, token) or emby_url
+        if mode == 'e':
+            return emby_url, 'emby'
 
-        # ---------- strm / 远程源 ----------
-        mode = self.strmMode
+        if mode == 'c':
+            u = self._cdn_url(item_id, source_id, uid, token, src)
+            if u:
+                return u, 'cdn'
+            return emby_url, 'emby'
 
-        if mode == 'direct':
-            if remote.startswith('http'):
-                return remote
-            return self._pb_play_url(item_id, source_id, uid, token) or emby_url
+        # auto：上次测过就直接用结论；没测过就先秒开 Emby，后台去测，下次自动选最优
+        pk = 'pick|%s|%s' % (item_id, source_id)
+        hit = _PLAY_CACHE.get(pk)
+        if hit and hit[1] > time.time() - _PLAY_TTL:
+            return hit[0]
+        try:
+            t = threading.Thread(target=self._learn, args=(item_id, source_id, uid, token, src))
+            t.setDaemon(True)
+            t.start()
+        except Exception:
+            pass
+        return emby_url, 'emby'
 
-        if mode == 'emby':
-            return emby_url
+    def _cdn_url(self, item_id, source_id, uid, token, src, warm=None):
+        """把 Emby 的 302 跟到底，拿到网盘 CDN 直链（带缓存）"""
+        ck = 'cdn|%s|%s' % (item_id, source_id)
+        hit = _PLAY_CACHE.get(ck)
+        if hit and hit[1] > time.time() - _PLAY_TTL:
+            return hit[0]
 
-        # auto：先看 Emby 这条地址是直接出流还是要跳转
-        if self.strmProbe:
-            target, kind = self._resolve_play(emby_url, token)
-            if kind == 'stream':
-                # 直接 200/206 出流，交给 Emby 自己服务
-                return emby_url
-            if kind == 'redirect':
-                if self._is_m3u8(target):
-                    # 切片地址：给到 m3u8，播放器按它自己解析分片
-                    return target
-                return target
+        emby_url = self._stream_url(item_id, source_id, token)
+        target, kind = self._resolve_play(emby_url, token)
+        url = ''
+        if kind == 'redirect' and target:
+            url = target
+        elif kind == 'stream':
+            url = ''            # Emby 自己直出流，没有单独的 CDN 地址
         else:
-            # 不探测就直接给 Emby 地址（大多数播放器能跟 302）
-            return emby_url
+            # Emby 这条不通：退到 strm 文件里写的远程地址
+            remote = str((src or {}).get('Path') or '')
+            if remote.startswith('http') and self.strmResolve:
+                t2, k2 = self._resolve_play(remote, None)
+                url = t2 if (k2 == 'redirect' and t2) else remote
 
-        # Emby 这条不通：退到 strm 文件里写的远程地址
-        if remote.startswith('http') and self.strmResolve:
-            t2, k2 = self._resolve_play(remote, None)
-            if k2 == 'redirect' and t2:
-                return t2
-            if k2 == 'stream':
-                return remote
-            return remote
+        if url:
+            _PLAY_CACHE[ck] = (url, time.time())
+            do_warm = self.prewarm if warm is None else warm
+            if do_warm:
+                try:
+                    t = threading.Thread(target=self._warm, args=(url,))
+                    t.setDaemon(True)
+                    t.start()
+                except Exception:
+                    pass
+        return url
 
-        # 再退 PlaybackInfo
-        pb = self._pb_play_url(item_id, source_id, uid, token)
-        return pb or emby_url
+    def _warm(self, url, nbytes=1048576):
+        """小流量预热：让 CDN 边缘把开头数据先拉上来，播放器接上去首字节更快"""
+        try:
+            s = requests.Session()
+            s.verify = False
+            if getattr(self, 'proxy_str', ''):
+                s.proxies = dict(self.session.proxies)
+            s.headers.update(self.header)
+            r = s.get(url, stream=True, timeout=(6, 10), allow_redirects=True)
+            got = 0
+            for c in r.iter_content(131072):
+                got += len(c)
+                if got >= nbytes:
+                    break
+            try:
+                r.close()
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+    def _speed_probe(self, url, headers, nbytes=131072, timeout=5):
+        """真拉一小段测速，返回 (KB/s, 首字节秒)；失败给 (0, 99)"""
+        t0 = time.time()
+        deadline = t0 + 2.5
+        got = 0
+        ttfb = 0
+        s = None
+        try:
+            s = requests.Session()
+            s.verify = False
+            if getattr(self, 'proxy_str', ''):
+                s.proxies = dict(self.session.proxies)
+            r = s.get(url, headers=headers, stream=True,
+                      timeout=(timeout, timeout), allow_redirects=True)
+            if r.status_code not in (200, 206):
+                try:
+                    r.close()
+                except Exception:
+                    pass
+                return 0, 99
+            for c in r.iter_content(65536):
+                if got == 0:
+                    ttfb = time.time() - t0
+                got += len(c)
+                if got >= nbytes or time.time() > deadline:
+                    break
+            try:
+                r.close()
+            except Exception:
+                pass
+        except Exception:
+            return 0, 99
+        dt = max(time.time() - t0, 0.05)
+        return got / 1024.0 / dt, ttfb
+
+    def _learn(self, item_id, source_id, uid, token, src):
+        """后台跑：两条线路各拉一小段实测，把快的记下来，下次播放直接用"""
+        try:
+            emby_url = self._stream_url(item_id, source_id, token)
+            cdn_url = self._cdn_url(item_id, source_id, uid, token, src, warm=False)
+            pk = 'pick|%s|%s' % (item_id, source_id)
+            if not cdn_url:
+                _PLAY_CACHE[pk] = ((emby_url, 'emby'), time.time())
+                return
+
+            res = {}
+
+            def probe(tag, u, headers):
+                res[tag] = self._speed_probe(u, headers, nbytes=131072, timeout=5)
+
+            h1 = dict(self.header)
+            h1['X-Emby-Token'] = token
+            t1 = threading.Thread(target=probe, args=('e', emby_url, h1))
+            t2 = threading.Thread(target=probe, args=('c', cdn_url, dict(self.header)))
+            t1.setDaemon(True)
+            t2.setDaemon(True)
+            t1.start()
+            t2.start()
+            t1.join(6)
+            t2.join(6)
+
+            se = res.get('e', (0, 99))
+            sc = res.get('c', (0, 99))
+            # 直链要明显快才切过去，否则保持和客户端一致的 Emby 直连
+            if sc[0] > se[0] * 1.2 and sc[0] > 0:
+                _PLAY_CACHE[pk] = ((cdn_url, 'cdn'), time.time())
+            else:
+                _PLAY_CACHE[pk] = ((emby_url, 'emby'), time.time())
+        except Exception:
+            pass
 
     def _stream_url(self, item_id, source_id, token):
         q = 'static=true&api_key=%s' % token
@@ -634,7 +786,7 @@ class Spider(BaseSpider):
                 headers['Range'] = 'bytes=0-1'
             try:
                 r = self.session.get(url, headers=headers, allow_redirects=False,
-                                     stream=True, timeout=max(20, self.timeout))
+                                     stream=True, timeout=max(8, min(self.timeout + 3, 15)))
                 code = r.status_code
                 loc = r.headers.get('Location') or ''
                 ctype = str(r.headers.get('Content-Type') or '').lower()
@@ -669,7 +821,7 @@ class Spider(BaseSpider):
         try:
             headers = dict(base_headers)
             r = self.session.get(url, headers=headers, allow_redirects=True,
-                                 stream=True, timeout=max(20, self.timeout))
+                                 stream=True, timeout=max(8, min(self.timeout + 3, 15)))
             final = r.url or url
             code = r.status_code
             try:
@@ -690,7 +842,7 @@ class Spider(BaseSpider):
             if token:
                 headers['X-Emby-Token'] = token
             r = self.session.get(url, headers=headers, stream=True,
-                                 timeout=max(20, self.timeout), allow_redirects=True)
+                                 timeout=max(8, min(self.timeout + 3, 15)), allow_redirects=True)
             code = r.status_code
             try:
                 r.close()
