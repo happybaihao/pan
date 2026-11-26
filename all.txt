@@ -2183,6 +2183,7 @@ CHC华诚影视,http://120.76.248.139/live/bfgd/4200000289.m3u8
 翡翠台,P2p://80.251.220.91:7999/114d4bdfcd993a587dbda655a2aeb984.m3u8
 翡翠台,P2p://80.251.220.91:7999/5a931ed422bf2e182d41abbca438a74b.m3u8
 凤凰中文,http://bobohome.ignorelist.com:20247/fengshows?id=2.m3u8
+凤凰中文,https://hrtv.118138.xyz/hr/5Yek5Yew5Lit5paH.m3u8
 凤凰中文HD,http://182.135.66.163:1888/rtp/239.94.2.51:5140
 凤凰中文HD,http://182.135.66.163:1888/rtp/239.94.2.52:5140
 凤凰中文,http://127.0.0.1:10079/p/0/proxy/https://cdn.qd.je/163189/fhzw
